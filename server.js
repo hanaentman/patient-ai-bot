@@ -19,6 +19,26 @@ const LOCAL_FAQ_URL = (
   || siteSources.find((source) => source.type === 'official' && /faq/i.test(source.title || ''))
   || { url: 'https://www.hanaent.co.kr/info/info07.html' }
 ).url;
+const faqCategoryUrlHints = {
+  reservation: 'reservation/reservation.html',
+  hours: 'info/info01.html',
+  location: 'info/info04.html',
+  documents: 'info/info06.html',
+  exam: 'info/info01.html',
+  admission: 'info/info02.html',
+  doctors_overview: 'doctor/doctor01.html',
+  doctors_nose: 'nose/nose01.html',
+  doctors_ear: 'ear/ear01.html',
+  doctors_throat_sleep: 'throat/throat01.html',
+  doctors_internal: 'neuro/neuro01.html',
+  doctor_schedule_general: 'reservation/schedule.html',
+  doctor_schedule_dong: 'reservation/schedule.html',
+  doctor_schedule_kimtaehyun: 'reservation/schedule.html',
+  doctor_schedule_jung: 'reservation/schedule.html',
+  doctor_schedule_joo: 'reservation/schedule.html',
+  doctor_schedule_jang: 'reservation/schedule.html',
+  doctor_schedule_nerve: 'reservation/schedule.html',
+};
 const sourceTypeWeights = {
   official: 1.0,
   external: 0.3,
@@ -268,11 +288,35 @@ async function fetchText(url) {
 function buildFaqDocuments() {
   return faqEntries.map((entry) => ({
     title: `FAQ - ${entry.category}`,
-    url: LOCAL_FAQ_URL,
+    url: getFaqSourceUrl(entry),
     text: `${entry.answer}\n${entry.followUp.join('\n')}`,
     keywords: entry.keywords,
     sourceType: 'official',
   }));
+}
+
+function getFaqSourceUrl(entry) {
+  const categoryHint = faqCategoryUrlHints[entry.category];
+  if (categoryHint) {
+    const matchedSource = siteSources.find((source) => (
+      source.type === 'official' && String(source.url || '').includes(categoryHint)
+    ));
+    if (matchedSource?.url) {
+      return matchedSource.url;
+    }
+  }
+
+  const keywordMatchedSource = siteSources.find((source) => {
+    if (source.type !== 'official') {
+      return false;
+    }
+
+    const sourceKeywords = source.keywords || [];
+    const entryKeywords = entry.keywords || [];
+    return entryKeywords.some((keyword) => sourceKeywords.includes(keyword));
+  });
+
+  return keywordMatchedSource?.url || LOCAL_FAQ_URL;
 }
 
 function extractPageTitle(html, fallbackTitle) {
@@ -618,11 +662,29 @@ async function buildChatResponse(rawMessage, sessionId) {
     type: 'ai',
     answer,
     followUp: [],
-    sources: contextDocs.slice(0, 3).map((doc) => ({
+    sources: dedupeSources(contextDocs).slice(0, 3),
+  };
+}
+
+function dedupeSources(docs) {
+  const seen = new Set();
+  const sources = [];
+
+  for (const doc of docs) {
+    const key = `${doc.title}::${doc.url}`;
+    if (seen.has(key) || seen.has(doc.url)) {
+      continue;
+    }
+
+    seen.add(key);
+    seen.add(doc.url);
+    sources.push({
       title: doc.title,
       url: doc.url,
-    })),
-  };
+    });
+  }
+
+  return sources;
 }
 
 function handleApiChat(req, res) {
