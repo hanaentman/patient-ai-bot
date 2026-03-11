@@ -4,6 +4,15 @@ const input = document.getElementById('message-input');
 const chips = document.querySelectorAll('.chip');
 const sessionId = `session-${crypto.randomUUID()}`;
 
+function isValidExternalUrl(value) {
+  try {
+    const url = new URL(value, window.location.origin);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch (error) {
+    return false;
+  }
+}
+
 function appendMessage(role, text, followUp = [], sources = []) {
   const wrapper = document.createElement('article');
   wrapper.className = `message ${role}`;
@@ -38,12 +47,16 @@ function appendMessage(role, text, followUp = [], sources = []) {
     const sourceList = document.createElement('ul');
     sources.forEach((source) => {
       const li = document.createElement('li');
-      const link = document.createElement('a');
-      link.href = source.url;
-      link.target = '_blank';
-      link.rel = 'noreferrer';
-      link.textContent = source.title;
-      li.appendChild(link);
+      if (isValidExternalUrl(source.url)) {
+        const link = document.createElement('a');
+        link.href = source.url;
+        link.target = '_blank';
+        link.rel = 'noreferrer';
+        link.textContent = source.title;
+        li.appendChild(link);
+      } else {
+        li.textContent = source.title;
+      }
       sourceList.appendChild(li);
     });
 

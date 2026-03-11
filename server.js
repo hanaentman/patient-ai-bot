@@ -14,6 +14,11 @@ const faqEntries = JSON.parse(fs.readFileSync(FAQ_PATH, 'utf8'));
 const siteSources = JSON.parse(fs.readFileSync(SITE_SOURCES_PATH, 'utf8'));
 const sessions = new Map();
 const allowedHostnames = ['www.hanaent.co.kr', 'hanaent.co.kr'];
+const LOCAL_FAQ_URL = (
+  siteSources.find((source) => source.type === 'official' && /faq|info07/i.test(source.url))
+  || siteSources.find((source) => source.type === 'official' && /faq/i.test(source.title || ''))
+  || { url: 'https://www.hanaent.co.kr/info/info07.html' }
+).url;
 const sourceTypeWeights = {
   official: 1.0,
   external: 0.3,
@@ -263,7 +268,7 @@ async function fetchText(url) {
 function buildFaqDocuments() {
   return faqEntries.map((entry) => ({
     title: `FAQ - ${entry.category}`,
-    url: 'local-faq',
+    url: LOCAL_FAQ_URL,
     text: `${entry.answer}\n${entry.followUp.join('\n')}`,
     keywords: entry.keywords,
     sourceType: 'official',
