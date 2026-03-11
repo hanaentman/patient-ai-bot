@@ -74,6 +74,9 @@ const documentCache = {
   docs: [],
   pendingPromise: null,
 };
+const responseCache = new Map();
+const RESPONSE_CACHE_TTL_MS = 10 * 60 * 1000;
+const RESPONSE_CACHE_MAX_ENTRIES = 200;
 let warmupStarted = false;
 const faqDocuments = buildFaqDocuments();
 const localDocuments = buildLocalDocuments();
@@ -114,6 +117,95 @@ function getScore(message, keywords) {
 
 function matchesAnyPattern(message, patterns) {
   return patterns.some((pattern) => pattern.test(message));
+}
+
+function normalizeMessageForCache(message) {
+  return String(message || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function getCachedResponse(message) {
+  const key = normalizeMessageForCache(message);
+  if (!key) {
+    return null;
+  }
+
+  const cached = responseCache.get(key);
+  if (!cached) {
+    return null;
+  }
+
+  if (Date.now() - cached.createdAt > RESPONSE_CACHE_TTL_MS) {
+    responseCache.delete(key);
+    return null;
+  }
+
+  return cached.payload;
+}
+
+function setCachedResponse(message, payload) {
+  const key = normalizeMessageForCache(message);
+  if (!key) {
+    return;
+  }
+
+  if (responseCache.size >= RESPONSE_CACHE_MAX_ENTRIES) {
+    const oldestKey = responseCache.keys().next().value;
+    if (oldestKey) {
+      responseCache.delete(oldestKey);
+    }
+  }
+
+  responseCache.set(key, {
+    createdAt: Date.now(),
+    payload,
+  });
+}
+
+function findDirectFaqMatch(message) {
+  const normalizedMessage = normalizeMessageForCache(message);
+  const tokens = tokenize(normalizedMessage);
+
+  const rankedEntries = faqEntries
+    .map((entry) => {
+      const keywordScore = getScore(normalizedMessage, entry.keywords || []);
+      const answerText = `${entry.answer} ${(entry.followUp || []).join(' ')}`.toLowerCase();
+      const tokenScore = tokens.reduce((score, token) => (
+        answerText.includes(token) ? score + 1 : score
+      ), 0);
+
+      return {
+        entry,
+        score: keywordScore * 4 + tokenScore,
+      };
+    })
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  if (rankedEntries.length === 0) {
+    return null;
+  }
+
+  const [bestMatch, secondMatch] = rankedEntries;
+  const hasClearLead = !secondMatch || bestMatch.score >= secondMatch.score + 3;
+  const isStrongMatch = bestMatch.score >= 8 || (bestMatch.score >= 5 && hasClearLead);
+
+  if (!isStrongMatch) {
+    return null;
+  }
+
+  const sourceInfo = getFaqSourceInfo(bestMatch.entry);
+  return {
+    type: 'faq',
+    answer: bestMatch.entry.answer,
+    followUp: bestMatch.entry.followUp || [],
+    sources: [{
+      title: sourceInfo.title,
+      url: sourceInfo.url,
+    }],
+  };
 }
 
 function createRestrictedMedicalResponse() {
@@ -723,6 +815,17 @@ async function buildChatResponse(rawMessage, sessionId) {
     return createRestrictedMedicalResponse();
   }
 
+  const cachedResponse = getCachedResponse(message);
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+
+  const directFaqResponse = findDirectFaqMatch(message);
+  if (directFaqResponse) {
+    setCachedResponse(message, directFaqResponse);
+    return directFaqResponse;
+  }
+
   if (!OPENAI_API_KEY) {
     return createApiKeyMissingResponse();
   }
@@ -744,12 +847,15 @@ async function buildChatResponse(rawMessage, sessionId) {
   ];
   saveSessionHistory(sessionId, nextHistory);
 
-  return {
+  const responsePayload = {
     type: 'ai',
     answer,
     followUp: [],
     sources: dedupeSources(contextDocs).slice(0, 3),
   };
+
+  setCachedResponse(message, responsePayload);
+  return responsePayload;
 }
 
 function dedupeSources(docs) {
