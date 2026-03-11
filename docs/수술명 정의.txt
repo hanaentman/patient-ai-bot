@@ -1,0 +1,25 @@
+비내시경 근본 수술(편측)	ESS,FESS(편측)
+비내시경 근본 수술(양측)	ESS,FESS(양측)
+하비갑개점막하절제술(편측)	SMT(편측)
+하비갑개점막하절제술(양측)	SMT(양측)
+비중격만곡증+하비갑개점막하절제술	S+SMT
+KTP레이져	KTP
+구개인두성형술	UPPP
+후두미세수술	LMS
+수면다원검사	PSG
+네비게이션	NAVIGATION
+편도절제술	Tonsillectomy
+고막환기관 삽입술(양측)	V-tube(양측)
+고막환기관 삽입술(편측)	V-tube(편측)
+아데노이드절제술	Adenoidectomy
+편도및아데노이드	T&A
+수면내시경검사	수면내시경검사
+고실성형술	tympanotomy
+비중격교정술	Septoturbinoplasty
+설소대 절제술	frenotomy
+악하선관 타석증 구강내 제거술	SMG Stone removal
+부비동 풍선확장술	Balloon catheter Sinus Plasty
+전이개 누공 절제술(편측)	fistulectomy(편측)
+전이개 누공 절제술(양측)	fistulectomy(양측)
+Closed reduction	Closed reduction
+epiglottectomy	epiglottectomy

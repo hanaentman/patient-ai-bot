@@ -9,6 +9,7 @@ const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-5-mini';
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const FAQ_PATH = path.join(__dirname, 'data', 'faq.json');
 const SITE_SOURCES_PATH = path.join(__dirname, 'data', 'site-sources.json');
+const DOCS_DIR = path.join(__dirname, 'docs');
 
 const faqEntries = JSON.parse(fs.readFileSync(FAQ_PATH, 'utf8'));
 const siteSources = JSON.parse(fs.readFileSync(SITE_SOURCES_PATH, 'utf8'));
@@ -41,6 +42,7 @@ const faqCategoryUrlHints = {
 };
 const sourceTypeWeights = {
   official: 1.0,
+  local: 1.0,
   external: 0.3,
   low_trust: 0.1,
 };
@@ -74,6 +76,7 @@ const documentCache = {
 };
 let warmupStarted = false;
 const faqDocuments = buildFaqDocuments();
+const localDocuments = buildLocalDocuments();
 
 function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -301,6 +304,57 @@ function buildFaqDocuments() {
   });
 }
 
+function buildLocalDocuments() {
+  if (!fs.existsSync(DOCS_DIR)) {
+    return [];
+  }
+
+  const supportedExtensions = new Set(['.txt']);
+  const files = fs.readdirSync(DOCS_DIR, { withFileTypes: true });
+  const docs = [];
+
+  for (const file of files) {
+    if (!file.isFile()) {
+      continue;
+    }
+
+    const extension = path.extname(file.name).toLowerCase();
+    if (!supportedExtensions.has(extension)) {
+      continue;
+    }
+
+    const filePath = path.join(DOCS_DIR, file.name);
+    const rawText = fs.readFileSync(filePath, 'utf8');
+    const text = rawText
+      .replace(/\r/g, '')
+      .replace(/\t/g, ' ')
+      .replace(/\n\s*\n+/g, '\n')
+      .trim();
+
+    if (!text) {
+      continue;
+    }
+
+    const chunks = splitIntoChunks(text, 700);
+    const keywords = tokenize(`${path.parse(file.name).name} ${text}`).slice(0, 40);
+
+    chunks.forEach((chunk, index) => {
+      docs.push({
+        title: '내부 문서',
+        sourceTitle: '내부 문서',
+        url: '',
+        text: chunk,
+        keywords,
+        sourceType: 'local',
+        hiddenSource: true,
+        chunkLabel: `${file.name}${chunks.length > 1 ? ` #${index + 1}` : ''}`,
+      });
+    });
+  }
+
+  return docs;
+}
+
 function getFaqSourceInfo(entry) {
   const categoryHint = faqCategoryUrlHints[entry.category];
   if (categoryHint) {
@@ -471,6 +525,7 @@ async function getKnowledgeDocuments() {
     documentCache.pendingPromise = (async () => {
       const docs = [
         ...faqDocuments,
+        ...localDocuments,
         ...(await crawlOfficialSite()),
         ...(await loadTrustedExternalDocuments()),
       ];
@@ -500,7 +555,7 @@ async function getDocumentsForRequest() {
   }
 
   warmupKnowledgeDocuments();
-  return faqDocuments;
+  return [...faqDocuments, ...localDocuments];
 }
 
 function warmupKnowledgeDocuments() {
@@ -702,6 +757,10 @@ function dedupeSources(docs) {
   const sources = [];
 
   for (const doc of docs) {
+    if (doc.hiddenSource) {
+      continue;
+    }
+
     const key = `${doc.title}::${doc.url}`;
     if (seen.has(key) || seen.has(doc.url)) {
       continue;
