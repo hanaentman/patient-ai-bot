@@ -73,6 +73,7 @@ const documentCache = {
   pendingPromise: null,
 };
 let warmupStarted = false;
+const faqDocuments = buildFaqDocuments();
 
 function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -396,7 +397,7 @@ async function crawlOfficialSite() {
 
   const visited = new Set();
   const docs = [];
-  const maxPages = 45;
+  const maxPages = 18;
 
   while (queue.length > 0 && visited.size < maxPages) {
     const current = queue.shift();
@@ -451,7 +452,7 @@ async function getKnowledgeDocuments() {
   if (!documentCache.pendingPromise) {
     documentCache.pendingPromise = (async () => {
       const docs = [
-        ...buildFaqDocuments(),
+        ...faqDocuments,
         ...(await crawlOfficialSite()),
         ...(await loadTrustedExternalDocuments()),
       ];
@@ -470,6 +471,18 @@ async function getKnowledgeDocuments() {
   }
 
   return documentCache.pendingPromise;
+}
+
+async function getDocumentsForRequest() {
+  const maxAgeMs = 6 * 60 * 60 * 1000;
+  const now = Date.now();
+
+  if (documentCache.docs.length > 0 && now - documentCache.loadedAt < maxAgeMs) {
+    return documentCache.docs;
+  }
+
+  warmupKnowledgeDocuments();
+  return faqDocuments;
 }
 
 function warmupKnowledgeDocuments() {
@@ -641,7 +654,7 @@ async function buildChatResponse(rawMessage, sessionId) {
     return createApiKeyMissingResponse();
   }
 
-  const docs = await getKnowledgeDocuments();
+  const docs = await getDocumentsForRequest();
   const contextDocs = rankDocuments(message, docs);
 
   if (contextDocs.length === 0) {
