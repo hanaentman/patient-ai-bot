@@ -15,29 +15,29 @@ const siteSources = JSON.parse(fs.readFileSync(SITE_SOURCES_PATH, 'utf8'));
 const sessions = new Map();
 const allowedHostnames = ['www.hanaent.co.kr', 'hanaent.co.kr'];
 const LOCAL_FAQ_URL = (
-  siteSources.find((source) => source.type === 'official' && /faq|info07/i.test(source.url))
+  siteSources.find((source) => source.type === 'official' && /faq|info06/i.test(source.url))
   || siteSources.find((source) => source.type === 'official' && /faq/i.test(source.title || ''))
-  || { url: 'https://www.hanaent.co.kr/info/info07.html' }
+  || { url: 'https://www.hanaent.co.kr/info/info06.html' }
 ).url;
 const faqCategoryUrlHints = {
   reservation: 'info/info05.html',
   hours: 'info/info01.html',
   location: 'info/info04.html',
-  documents: 'info/info06.html',
+  documents: 'info/info09.html',
   exam: 'info/info01.html',
-  admission: 'info/info02.html',
-  doctors_overview: 'doctor/doctor01.html',
+  admission: 'info/info03.html',
+  doctors_overview: 'intro/intro02.html',
   doctors_nose: 'nose/nose01.html',
   doctors_ear: 'ear/ear01.html',
-  doctors_throat_sleep: 'throat/throat01.html',
-  doctors_internal: 'neuro/neuro01.html',
-  doctor_schedule_general: 'reservation/schedule.html',
-  doctor_schedule_dong: 'reservation/schedule.html',
-  doctor_schedule_kimtaehyun: 'reservation/schedule.html',
-  doctor_schedule_jung: 'reservation/schedule.html',
-  doctor_schedule_joo: 'reservation/schedule.html',
-  doctor_schedule_jang: 'reservation/schedule.html',
-  doctor_schedule_nerve: 'reservation/schedule.html',
+  doctors_throat_sleep: 'neck/neck01.html',
+  doctors_internal: 'nerve/nerve01.html',
+  doctor_schedule_general: 'info/info01.html',
+  doctor_schedule_dong: 'info/info01.html',
+  doctor_schedule_kimtaehyun: 'info/info01.html',
+  doctor_schedule_jung: 'info/info01.html',
+  doctor_schedule_joo: 'info/info01.html',
+  doctor_schedule_jang: 'info/info01.html',
+  doctor_schedule_nerve: 'info/info01.html',
 };
 const sourceTypeWeights = {
   official: 1.0,

@@ -14,7 +14,7 @@
   {
     "type": "official",
     "title": "입퇴원안내",
-    "url": "https://www.hanaent.co.kr/info/info02.html",
+    "url": "https://www.hanaent.co.kr/info/info03.html",
     "keywords": ["입원", "퇴원", "병실", "입원절차"]
   },
   {
@@ -26,25 +26,25 @@
   {
     "type": "official",
     "title": "서류발급안내",
-    "url": "https://www.hanaent.co.kr/info/info06.html",
+    "url": "https://www.hanaent.co.kr/info/info09.html",
     "keywords": ["서류", "제증명", "진단서", "의무기록"]
   },
   {
     "type": "official",
     "title": "의료진 소개",
-    "url": "https://www.hanaent.co.kr/doctor/doctor01.html",
+    "url": "https://www.hanaent.co.kr/intro/intro02.html",
     "keywords": ["의료진", "원장", "전문의", "의사"]
   },
   {
     "type": "official",
     "title": "진료일정",
-    "url": "https://www.hanaent.co.kr/reservation/schedule.html",
+    "url": "https://www.hanaent.co.kr/info/info01.html",
     "keywords": ["진료일정", "진료시간", "원장 일정", "토요일"]
   },
   {
     "type": "official",
     "title": "자주 묻는 질문",
-    "url": "https://www.hanaent.co.kr/info/info07.html",
+    "url": "https://www.hanaent.co.kr/info/info06.html",
     "keywords": ["faq", "자주 묻는 질문", "문의", "안내"]
   },
   {
@@ -62,7 +62,7 @@
   {
     "type": "official",
     "title": "목 질환 센터",
-    "url": "https://www.hanaent.co.kr/throat/throat01.html",
+    "url": "https://www.hanaent.co.kr/neck/neck01.html",
     "keywords": ["목", "편도", "갑상선", "인후두"]
   },
   {
@@ -80,7 +80,7 @@
   {
     "type": "official",
     "title": "신경과 소개",
-    "url": "https://www.hanaent.co.kr/neuro/neuro01.html",
+    "url": "https://www.hanaent.co.kr/nerve/nerve01.html",
     "keywords": ["신경과", "불면증", "두통", "어지럼증"]
   },
   {
