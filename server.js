@@ -20,7 +20,7 @@ const LOCAL_FAQ_URL = (
   || { url: 'https://www.hanaent.co.kr/info/info07.html' }
 ).url;
 const faqCategoryUrlHints = {
-  reservation: 'reservation/reservation.html',
+  reservation: 'info/info05.html',
   hours: 'info/info01.html',
   location: 'info/info04.html',
   documents: 'info/info06.html',
