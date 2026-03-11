@@ -1,0 +1,9 @@
+.env
+.env.local
+.DS_Store
+Thumbs.db
+node_modules/
+*.log
+server*.out.log
+server*.err.log
+에이아이상담/

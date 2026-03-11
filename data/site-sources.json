@@ -1,0 +1,104 @@
+[
+  {
+    "type": "official",
+    "title": "하나이비인후과병원 메인",
+    "url": "https://www.hanaent.co.kr/",
+    "keywords": ["하나이비인후과", "병원", "소개", "센터"]
+  },
+  {
+    "type": "official",
+    "title": "외래진료안내",
+    "url": "https://www.hanaent.co.kr/info/info01.html",
+    "keywords": ["외래", "진료시간", "접수", "예약"]
+  },
+  {
+    "type": "official",
+    "title": "입퇴원안내",
+    "url": "https://www.hanaent.co.kr/info/info02.html",
+    "keywords": ["입원", "퇴원", "병실", "입원절차"]
+  },
+  {
+    "type": "official",
+    "title": "오시는길",
+    "url": "https://www.hanaent.co.kr/info/info04.html",
+    "keywords": ["주소", "위치", "오시는길", "주차", "셔틀"]
+  },
+  {
+    "type": "official",
+    "title": "서류발급안내",
+    "url": "https://www.hanaent.co.kr/info/info06.html",
+    "keywords": ["서류", "제증명", "진단서", "의무기록"]
+  },
+  {
+    "type": "official",
+    "title": "의료진 소개",
+    "url": "https://www.hanaent.co.kr/doctor/doctor01.html",
+    "keywords": ["의료진", "원장", "전문의", "의사"]
+  },
+  {
+    "type": "official",
+    "title": "진료일정",
+    "url": "https://www.hanaent.co.kr/reservation/schedule.html",
+    "keywords": ["진료일정", "진료시간", "원장 일정", "토요일"]
+  },
+  {
+    "type": "official",
+    "title": "자주 묻는 질문",
+    "url": "https://www.hanaent.co.kr/info/info07.html",
+    "keywords": ["faq", "자주 묻는 질문", "문의", "안내"]
+  },
+  {
+    "type": "official",
+    "title": "온라인 예약",
+    "url": "https://www.hanaent.co.kr/reservation/reservation.html",
+    "keywords": ["온라인 예약", "예약", "상담", "신청"]
+  },
+  {
+    "type": "official",
+    "title": "코 질환 센터",
+    "url": "https://www.hanaent.co.kr/nose/nose01.html",
+    "keywords": ["코", "비염", "축농증", "비중격"]
+  },
+  {
+    "type": "official",
+    "title": "목 질환 센터",
+    "url": "https://www.hanaent.co.kr/throat/throat01.html",
+    "keywords": ["목", "편도", "갑상선", "인후두"]
+  },
+  {
+    "type": "official",
+    "title": "귀 질환 센터",
+    "url": "https://www.hanaent.co.kr/ear/ear01.html",
+    "keywords": ["귀", "어지럼증", "난청", "이명"]
+  },
+  {
+    "type": "official",
+    "title": "수면 센터",
+    "url": "https://www.hanaent.co.kr/sleep/sleep01.html",
+    "keywords": ["수면", "코골이", "수면무호흡", "수면검사"]
+  },
+  {
+    "type": "official",
+    "title": "신경과 소개",
+    "url": "https://www.hanaent.co.kr/neuro/neuro01.html",
+    "keywords": ["신경과", "불면증", "두통", "어지럼증"]
+  },
+  {
+    "type": "external",
+    "title": "심평원 병원정보",
+    "url": "https://www.hira.or.kr/ra/hosp/hospInfoAjax.do?ykiho=JDQ4MTg4MSM1MSMkMSMkMCMkOTkkMzgxMzUxIzMxIyQxIyQzIyQ2MiQyNjE0ODEjNzEjJDEjJDgjJDgz",
+    "keywords": ["심평원", "병원정보", "주소", "전화번호", "병상"]
+  },
+  {
+    "type": "low_trust",
+    "title": "굿닥 병원 정보",
+    "url": "https://www.goodoc.co.kr/hospitals/58368",
+    "keywords": ["후기", "병원 정보", "진료시간", "주소"]
+  },
+  {
+    "type": "low_trust",
+    "title": "병원찾기 공개 정보",
+    "url": "https://hospital.vicharas.net/info/%ED%95%98%EB%82%98%EC%9D%B4%EB%B9%84%EC%9D%B8%ED%9B%84%EA%B3%BC%EB%B3%91%EC%9B%90-%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C-%EA%B0%95%EB%82%A8%EA%B5%AC-%EC%97%AD%EC%82%BC%EB%8F%99/",
+    "keywords": ["병원찾기", "공개정보", "주소", "진료과목"]
+  }
+]

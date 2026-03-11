@@ -1,0 +1,9 @@
+{
+  "name": "patient-ai-bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Hospital patient AI 상담봇 MVP",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
