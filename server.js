@@ -287,23 +287,31 @@ async function fetchText(url) {
 }
 
 function buildFaqDocuments() {
-  return faqEntries.map((entry) => ({
-    title: `FAQ - ${entry.category}`,
-    url: getFaqSourceUrl(entry),
-    text: `${entry.answer}\n${entry.followUp.join('\n')}`,
-    keywords: entry.keywords,
-    sourceType: 'official',
-  }));
+  return faqEntries.map((entry) => {
+    const sourceInfo = getFaqSourceInfo(entry);
+
+    return {
+      title: `FAQ - ${entry.category}`,
+      url: sourceInfo.url,
+      sourceTitle: sourceInfo.title,
+      text: `${entry.answer}\n${entry.followUp.join('\n')}`,
+      keywords: entry.keywords,
+      sourceType: 'official',
+    };
+  });
 }
 
-function getFaqSourceUrl(entry) {
+function getFaqSourceInfo(entry) {
   const categoryHint = faqCategoryUrlHints[entry.category];
   if (categoryHint) {
     const matchedSource = siteSources.find((source) => (
       source.type === 'official' && String(source.url || '').includes(categoryHint)
     ));
     if (matchedSource?.url) {
-      return matchedSource.url;
+      return {
+        title: matchedSource.title || matchedSource.url,
+        url: matchedSource.url,
+      };
     }
   }
 
@@ -317,7 +325,17 @@ function getFaqSourceUrl(entry) {
     return entryKeywords.some((keyword) => sourceKeywords.includes(keyword));
   });
 
-  return keywordMatchedSource?.url || LOCAL_FAQ_URL;
+  if (keywordMatchedSource?.url) {
+    return {
+      title: keywordMatchedSource.title || keywordMatchedSource.url,
+      url: keywordMatchedSource.url,
+    };
+  }
+
+  return {
+    title: 'FAQ',
+    url: LOCAL_FAQ_URL,
+  };
 }
 
 function extractPageTitle(html, fallbackTitle) {
@@ -692,7 +710,7 @@ function dedupeSources(docs) {
     seen.add(key);
     seen.add(doc.url);
     sources.push({
-      title: doc.title,
+      title: doc.sourceTitle || doc.title,
       url: doc.url,
     });
   }
