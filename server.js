@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { URL } = require('url');
+const XLSX = require('xlsx');
 
 const PORT = process.env.PORT || 3000;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
@@ -166,7 +167,7 @@ function setCachedResponse(message, payload) {
 
 function findDirectFaqMatch(message) {
   const normalizedMessage = normalizeMessageForCache(message);
-  const tokens = tokenize(normalizedMessage);
+  const tokens = tokenizeSafe(normalizedMessage);
 
   const rankedEntries = faqEntries
     .map((entry) => {
@@ -359,6 +360,25 @@ function tokenize(text) {
     .filter((token) => token.length >= 2);
 }
 
+function normalizeSearchText(text) {
+  return String(text || '')
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[^0-9a-zA-Z가-힣]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function compactSearchText(text) {
+  return normalizeSearchText(text).replace(/\s+/g, '');
+}
+
+function tokenize(text) {
+  return normalizeSearchText(text)
+    .split(' ')
+    .filter((token) => token.length >= 2);
+}
+
 async function fetchText(url) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
@@ -381,6 +401,25 @@ async function fetchText(url) {
   }
 }
 
+function normalizeSearchTextSafe(text) {
+  return String(text || '')
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function compactSearchTextSafe(text) {
+  return normalizeSearchTextSafe(text).replace(/\s+/g, '');
+}
+
+function tokenizeSafe(text) {
+  return normalizeSearchTextSafe(text)
+    .split(' ')
+    .filter((token) => token.length >= 2);
+}
+
 function buildFaqDocuments() {
   return faqEntries.map((entry) => {
     const sourceInfo = getFaqSourceInfo(entry);
@@ -396,12 +435,36 @@ function buildFaqDocuments() {
   });
 }
 
+function readLocalDocumentText(filePath, extension) {
+  if (extension === '.txt') {
+    return fs.readFileSync(filePath, 'utf8');
+  }
+
+  if (extension === '.xls' || extension === '.xlsx') {
+    const workbook = XLSX.readFile(filePath);
+    const sheetTexts = workbook.SheetNames.map((sheetName) => {
+      const sheet = workbook.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: '' });
+      const body = rows
+        .map((row) => row.map((cell) => String(cell || '').trim()).filter(Boolean).join(' | '))
+        .filter(Boolean)
+        .join('\n');
+
+      return body ? `${sheetName}\n${body}` : '';
+    }).filter(Boolean);
+
+    return sheetTexts.join('\n\n');
+  }
+
+  return '';
+}
+
 function buildLocalDocuments() {
   if (!fs.existsSync(DOCS_DIR)) {
     return [];
   }
 
-  const supportedExtensions = new Set(['.txt']);
+  const supportedExtensions = new Set(['.txt', '.xls', '.xlsx']);
   const files = fs.readdirSync(DOCS_DIR, { withFileTypes: true });
   const docs = [];
 
@@ -416,8 +479,9 @@ function buildLocalDocuments() {
     }
 
     const filePath = path.join(DOCS_DIR, file.name);
-    const rawText = fs.readFileSync(filePath, 'utf8');
-    const text = rawText
+    const fileStem = path.parse(file.name).name.replace(/\s+/g, ' ').trim();
+    const rawText = readLocalDocumentText(filePath, extension);
+    const text = String(rawText || '')
       .replace(/\r/g, '')
       .replace(/\t/g, ' ')
       .replace(/\n\s*\n+/g, '\n')
@@ -428,7 +492,7 @@ function buildLocalDocuments() {
     }
 
     const chunks = splitIntoChunks(text, 700);
-    const keywords = tokenize(`${path.parse(file.name).name} ${text}`).slice(0, 40);
+    const keywords = [...new Set(tokenizeSafe(`${fileStem} ${text}`))].slice(0, 120);
 
     chunks.forEach((chunk, index) => {
       docs.push({
@@ -441,8 +505,29 @@ function buildLocalDocuments() {
         hiddenSource: true,
         chunkLabel: `${file.name}${chunks.length > 1 ? ` #${index + 1}` : ''}`,
       });
+      const lastDoc = docs[docs.length - 1];
+      lastDoc.title = `Local doc - ${fileStem}`;
+      lastDoc.sourceTitle = fileStem;
+      lastDoc.url = `local://docs/${encodeURIComponent(file.name)}`;
+      lastDoc.hiddenSource = false;
     });
   }
+
+  docs.forEach((doc) => {
+    const label = String(doc.chunkLabel || '').split(' #')[0];
+    const fileStem = path.parse(label).name.replace(/\s+/g, ' ').trim();
+
+    doc.title = `로컬 문서 - ${fileStem}`;
+    doc.sourceTitle = fileStem;
+    doc.url = `local://docs/${encodeURIComponent(label)}`;
+    doc.hiddenSource = false;
+  });
+
+  docs.forEach((doc) => {
+    const label = String(doc.chunkLabel || '').split(' #')[0];
+    const fileStem = path.parse(label).name.replace(/\s+/g, ' ').trim();
+    doc.title = `Local doc - ${fileStem}`;
+  });
 
   return docs;
 }
@@ -662,22 +747,34 @@ function warmupKnowledgeDocuments() {
   });
 }
 
-function rankDocuments(question, docs, limit = 5) {
-  const tokens = tokenize(question);
-  const questionLower = question.toLowerCase();
+function rankDocuments(question, docs, limit = 7) {
+  const tokens = tokenizeSafe(question);
+  const normalizedQuestion = normalizeSearchTextSafe(question);
+  const compactQuestion = compactSearchTextSafe(question);
 
   return docs
     .map((doc) => {
-      const keywordScore = getScore(questionLower, doc.keywords || []);
+      const normalizedTitle = normalizeSearchTextSafe(`${doc.title} ${doc.sourceTitle || ''}`);
+      const compactTitle = normalizedTitle.replace(/\s+/g, '');
+      const normalizedText = normalizeSearchTextSafe(doc.text);
+      const compactText = normalizedText.replace(/\s+/g, '');
+      const keywordScore = (doc.keywords || []).reduce((score, keyword) => (
+        normalizedQuestion.includes(normalizeSearchTextSafe(keyword)) ? score + 1 : score
+      ), 0);
       const titleScore = tokens.reduce((score, token) => (
-        doc.title.toLowerCase().includes(token) ? score + 2 : score
+        normalizedTitle.includes(token) ? score + 3 : score
       ), 0);
-      const textLower = doc.text.toLowerCase();
       const tokenScore = tokens.reduce((score, token) => (
-        textLower.includes(token) ? score + 1 : score
+        normalizedText.includes(token) ? score + 1 : score
       ), 0);
+      const phraseScore = normalizedQuestion && normalizedText.includes(normalizedQuestion) ? 10 : 0;
+      const titlePhraseScore = normalizedQuestion && normalizedTitle.includes(normalizedQuestion) ? 14 : 0;
+      const compactScore = compactQuestion && (
+        compactTitle.includes(compactQuestion) || compactText.includes(compactQuestion)
+      ) ? 8 : 0;
+      const localDocBonus = doc.sourceType === 'local' && (titleScore > 0 || phraseScore > 0 || compactScore > 0) ? 3 : 0;
       const sourceWeight = sourceTypeWeights[doc.sourceType] ?? 0.1;
-      const rawScore = keywordScore * 4 + titleScore + tokenScore;
+      const rawScore = keywordScore * 4 + titleScore + tokenScore + phraseScore + titlePhraseScore + compactScore + localDocBonus;
 
       return {
         ...doc,
