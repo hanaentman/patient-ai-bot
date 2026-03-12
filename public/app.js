@@ -3,6 +3,7 @@ const form = document.getElementById('chat-form');
 const input = document.getElementById('message-input');
 const chips = document.querySelectorAll('.chip');
 const sessionId = `session-${crypto.randomUUID()}`;
+let pendingMessageElement = null;
 
 function isValidExternalUrl(value) {
   try {
@@ -68,20 +69,76 @@ function appendMessage(role, text, followUp = [], sources = []) {
   chat.scrollTop = chat.scrollHeight;
 }
 
+function removePendingMessage() {
+  if (!pendingMessageElement) {
+    return;
+  }
+
+  pendingMessageElement.remove();
+  pendingMessageElement = null;
+}
+
+function showPendingMessage() {
+  removePendingMessage();
+
+  const wrapper = document.createElement('article');
+  wrapper.className = 'message bot pending';
+
+  const label = document.createElement('span');
+  label.className = 'message-label';
+  label.textContent = '하나이비인후과병원 상담원';
+  wrapper.appendChild(label);
+
+  const body = document.createElement('p');
+  body.className = 'pending-text';
+  body.textContent = '질문을 확인하고 있습니다';
+  wrapper.appendChild(body);
+
+  const dots = document.createElement('span');
+  dots.className = 'pending-dots';
+  dots.setAttribute('aria-hidden', 'true');
+
+  for (let index = 0; index < 3; index += 1) {
+    const dot = document.createElement('span');
+    dot.className = 'pending-dot';
+    dots.appendChild(dot);
+  }
+
+  wrapper.appendChild(dots);
+  chat.appendChild(wrapper);
+  chat.scrollTop = chat.scrollHeight;
+  pendingMessageElement = wrapper;
+}
+
+function setBusyState(isBusy) {
+  input.disabled = isBusy;
+  form.querySelector('button[type="submit"]').disabled = isBusy;
+  chips.forEach((chip) => {
+    chip.disabled = isBusy;
+  });
+}
+
 async function sendMessage(message) {
   appendMessage('user', message);
+  showPendingMessage();
 
-  const response = await fetch('/api/chat', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ message, sessionId }),
-  });
+  try {
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ message, sessionId }),
+    });
 
-  const data = await response.json();
-  const followUp = data.detail ? [...(data.followUp || []), `오류 상세: ${data.detail}`] : (data.followUp || []);
-  appendMessage('bot', data.answer, followUp, data.sources || []);
+    const data = await response.json();
+    const followUp = data.detail ? [...(data.followUp || []), `오류 상세: ${data.detail}`] : (data.followUp || []);
+    removePendingMessage();
+    appendMessage('bot', data.answer, followUp, data.sources || []);
+  } catch (error) {
+    removePendingMessage();
+    throw error;
+  }
 }
 
 form.addEventListener('submit', async (event) => {
@@ -93,21 +150,29 @@ form.addEventListener('submit', async (event) => {
 
   input.value = '';
   input.focus();
+  setBusyState(true);
 
   try {
     await sendMessage(message);
   } catch (error) {
     appendMessage('bot', '서버 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+  } finally {
+    setBusyState(false);
+    input.focus();
   }
 });
 
 chips.forEach((chip) => {
   chip.addEventListener('click', async () => {
     input.value = '';
+    setBusyState(true);
     try {
       await sendMessage(chip.dataset.question);
     } catch (error) {
       appendMessage('bot', '서버 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      setBusyState(false);
+      input.focus();
     }
   });
 });
