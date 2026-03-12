@@ -3,6 +3,7 @@ const form = document.getElementById('chat-form');
 const input = document.getElementById('message-input');
 const chips = document.querySelectorAll('.chip');
 const sessionId = `session-${crypto.randomUUID()}`;
+
 let pendingMessageElement = null;
 
 function isValidExternalUrl(value) {
@@ -20,7 +21,7 @@ function appendMessage(role, text, followUp = [], sources = []) {
 
   const label = document.createElement('span');
   label.className = 'message-label';
-  label.textContent = role === 'bot' ? '하나이비인후과병원 AI상담원' : '환자';
+  label.textContent = role === 'bot' ? '하나이비인후과 AI 상담' : '사용자';
   wrapper.appendChild(label);
 
   const body = document.createElement('p');
@@ -42,7 +43,7 @@ function appendMessage(role, text, followUp = [], sources = []) {
     sourceBox.className = 'source-box';
 
     const sourceTitle = document.createElement('strong');
-    sourceTitle.textContent = '참고한 문서';
+    sourceTitle.textContent = '참고 문서';
     sourceBox.appendChild(sourceTitle);
 
     const sourceList = document.createElement('ul');
@@ -86,12 +87,12 @@ function showPendingMessage() {
 
   const label = document.createElement('span');
   label.className = 'message-label';
-  label.textContent = '하나이비인후과병원 AI상담원';
+  label.textContent = '하나이비인후과 AI 상담';
   wrapper.appendChild(label);
 
   const body = document.createElement('p');
   body.className = 'pending-text';
-  body.textContent = '상담원이 답변을 준비하고 있습니다...';
+  body.textContent = '답변을 준비하고 있습니다...';
   wrapper.appendChild(body);
 
   const dots = document.createElement('span');
@@ -132,7 +133,10 @@ async function sendMessage(message) {
     });
 
     const data = await response.json();
-    const followUp = data.detail ? [...(data.followUp || []), `오류 상세: ${data.detail}`] : (data.followUp || []);
+    const followUp = data.detail
+      ? [...(data.followUp || []), `오류 상세: ${data.detail}`]
+      : (data.followUp || []);
+
     removePendingMessage();
     appendMessage('bot', data.answer, followUp, data.sources || []);
   } catch (error) {
@@ -166,6 +170,7 @@ chips.forEach((chip) => {
   chip.addEventListener('click', async () => {
     input.value = '';
     setBusyState(true);
+
     try {
       await sendMessage(chip.dataset.question);
     } catch (error) {
@@ -179,6 +184,6 @@ chips.forEach((chip) => {
 
 appendMessage(
   'bot',
-  '안녕하세요. 하나이비인후과병원 AI상담원입니다. 홈페이지 문서를 바탕으로 자연스럽게 안내합니다. 문서에 없는 내용은 추측하지 않고 알려드립니다.',
-  ['진료의사 알려줘', '동헌종 원장 진료시간', '입원 절차 알려줘']
+  '안녕하세요. 하나이비인후과 AI 상담입니다. 병원 홈페이지 문서를 바탕으로 안내해 드립니다. 문서에 없는 내용은 추측하지 않고 알려드립니다.',
+  ['진료과를 알려줘', '이비인후과 원장 진료시간 알려줘', '입원 절차를 알려줘']
 );

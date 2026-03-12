@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>하나이비인후과병원 AI상담원</title>
+    <title>하나이비인후과 AI 상담</title>
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
@@ -11,24 +11,28 @@
       <section class="phone-frame">
         <header class="hero">
           <p class="eyebrow">HANA ENT ASSISTANT</p>
-          <h1>하나이비인후과병원 AI상담원</h1>
-          <p class="subtitle">예약, 위치, 검사 준비사항, 서류 발급 안내를 스마트폰에서 바로 상담합니다.</p>
+          <h1>하나이비인후과 AI 상담</h1>
+          <p class="subtitle">
+            예약, 위치, 진료 준비사항과 서류 발급 안내를 모바일 화면에서 바로 확인할 수 있습니다.
+          </p>
         </header>
 
         <section class="notice-card">
           <strong>안내</strong>
-          <p>이 봇은 병원 홈페이지 문서를 근거로 답합니다. 진단, 처방 변경, 응급 판단은 하지 않습니다.</p>
+          <p>
+            이 서비스는 병원 홈페이지 문서를 바탕으로 답변합니다. 진단, 처방 변경, 응급 판단은 하지 않습니다.
+          </p>
         </section>
 
         <section id="chat" class="chat-panel" aria-live="polite"></section>
 
         <section class="quick-actions">
-          <button type="button" class="chip" data-question="진료의사 알려줘">진료의사</button>
-          <button type="button" class="chip" data-question="동헌종 원장 진료시간 알려줘">동헌종 일정</button>
-          <button type="button" class="chip" data-question="장정훈 원장 진료시간 알려줘">장정훈 일정</button>
+          <button type="button" class="chip" data-question="진료과를 알려줘">진료과</button>
+          <button type="button" class="chip" data-question="이비인후과 원장 진료시간 알려줘">이비인후과 일정</button>
+          <button type="button" class="chip" data-question="신경과 원장 진료시간 알려줘">신경과 일정</button>
           <button type="button" class="chip" data-question="진료시간 안내해줘">병원 진료시간</button>
           <button type="button" class="chip" data-question="예약 변경 방법 알려줘">예약 변경</button>
-          <button type="button" class="chip" data-question="코골이 진료 의사 알려줘">코골이 의사</button>
+          <button type="button" class="chip" data-question="코골이 진료 과를 알려줘">코골이 상담</button>
         </section>
 
         <form id="chat-form" class="composer">
@@ -37,7 +41,7 @@
             name="message"
             type="text"
             maxlength="300"
-            placeholder="질문을 입력하세요"
+            placeholder="질문을 입력해 주세요"
             autocomplete="off"
           />
           <button type="submit">전송</button>
@@ -47,4 +51,4 @@
 
     <script src="/app.js"></script>
   </body>
-  </html>
+</html>
