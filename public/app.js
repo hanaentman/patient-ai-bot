@@ -20,7 +20,7 @@ function appendMessage(role, text, followUp = [], sources = []) {
 
   const label = document.createElement('span');
   label.className = 'message-label';
-  label.textContent = role === 'bot' ? '하나이비인후과병원 상담원' : '환자';
+  label.textContent = role === 'bot' ? '하나이비인후과병원 AI상담원' : '환자';
   wrapper.appendChild(label);
 
   const body = document.createElement('p');
@@ -86,12 +86,12 @@ function showPendingMessage() {
 
   const label = document.createElement('span');
   label.className = 'message-label';
-  label.textContent = '하나이비인후과병원 상담원';
+  label.textContent = '하나이비인후과병원 AI상담원';
   wrapper.appendChild(label);
 
   const body = document.createElement('p');
   body.className = 'pending-text';
-  body.textContent = '질문을 확인하고 있습니다';
+  body.textContent = '상담원이 답변을 준비하고 있습니다...';
   wrapper.appendChild(body);
 
   const dots = document.createElement('span');
@@ -179,6 +179,6 @@ chips.forEach((chip) => {
 
 appendMessage(
   'bot',
-  '안녕하세요. 하나이비인후과병원 상담원입니다. 홈페이지 문서를 바탕으로 자연스럽게 안내합니다. 문서에 없는 내용은 추측하지 않고 알려드립니다.',
+  '안녕하세요. 하나이비인후과병원 AI상담원입니다. 홈페이지 문서를 바탕으로 자연스럽게 안내합니다. 문서에 없는 내용은 추측하지 않고 알려드립니다.',
   ['진료의사 알려줘', '동헌종 원장 진료시간', '입원 절차 알려줘']
 );
