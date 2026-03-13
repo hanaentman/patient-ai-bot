@@ -265,6 +265,67 @@ function createFallbackResponse(contextTitles) {
   };
 }
 
+function getSmallTalkIntent(message) {
+  const normalized = normalizeSearchTextSafe(message);
+  const compact = compactSearchTextSafe(message);
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (
+    ['안녕하세요', '안녕', '반가워요', '반갑습니다', '처음 왔어요'].includes(normalized)
+    || compact === '안녕하세요'
+    || compact === '안녕'
+  ) {
+    return 'greeting';
+  }
+
+  if (
+    ['고마워', '고마워요', '감사합니다', '감사해요', 'thanks', 'thank you'].includes(normalized)
+    || compact === '감사합니다'
+  ) {
+    return 'thanks';
+  }
+
+  if (
+    ['잘 있어', 'bye', 'goodbye', '종료', '끝', '그만', '수고하세요'].includes(normalized)
+    || compact === '수고하세요'
+  ) {
+    return 'closing';
+  }
+
+  return null;
+}
+
+function createSmallTalkResponse(intent) {
+  if (intent === 'greeting') {
+    return {
+      type: 'smalltalk',
+      answer: '안녕하세요. 하나이비인후과병원 상담 도우미입니다. 예약, 진료시간, 의료진, 입원, 셔틀버스 같은 병원 안내를 편하게 물어보시면 됩니다.',
+      followUp: ['진료시간 알려줘', '셔틀버스 시간표 알려줘', '입원 안내 알려줘'],
+    };
+  }
+
+  if (intent === 'thanks') {
+    return {
+      type: 'smalltalk',
+      answer: '네, 필요하신 내용 있으면 이어서 말씀해 주세요. 병원 안내 관련 질문이면 바로 도와드리겠습니다.',
+      followUp: [],
+    };
+  }
+
+  if (intent === 'closing') {
+    return {
+      type: 'smalltalk',
+      answer: '네, 필요하실 때 다시 말씀해 주세요. 급한 문의는 대표전화 02-6925-1111로 바로 연락하셔도 됩니다.',
+      followUp: [],
+    };
+  }
+
+  return null;
+}
+
 function decodeHtmlEntities(text) {
   return text
     .replace(/&nbsp;/g, ' ')
@@ -896,6 +957,137 @@ function extractOutputText(payload) {
   return pieces.join('\n').trim();
 }
 
+function getSmallTalkIntent(message) {
+  const normalized = normalizeSearchTextSafe(message);
+  const compact = compactSearchTextSafe(message);
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (
+    ['안녕하세요', '안녕', '반가워요', '반갑습니다', '처음 왔어요'].includes(normalized)
+    || compact === '안녕하세요'
+    || compact === '안녕'
+  ) {
+    return 'greeting';
+  }
+
+  if (
+    ['고마워', '고마워요', '감사합니다', '감사해요', 'thanks', 'thank you'].includes(normalized)
+    || compact === '감사합니다'
+  ) {
+    return 'thanks';
+  }
+
+  if (
+    ['잘 있어', 'bye', 'goodbye', '종료', '끝', '그만', '수고하세요'].includes(normalized)
+    || compact === '수고하세요'
+  ) {
+    return 'closing';
+  }
+
+  return null;
+}
+
+function createSmallTalkResponse(intent) {
+  if (intent === 'greeting') {
+    return {
+      type: 'smalltalk',
+      answer: '안녕하세요. 하나이비인후과병원 상담 도우미입니다. 예약, 진료시간, 의료진, 입원, 셔틀버스 같은 병원 안내를 편하게 물어보시면 됩니다.',
+      followUp: ['진료시간 알려줘', '셔틀버스 시간표 알려줘', '입원 안내 알려줘'],
+    };
+  }
+
+  if (intent === 'thanks') {
+    return {
+      type: 'smalltalk',
+      answer: '네, 필요하신 내용 있으면 이어서 말씀해 주세요. 병원 안내 관련 질문이면 바로 도와드리겠습니다.',
+      followUp: [],
+    };
+  }
+
+  if (intent === 'closing') {
+    return {
+      type: 'smalltalk',
+      answer: '네, 필요하실 때 다시 말씀해 주세요. 급한 문의는 대표전화 02-6925-1111로 바로 연락하셔도 됩니다.',
+      followUp: [],
+    };
+  }
+
+  return null;
+}
+
+async function callOpenAI(question, history, contextDocs) {
+  const contextText = contextDocs.map((doc, index) => (
+    `[문서 ${index + 1}] ${doc.title}\n출처 유형: ${doc.sourceType}\n출처: ${doc.url}\n내용: ${doc.text}`
+  )).join('\n\n');
+
+  const input = history.map((message) => ({
+    role: message.role,
+    content: message.content,
+  }));
+
+  input.push({
+    role: 'user',
+    content: [
+      '다음 질문에 답해 주세요.',
+      `질문: ${question}`,
+      '',
+      '아래 참고 문서를 우선 근거로 사용해 주세요.',
+      '병원 정보가 문서에 없으면 단정하지 말고, 확인이 어렵다고 자연스럽게 안내해 주세요.',
+      '단순 인사, 감사, 연결 멘트는 상담원처럼 부드럽게 답해도 됩니다.',
+      '',
+      contextText,
+    ].join('\n'),
+  });
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 45000);
+  let response;
+
+  try {
+    response = await fetch('https://api.openai.com/v1/responses', {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: OPENAI_MODEL,
+        instructions: [
+          '당신은 하나이비인후과병원 안내 상담 도우미입니다.',
+          '답변 톤은 딱딱한 챗봇보다 실제 상담원에 가깝게, 짧고 자연스럽게 유지하세요.',
+          '병원 운영 정보는 제공된 문서를 최우선 근거로 사용하세요.',
+          'local 문서와 FAQ를 가장 우선하고, official 홈페이지는 그 다음, external은 보조 참고만 사용하세요.',
+          '문서에 없는 병원 정보는 추측하지 말고 확인이 어렵다고 자연스럽게 안내하세요.',
+          '단순 인사, 감사, 대화 연결 문장은 문서 인용 없이도 자연스럽게 응답해도 됩니다.',
+          '금지: 진단, 응급 최종판단, 처방 변경, 약 복용 지시, 추측성 의료정보.',
+          '답변은 보통 2~4문장으로 하고, 필요할 때만 대표전화 02-6925-1111을 안내하세요.',
+        ].join(' '),
+        input,
+      }),
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`OpenAI API error ${response.status}: ${errorText}`);
+  }
+
+  const payload = await response.json();
+  const outputText = extractOutputText(payload);
+
+  if (!outputText) {
+    throw new Error('OpenAI API returned empty output_text');
+  }
+
+  return outputText.trim();
+}
+
 async function buildChatResponse(rawMessage, sessionId) {
   const message = String(rawMessage || '').trim();
   const lowerMessage = message.toLowerCase();
@@ -910,6 +1102,11 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   if (matchesAnyPattern(lowerMessage, medicalRestrictionPatterns)) {
     return createRestrictedMedicalResponse();
+  }
+
+  const smallTalkIntent = getSmallTalkIntent(message);
+  if (smallTalkIntent) {
+    return createSmallTalkResponse(smallTalkIntent);
   }
 
   const cachedResponse = getCachedResponse(message);
