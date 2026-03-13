@@ -42,9 +42,9 @@ const faqCategoryUrlHints = {
   doctor_schedule_nerve: 'info/info01.html',
 };
 const sourceTypeWeights = {
-  official: 1.0,
-  local: 1.0,
-  external: 0.3,
+  official: 0.9,
+  local: 1.8,
+  external: 0.2,
   low_trust: 0.1,
 };
 
