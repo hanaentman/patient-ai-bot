@@ -24,9 +24,22 @@ function appendMessage(role, text, followUp = [], sources = []) {
   label.textContent = role === 'bot' ? '하나이비인후과 AI 상담' : '사용자';
   wrapper.appendChild(label);
 
-  const body = document.createElement('p');
-  body.textContent = text;
-  wrapper.appendChild(body);
+  const paragraphs = String(text || '')
+    .split(/\n+/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+
+  if (paragraphs.length === 0) {
+    const body = document.createElement('p');
+    body.textContent = '';
+    wrapper.appendChild(body);
+  } else {
+    paragraphs.forEach((paragraph) => {
+      const body = document.createElement('p');
+      body.textContent = paragraph;
+      wrapper.appendChild(body);
+    });
+  }
 
   if (followUp.length > 0) {
     const list = document.createElement('ul');
