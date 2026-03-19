@@ -928,7 +928,7 @@ async function callOpenAI(question, history, contextDocs) {
     throw new Error('OpenAI API returned empty output_text');
   }
 
-  return outputText.trim();
+  return formatAssistantAnswer(outputText);
 }
 
 function extractOutputText(payload) {
@@ -955,6 +955,20 @@ function extractOutputText(payload) {
   }
 
   return pieces.join('\n').trim();
+}
+
+function formatAssistantAnswer(text) {
+  return String(text || '')
+    .replace(/\r/g, '\n')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/([.!?][\]\)'"]?)(?=[^\s])/g, '$1 ')
+    .replace(/([가-힣])([A-Za-z0-9])/g, '$1 $2')
+    .replace(/([A-Za-z0-9])([가-힣])/g, '$1 $2')
+    .replace(/\s+\n/g, '\n')
+    .replace(/\n\s+/g, '\n')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
 }
 
 function getSmallTalkIntent(message) {
