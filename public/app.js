@@ -15,6 +15,32 @@ function isValidExternalUrl(value) {
   }
 }
 
+function splitMessageParagraphs(role, text) {
+  const normalized = String(text || '')
+    .replace(/\r/g, '\n')
+    .trim();
+
+  if (!normalized) {
+    return [];
+  }
+
+  if (role !== 'bot') {
+    return [normalized];
+  }
+
+  if (normalized.includes('\n')) {
+    return normalized
+      .split(/\n+/)
+      .map((paragraph) => paragraph.trim())
+      .filter(Boolean);
+  }
+
+  return normalized
+    .split(/(?<=[.!?][)"'\]]?)\s+/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+}
+
 function appendMessage(role, text, followUp = [], sources = []) {
   const wrapper = document.createElement('article');
   wrapper.className = `message ${role}`;
@@ -24,10 +50,7 @@ function appendMessage(role, text, followUp = [], sources = []) {
   label.textContent = role === 'bot' ? '하나이비인후과 AI 상담' : '사용자';
   wrapper.appendChild(label);
 
-  const paragraphs = String(text || '')
-    .split(/\n+/)
-    .map((paragraph) => paragraph.trim())
-    .filter(Boolean);
+  const paragraphs = splitMessageParagraphs(role, text);
 
   if (paragraphs.length === 0) {
     const body = document.createElement('p');
