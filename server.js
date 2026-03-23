@@ -972,6 +972,94 @@ function formatAssistantAnswer(text) {
     .trim();
 }
 
+function simplifyMedicalTerms(text) {
+  const replacements = [
+    { pattern: /\bFESS\s*\+\s*S\s*\+\s*SMT\b/gi, replacement: '축농증 수술과 비중격 교정, 비염 수술' },
+    { pattern: /\bESS\s*\+\s*S\s*\+\s*SMT\b/gi, replacement: '축농증 수술과 비중격 교정, 비염 수술' },
+    { pattern: /\bFESS\s*\+\s*SMT\b/gi, replacement: '축농증 수술과 비염 수술' },
+    { pattern: /\bESS\s*\+\s*SMT\b/gi, replacement: '축농증 수술과 비염 수술' },
+    { pattern: /\bFESS\s*\+\s*septoplasty\b/gi, replacement: '축농증 수술과 비중격 교정 수술' },
+    { pattern: /\bS\s*\+\s*SMT\b/gi, replacement: '비중격 교정과 비염 수술' },
+    { pattern: /\bSeptoturbinoplasty\b/gi, replacement: '비중격 교정과 비염 수술' },
+    { pattern: /\bSeptoplasty\b/gi, replacement: '비중격 교정 수술' },
+    { pattern: /\bFESS\b/gi, replacement: '축농증 내시경 수술' },
+    { pattern: /\bESS\b/gi, replacement: '축농증 내시경 수술' },
+    { pattern: /\bSMT\b/gi, replacement: '비염 수술' },
+    { pattern: /\bUPPP\b/gi, replacement: '코골이 또는 수면호흡 관련 구강 수술' },
+    { pattern: /\bPSG\b/gi, replacement: '수면다원검사' },
+    { pattern: /\bLMS\b/gi, replacement: '후두 미세 수술' },
+    { pattern: /\bKTP\b/gi, replacement: '레이저 시술' },
+    { pattern: /\bT&A\b/gi, replacement: '편도와 아데노이드 수술' },
+    { pattern: /\bAdenoidectomy\b/gi, replacement: '아데노이드 수술' },
+    { pattern: /\bTonsillectomy\b/gi, replacement: '편도 수술' },
+    { pattern: /\bV-?tube\b/gi, replacement: '고막 환기관 삽입술' },
+    { pattern: /\bNavigation\b/gi, replacement: '영상 유도 장비를 사용하는 방식' },
+    { pattern: /\bBalloon catheter Sinus Plasty\b/gi, replacement: '풍선 카테터를 이용한 부비동 시술' },
+    { pattern: /\btympanotomy\b/gi, replacement: '고막 절개술' },
+    { pattern: /\bfrenotomy\b/gi, replacement: '설소대 절제술' },
+    { pattern: /\bfistulectomy\b/gi, replacement: '누공 절제술' },
+    { pattern: /\bClosed reduction\b/gi, replacement: '비수술 정복술' },
+    { pattern: /\bepiglottectomy\b/gi, replacement: '후두개 절제술' },
+  ];
+
+  return replacements.reduce((result, { pattern, replacement }) => (
+    result.replace(pattern, replacement)
+  ), String(text || ''))
+    .replace(/\(\s*편측\s*\)/g, ' (한쪽)')
+    .replace(/\(\s*양측\s*\)/g, ' (양쪽)')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+function applyPatientFriendlyTemplate(text, question) {
+  const normalizedQuestion = normalizeSearchTextSafe(question);
+  const isSinusQuestion = /축농증|부비동염/.test(normalizedQuestion);
+  const isRhinitisQuestion = /비염|하비갑개|비갑개/.test(normalizedQuestion);
+  const isSeptumQuestion = /비중격|비중격만곡/.test(normalizedQuestion);
+
+  let result = simplifyMedicalTerms(text);
+
+  const commonReplacements = [
+    { pattern: /부비동염/gi, replacement: '축농증' },
+    { pattern: /기능적 내시경 부비동 수술/gi, replacement: '축농증 내시경 수술' },
+    { pattern: /내시경 부비동 수술/gi, replacement: '축농증 내시경 수술' },
+    { pattern: /비중격 교정술/gi, replacement: '비중격 교정 수술' },
+    { pattern: /하비갑개 점막하 절제술/gi, replacement: '비염 수술' },
+    { pattern: /비갑개 축소술/gi, replacement: '비염 수술' },
+  ];
+
+  result = commonReplacements.reduce((value, item) => (
+    value.replace(item.pattern, item.replacement)
+  ), result);
+
+  if (isSinusQuestion) {
+    result = result
+      .replace(/부비동/gi, '코 안 빈 공간')
+      .replace(/용종/gi, '물혹')
+      .replace(/농성 분비물/gi, '고름 섞인 콧물')
+      .replace(/염증 병변/gi, '염증');
+  }
+
+  if (isRhinitisQuestion) {
+    result = result
+      .replace(/하비갑개/gi, '코 안 점막')
+      .replace(/비갑개/gi, '코 안 점막')
+      .replace(/점막하 절제/gi, '점막을 줄이는 수술')
+      .replace(/점막 비후/gi, '점막이 많이 부은 상태');
+  }
+
+  if (isSeptumQuestion) {
+    result = result
+      .replace(/비중격만곡증/gi, '코 안 벽이 휜 상태')
+      .replace(/비중격/gi, '코 안 벽')
+      .replace(/만곡/gi, '휘어짐');
+  }
+
+  return result
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
 function getSmallTalkIntent(message) {
   const normalized = normalizeSearchTextSafe(message);
   const compact = compactSearchTextSafe(message);
@@ -1131,8 +1219,13 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   const directFaqResponse = findDirectFaqMatch(message);
   if (directFaqResponse) {
-    setCachedResponse(message, directFaqResponse);
-    return directFaqResponse;
+    const simplifiedFaqResponse = {
+      ...directFaqResponse,
+      answer: applyPatientFriendlyTemplate(directFaqResponse.answer, message),
+      followUp: (directFaqResponse.followUp || []).map((item) => applyPatientFriendlyTemplate(item, message)),
+    };
+    setCachedResponse(message, simplifiedFaqResponse);
+    return simplifiedFaqResponse;
   }
 
   if (!OPENAI_API_KEY) {
@@ -1147,7 +1240,7 @@ async function buildChatResponse(rawMessage, sessionId) {
   }
 
   const history = getSessionHistory(sessionId);
-  const answer = await callOpenAI(message, history, contextDocs);
+  const answer = applyPatientFriendlyTemplate(await callOpenAI(message, history, contextDocs), message);
 
   const nextHistory = [
     ...history,
