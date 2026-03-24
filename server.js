@@ -12,12 +12,14 @@ const FAQ_PATH = path.join(__dirname, 'data', 'faq.json');
 const SITE_SOURCES_PATH = path.join(__dirname, 'data', 'site-sources.json');
 const IMAGE_GUIDES_PATH = path.join(__dirname, 'data', 'image-guides.json');
 const DOCS_DIR = path.join(__dirname, 'docs');
+const YOUTUBE_LINKS_PATH = path.join(DOCS_DIR, '유튜브-링크.txt');
 
 const faqEntries = JSON.parse(fs.readFileSync(FAQ_PATH, 'utf8'));
 const siteSources = JSON.parse(fs.readFileSync(SITE_SOURCES_PATH, 'utf8'));
 const imageGuides = fs.existsSync(IMAGE_GUIDES_PATH)
   ? JSON.parse(fs.readFileSync(IMAGE_GUIDES_PATH, 'utf8'))
   : [];
+const youtubeLinks = loadYoutubeLinks();
 const sessions = new Map();
 const allowedHostnames = ['www.hanaent.co.kr', 'hanaent.co.kr'];
 const LOCAL_FAQ_URL = (
@@ -189,6 +191,80 @@ function normalizePublicAssetPath(value) {
   }
 
   return normalized.startsWith('/') ? normalized : `/${normalized}`;
+}
+
+function loadYoutubeLinks() {
+  if (!fs.existsSync(YOUTUBE_LINKS_PATH)) {
+    return [];
+  }
+
+  const lines = fs.readFileSync(YOUTUBE_LINKS_PATH, 'utf8')
+    .split(/\r?\n/)
+    .map((line) => line.trim());
+  const results = [];
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const topic = lines[index];
+
+    if (!topic || /^https?:\/\//i.test(topic)) {
+      continue;
+    }
+
+    const url = lines[index + 1];
+    if (!url || !/^https?:\/\//i.test(url)) {
+      continue;
+    }
+
+    results.push({
+      topic,
+      url,
+      normalizedTopic: normalizeSearchTextSafe(topic),
+      compactTopic: compactSearchTextSafe(topic),
+    });
+    index += 1;
+  }
+
+  return results;
+}
+
+function findRelevantYoutubeLink(question, answer = '') {
+  const normalizedQuestion = normalizeSearchTextSafe(question);
+  const compactQuestion = compactSearchTextSafe(question);
+  const normalizedAnswer = normalizeSearchTextSafe(answer);
+  const compactAnswer = compactSearchTextSafe(answer);
+
+  return youtubeLinks.find((item) => (
+    (item.normalizedTopic && normalizedQuestion.includes(item.normalizedTopic))
+    || (item.compactTopic && compactQuestion.includes(item.compactTopic))
+    || (item.normalizedTopic && normalizedAnswer.includes(item.normalizedTopic))
+    || (item.compactTopic && compactAnswer.includes(item.compactTopic))
+  )) || null;
+}
+
+function appendSupportLinks(answer, question) {
+  let result = String(answer || '').trim();
+
+  if (!result) {
+    return result;
+  }
+
+  const youtubeLink = findRelevantYoutubeLink(question, result);
+  if (youtubeLink && !result.includes(youtubeLink.url)) {
+    result = `${result}\n\n${youtubeLink.topic} 관련 영상 보기: ${youtubeLink.url}`;
+  }
+
+  return result.replace(/(?:대표전화\s*)?02-6925-1111/g, '대표전화 02-6925-1111');
+}
+
+function enrichResponsePayload(payload, question) {
+  if (!payload || typeof payload !== 'object') {
+    return payload;
+  }
+
+  return {
+    ...payload,
+    answer: appendSupportLinks(payload.answer, question),
+  };
 }
 
 function scoreImageGuide(guide, normalizedQuestion, compactQuestion, contextDocs) {
@@ -1282,20 +1358,20 @@ async function buildChatResponse(rawMessage, sessionId) {
   const lowerMessage = message.toLowerCase();
 
   if (!message) {
-    return createWelcomeResponse();
+    return enrichResponsePayload(createWelcomeResponse(), message);
   }
 
   if (matchesAnyPattern(lowerMessage, emergencyPatterns)) {
-    return createEmergencyResponse();
+    return enrichResponsePayload(createEmergencyResponse(), message);
   }
 
   if (matchesAnyPattern(lowerMessage, medicalRestrictionPatterns)) {
-    return createRestrictedMedicalResponse();
+    return enrichResponsePayload(createRestrictedMedicalResponse(), message);
   }
 
   const smallTalkIntent = getSmallTalkIntent(message);
   if (smallTalkIntent) {
-    return createSmallTalkResponse(smallTalkIntent);
+    return enrichResponsePayload(createSmallTalkResponse(smallTalkIntent), message);
   }
 
   const cachedResponse = getCachedResponse(message);
@@ -1307,7 +1383,7 @@ async function buildChatResponse(rawMessage, sessionId) {
   if (directFaqResponse) {
     const simplifiedFaqResponse = {
       ...directFaqResponse,
-      answer: applyPatientFriendlyTemplate(directFaqResponse.answer, message),
+      answer: appendSupportLinks(applyPatientFriendlyTemplate(directFaqResponse.answer, message), message),
       followUp: (directFaqResponse.followUp || []).map((item) => applyPatientFriendlyTemplate(item, message)),
       images: findRelevantImages(message),
     };
@@ -1316,18 +1392,21 @@ async function buildChatResponse(rawMessage, sessionId) {
   }
 
   if (!OPENAI_API_KEY) {
-    return createApiKeyMissingResponse();
+    return enrichResponsePayload(createApiKeyMissingResponse(), message);
   }
 
   const docs = await getDocumentsForRequest();
   const contextDocs = rankDocuments(message, docs);
 
   if (contextDocs.length === 0) {
-    return createFallbackResponse([]);
+    return enrichResponsePayload(createFallbackResponse([]), message);
   }
 
   const history = getSessionHistory(sessionId);
-  const answer = applyPatientFriendlyTemplate(await callOpenAI(message, history, contextDocs), message);
+  const answer = appendSupportLinks(
+    applyPatientFriendlyTemplate(await callOpenAI(message, history, contextDocs), message),
+    message
+  );
 
   const nextHistory = [
     ...history,

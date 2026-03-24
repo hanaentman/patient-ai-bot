@@ -42,6 +42,40 @@ function splitMessageParagraphs(role, text) {
     .filter(Boolean);
 }
 
+function appendRichText(container, text) {
+  const value = String(text || '');
+  const pattern = /(https?:\/\/[^\s]+)|(02-6925-1111)/g;
+  let lastIndex = 0;
+  let match = pattern.exec(value);
+
+  while (match) {
+    if (match.index > lastIndex) {
+      container.appendChild(document.createTextNode(value.slice(lastIndex, match.index)));
+    }
+
+    const token = match[0];
+    const link = document.createElement('a');
+
+    if (token === '02-6925-1111') {
+      link.href = `tel:${token}`;
+      link.textContent = token;
+    } else {
+      link.href = token;
+      link.target = '_blank';
+      link.rel = 'noreferrer';
+      link.textContent = token;
+    }
+
+    container.appendChild(link);
+    lastIndex = pattern.lastIndex;
+    match = pattern.exec(value);
+  }
+
+  if (lastIndex < value.length) {
+    container.appendChild(document.createTextNode(value.slice(lastIndex)));
+  }
+}
+
 function ensureImageViewer() {
   if (imageViewerElement) {
     return imageViewerElement;
@@ -116,7 +150,7 @@ function appendMessage(role, text, followUp = [], sources = [], images = []) {
   } else {
     paragraphs.forEach((paragraph) => {
       const body = document.createElement('p');
-      body.textContent = paragraph;
+      appendRichText(body, paragraph);
       wrapper.appendChild(body);
     });
   }
