@@ -193,6 +193,34 @@ function normalizePublicAssetPath(value) {
   return normalized.startsWith('/') ? normalized : `/${normalized}`;
 }
 
+function resolvePublicImagePath(value) {
+  const normalized = normalizePublicAssetPath(value);
+
+  if (!normalized || normalized.startsWith('http://') || normalized.startsWith('https://')) {
+    return normalized;
+  }
+
+  const relativePath = normalized.replace(/^\/+/, '').split('/').join(path.sep);
+  const absolutePath = path.join(PUBLIC_DIR, relativePath);
+
+  if (fs.existsSync(absolutePath)) {
+    return normalized;
+  }
+
+  const parsed = path.parse(absolutePath);
+  if (!fs.existsSync(parsed.dir)) {
+    return '';
+  }
+
+  const matchedFile = fs.readdirSync(parsed.dir).find((name) => path.parse(name).name === parsed.name);
+  if (!matchedFile) {
+    return '';
+  }
+
+  const resolvedRelativePath = path.relative(PUBLIC_DIR, path.join(parsed.dir, matchedFile)).split(path.sep).join('/');
+  return `/${resolvedRelativePath}`;
+}
+
 function loadYoutubeLinks() {
   if (!fs.existsSync(YOUTUBE_LINKS_PATH)) {
     return [];
@@ -318,7 +346,7 @@ function findRelevantImages(message, contextDocs = []) {
     .map((guide) => ({
       title: guide.title || '안내 이미지',
       description: guide.description || '',
-      url: normalizePublicAssetPath(guide.path),
+      url: resolvePublicImagePath(guide.path),
       score: scoreImageGuide(guide, normalizedQuestion, compactQuestion, contextDocs),
     }))
     .filter((guide) => guide.url && guide.score > 0)
