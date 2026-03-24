@@ -188,6 +188,7 @@ body {
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.78);
   border: 1px solid rgba(44, 143, 214, 0.14);
+  cursor: zoom-in;
 }
 
 .image-card img {
@@ -213,6 +214,78 @@ body {
   font-size: 12px;
   color: var(--muted);
   line-height: 1.45;
+}
+
+.image-card:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.viewer-open {
+  overflow: hidden;
+}
+
+.image-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+
+.image-viewer.hidden {
+  display: none;
+}
+
+.image-viewer-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(12, 25, 40, 0.78);
+  backdrop-filter: blur(4px);
+}
+
+.image-viewer-dialog {
+  position: relative;
+  z-index: 1;
+  width: min(960px, 100%);
+  max-height: 90vh;
+  padding: 18px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 28px 80px rgba(12, 25, 40, 0.28);
+}
+
+.image-viewer-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(23, 50, 74, 0.08);
+  color: var(--text);
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.image-viewer-image {
+  display: block;
+  width: 100%;
+  max-height: calc(90vh - 96px);
+  object-fit: contain;
+  border-radius: 16px;
+  background: #eef4fa;
+}
+
+.image-viewer-caption {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
 }
 
 .source-box strong {

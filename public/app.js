@@ -5,6 +5,7 @@ const chips = document.querySelectorAll('.chip');
 const sessionId = `session-${crypto.randomUUID()}`;
 
 let pendingMessageElement = null;
+let imageViewerElement = null;
 
 function isValidExternalUrl(value) {
   try {
@@ -39,6 +40,62 @@ function splitMessageParagraphs(role, text) {
     .split(/(?<=[.!?][)"'\]]?)\s+/)
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
+}
+
+function ensureImageViewer() {
+  if (imageViewerElement) {
+    return imageViewerElement;
+  }
+
+  const overlay = document.createElement('div');
+  overlay.className = 'image-viewer hidden';
+  overlay.innerHTML = `
+    <div class="image-viewer-backdrop"></div>
+    <div class="image-viewer-dialog" role="dialog" aria-modal="true" aria-label="이미지 크게 보기">
+      <button type="button" class="image-viewer-close" aria-label="닫기">×</button>
+      <img class="image-viewer-image" alt="" />
+      <div class="image-viewer-caption"></div>
+    </div>
+  `;
+
+  const closeViewer = () => {
+    overlay.classList.add('hidden');
+    document.body.classList.remove('viewer-open');
+  };
+
+  overlay.querySelector('.image-viewer-backdrop').addEventListener('click', closeViewer);
+  overlay.querySelector('.image-viewer-close').addEventListener('click', closeViewer);
+
+  overlay.addEventListener('click', (event) => {
+    if (event.target === overlay) {
+      closeViewer();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && imageViewerElement && !imageViewerElement.classList.contains('hidden')) {
+      closeViewer();
+    }
+  });
+
+  document.body.appendChild(overlay);
+  imageViewerElement = overlay;
+  return overlay;
+}
+
+function openImageViewer(image) {
+  const viewer = ensureImageViewer();
+  const imageElement = viewer.querySelector('.image-viewer-image');
+  const captionElement = viewer.querySelector('.image-viewer-caption');
+
+  imageElement.src = image.url;
+  imageElement.alt = image.title || '안내 이미지';
+  captionElement.textContent = image.description
+    ? `${image.title || ''}${image.title ? ' · ' : ''}${image.description}`
+    : (image.title || '');
+
+  viewer.classList.remove('hidden');
+  document.body.classList.add('viewer-open');
 }
 
 function appendMessage(role, text, followUp = [], sources = [], images = []) {
@@ -113,6 +170,9 @@ function appendMessage(role, text, followUp = [], sources = [], images = []) {
     images.forEach((image) => {
       const card = document.createElement('figure');
       card.className = 'image-card';
+      card.tabIndex = 0;
+      card.setAttribute('role', 'button');
+      card.setAttribute('aria-label', `${image.title || '안내 이미지'} 크게 보기`);
 
       const img = document.createElement('img');
       img.src = image.url;
@@ -137,6 +197,17 @@ function appendMessage(role, text, followUp = [], sources = [], images = []) {
 
         card.appendChild(caption);
       }
+
+      card.addEventListener('click', () => {
+        openImageViewer(image);
+      });
+
+      card.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          openImageViewer(image);
+        }
+      });
 
       imageBox.appendChild(card);
     });
@@ -262,6 +333,6 @@ chips.forEach((chip) => {
 
 appendMessage(
   'bot',
-  '안녕하세요. 하나이비인후과 AI 상담입니다. 병원 홈페이지 문서를 바탕으로 안내해 드립니다. 문서에 없는 내용은 추측하지 않고 알려드립니다.',
-  ['진료과를 알려줘', '이비인후과 원장 진료시간 알려줘', '입원 절차를 알려줘']
+  '안녕하세요. 하나이비인후과 AI 상담입니다. 병원 문서를 바탕으로 안내해 드립니다. 문서에 없는 내용은 추측하지 않고 안내합니다.',
+  ['진료과 알려줘', '하나이비인후과 원장 진료시간 알려줘', '입원 준비물 알려줘']
 );
