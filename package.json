@@ -4,7 +4,8 @@
   "private": true,
   "description": "Hospital patient AI MVP",
   "scripts": {
-    "start": "node server.js"
+    "sync:doctor-faq": "node scripts/sync_doctor_schedule_faq.js",
+    "start": "npm run sync:doctor-faq && node server.js"
   },
   "dependencies": {
     "xlsx": "^0.18.5"
