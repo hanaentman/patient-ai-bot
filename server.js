@@ -10,10 +10,14 @@ const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-5-mini';
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const FAQ_PATH = path.join(__dirname, 'data', 'faq.json');
 const SITE_SOURCES_PATH = path.join(__dirname, 'data', 'site-sources.json');
+const IMAGE_GUIDES_PATH = path.join(__dirname, 'data', 'image-guides.json');
 const DOCS_DIR = path.join(__dirname, 'docs');
 
 const faqEntries = JSON.parse(fs.readFileSync(FAQ_PATH, 'utf8'));
 const siteSources = JSON.parse(fs.readFileSync(SITE_SOURCES_PATH, 'utf8'));
+const imageGuides = fs.existsSync(IMAGE_GUIDES_PATH)
+  ? JSON.parse(fs.readFileSync(IMAGE_GUIDES_PATH, 'utf8'))
+  : [];
 const sessions = new Map();
 const allowedHostnames = ['www.hanaent.co.kr', 'hanaent.co.kr'];
 const LOCAL_FAQ_URL = (
@@ -94,6 +98,12 @@ function sendFile(res, filePath) {
     '.css': 'text/css; charset=utf-8',
     '.js': 'application/javascript; charset=utf-8',
     '.json': 'application/json; charset=utf-8',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.webp': 'image/webp',
+    '.svg': 'image/svg+xml',
   };
 
   fs.readFile(filePath, (error, data) => {
@@ -163,6 +173,82 @@ function setCachedResponse(message, payload) {
     createdAt: Date.now(),
     payload,
   });
+}
+
+function normalizePublicAssetPath(value) {
+  const normalized = String(value || '')
+    .replace(/\\/g, '/')
+    .trim();
+
+  if (!normalized) {
+    return '';
+  }
+
+  if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
+    return normalized;
+  }
+
+  return normalized.startsWith('/') ? normalized : `/${normalized}`;
+}
+
+function scoreImageGuide(guide, normalizedQuestion, compactQuestion, contextDocs) {
+  const keywords = Array.isArray(guide.keywords) ? guide.keywords : [];
+  const docHints = Array.isArray(guide.docHints) ? guide.docHints : [];
+  const normalizedDocTitles = contextDocs.map((doc) => normalizeSearchTextSafe(`${doc.title} ${doc.sourceTitle || ''}`));
+  const compactDocTitles = normalizedDocTitles.map((title) => title.replace(/\s+/g, ''));
+
+  const keywordScore = keywords.reduce((score, keyword) => {
+    const normalizedKeyword = normalizeSearchTextSafe(keyword);
+    const compactKeyword = normalizedKeyword.replace(/\s+/g, '');
+
+    if (!normalizedKeyword) {
+      return score;
+    }
+
+    if (normalizedQuestion.includes(normalizedKeyword) || compactQuestion.includes(compactKeyword)) {
+      return score + 6;
+    }
+
+    return score;
+  }, 0);
+
+  const docHintScore = docHints.reduce((score, hint) => {
+    const normalizedHint = normalizeSearchTextSafe(hint);
+    const compactHint = normalizedHint.replace(/\s+/g, '');
+
+    if (!normalizedHint) {
+      return score;
+    }
+
+    const matched = normalizedDocTitles.some((title, index) => (
+      title.includes(normalizedHint) || compactDocTitles[index].includes(compactHint)
+    ));
+
+    return matched ? score + 4 : score;
+  }, 0);
+
+  return keywordScore + docHintScore;
+}
+
+function findRelevantImages(message, contextDocs = []) {
+  const normalizedQuestion = normalizeSearchTextSafe(message);
+  const compactQuestion = compactSearchTextSafe(message);
+
+  if (!normalizedQuestion || imageGuides.length === 0) {
+    return [];
+  }
+
+  return imageGuides
+    .map((guide) => ({
+      title: guide.title || '안내 이미지',
+      description: guide.description || '',
+      url: normalizePublicAssetPath(guide.path),
+      score: scoreImageGuide(guide, normalizedQuestion, compactQuestion, contextDocs),
+    }))
+    .filter((guide) => guide.url && guide.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 2)
+    .map(({ title, description, url }) => ({ title, description, url }));
 }
 
 function findDirectFaqMatch(message) {
@@ -1223,6 +1309,7 @@ async function buildChatResponse(rawMessage, sessionId) {
       ...directFaqResponse,
       answer: applyPatientFriendlyTemplate(directFaqResponse.answer, message),
       followUp: (directFaqResponse.followUp || []).map((item) => applyPatientFriendlyTemplate(item, message)),
+      images: findRelevantImages(message),
     };
     setCachedResponse(message, simplifiedFaqResponse);
     return simplifiedFaqResponse;
@@ -1254,6 +1341,7 @@ async function buildChatResponse(rawMessage, sessionId) {
     answer,
     followUp: [],
     sources: dedupeSources(contextDocs).slice(0, 3),
+    images: findRelevantImages(message, contextDocs),
   };
 
   setCachedResponse(message, responsePayload);

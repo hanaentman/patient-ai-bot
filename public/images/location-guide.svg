@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-label="Location guide placeholder">
+  <rect width="1200" height="720" fill="#eef7ff" />
+  <rect x="40" y="40" width="1120" height="640" rx="36" fill="#ffffff" stroke="#b8d8f0" stroke-width="4" />
+  <text x="80" y="120" fill="#1b6fa8" font-family="Segoe UI, sans-serif" font-size="44" font-weight="700">Location Guide</text>
+  <text x="80" y="170" fill="#59738e" font-family="Segoe UI, sans-serif" font-size="24">Replace this file with a map, parking guide, or shuttle image.</text>
+  <circle cx="320" cy="420" r="140" fill="#eff7fd" stroke="#7db6de" stroke-width="6" />
+  <path d="M320 330c-38 0-68 30-68 68 0 56 68 132 68 132s68-76 68-132c0-38-30-68-68-68z" fill="#2c8fd6" />
+  <circle cx="320" cy="398" r="24" fill="#ffffff" />
+  <rect x="520" y="280" width="500" height="56" rx="18" fill="#eff7fd" />
+  <rect x="520" y="370" width="420" height="56" rx="18" fill="#eff7fd" />
+  <rect x="520" y="460" width="470" height="56" rx="18" fill="#eff7fd" />
+  <text x="550" y="318" fill="#17324a" font-family="Segoe UI, sans-serif" font-size="28">Hospital address or parking route</text>
+  <text x="550" y="408" fill="#17324a" font-family="Segoe UI, sans-serif" font-size="28">Shuttle stop information</text>
+  <text x="550" y="498" fill="#17324a" font-family="Segoe UI, sans-serif" font-size="28">Landmark and entrance notes</text>
+</svg>

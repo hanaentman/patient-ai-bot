@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-label="Floor guide placeholder">
+  <rect width="1200" height="720" fill="#eef7ff" />
+  <rect x="40" y="40" width="1120" height="640" rx="36" fill="#ffffff" stroke="#b8d8f0" stroke-width="4" />
+  <text x="80" y="120" fill="#1b6fa8" font-family="Segoe UI, sans-serif" font-size="44" font-weight="700">Floor Guide</text>
+  <text x="80" y="170" fill="#59738e" font-family="Segoe UI, sans-serif" font-size="24">Replace this file with the actual hospital floor map image.</text>
+  <rect x="80" y="230" width="1040" height="110" rx="24" fill="#eff7fd" />
+  <rect x="80" y="370" width="1040" height="110" rx="24" fill="#eff7fd" />
+  <rect x="80" y="510" width="1040" height="110" rx="24" fill="#eff7fd" />
+  <text x="120" y="298" fill="#17324a" font-family="Segoe UI, sans-serif" font-size="28">B1 / 1F / 2F information can be shown here</text>
+  <text x="120" y="438" fill="#17324a" font-family="Segoe UI, sans-serif" font-size="28">Consultation desks, wards, exam rooms, elevators</text>
+  <text x="120" y="578" fill="#17324a" font-family="Segoe UI, sans-serif" font-size="28">Use the same filename to swap in a real guide image</text>
+</svg>

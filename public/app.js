@@ -41,7 +41,7 @@ function splitMessageParagraphs(role, text) {
     .filter(Boolean);
 }
 
-function appendMessage(role, text, followUp = [], sources = []) {
+function appendMessage(role, text, followUp = [], sources = [], images = []) {
   const wrapper = document.createElement('article');
   wrapper.className = `message ${role}`;
 
@@ -100,6 +100,48 @@ function appendMessage(role, text, followUp = [], sources = []) {
 
     sourceBox.appendChild(sourceList);
     wrapper.appendChild(sourceBox);
+  }
+
+  if (role === 'bot' && images.length > 0) {
+    const imageBox = document.createElement('div');
+    imageBox.className = 'image-box';
+
+    const imageTitle = document.createElement('strong');
+    imageTitle.textContent = '관련 이미지';
+    imageBox.appendChild(imageTitle);
+
+    images.forEach((image) => {
+      const card = document.createElement('figure');
+      card.className = 'image-card';
+
+      const img = document.createElement('img');
+      img.src = image.url;
+      img.alt = image.title || '안내 이미지';
+      img.loading = 'lazy';
+      card.appendChild(img);
+
+      if (image.title || image.description) {
+        const caption = document.createElement('figcaption');
+
+        if (image.title) {
+          const captionTitle = document.createElement('strong');
+          captionTitle.textContent = image.title;
+          caption.appendChild(captionTitle);
+        }
+
+        if (image.description) {
+          const captionText = document.createElement('span');
+          captionText.textContent = image.description;
+          caption.appendChild(captionText);
+        }
+
+        card.appendChild(caption);
+      }
+
+      imageBox.appendChild(card);
+    });
+
+    wrapper.appendChild(imageBox);
   }
 
   chat.appendChild(wrapper);
@@ -174,7 +216,7 @@ async function sendMessage(message) {
       : (data.followUp || []);
 
     removePendingMessage();
-    appendMessage('bot', data.answer, followUp, data.sources || []);
+    appendMessage('bot', data.answer, followUp, data.sources || [], data.images || []);
   } catch (error) {
     removePendingMessage();
     throw error;

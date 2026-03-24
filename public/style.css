@@ -170,6 +170,51 @@ body {
   border-top: 1px solid rgba(44, 143, 214, 0.14);
 }
 
+.image-box {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(44, 143, 214, 0.14);
+}
+
+.image-box strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 11px;
+}
+
+.image-card {
+  margin: 0 0 10px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(44, 143, 214, 0.14);
+}
+
+.image-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #dfeaf5;
+}
+
+.image-card figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px 12px;
+}
+
+.image-card figcaption strong {
+  margin: 0;
+  font-size: 12px;
+}
+
+.image-card figcaption span {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
 .source-box strong {
   display: block;
   margin-bottom: 6px;
