@@ -159,7 +159,7 @@ function appendMessage(role, text, followUp = [], sources = [], images = []) {
     const list = document.createElement('ul');
     followUp.forEach((item) => {
       const li = document.createElement('li');
-      li.textContent = item;
+      appendRichText(li, item);
       list.appendChild(li);
     });
     wrapper.appendChild(list);
