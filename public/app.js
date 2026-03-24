@@ -37,7 +37,7 @@ function splitMessageParagraphs(role, text) {
   }
 
   return normalized
-    .split(/(?<=[.!?][)"'\]]?)\s+/)
+    .split(/(?<=[.!?][)"'\]]?|입니다|됩니다|보입니다|권장합니다|안내됩니다|가능합니다|어렵습니다|바랍니다)\s+/)
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
 }
