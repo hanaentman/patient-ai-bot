@@ -13,6 +13,7 @@ const FAQ_EXTENDED_PATH = path.join(__dirname, 'data', 'faq-extended.json');
 const SITE_SOURCES_PATH = path.join(__dirname, 'data', 'site-sources.json');
 const IMAGE_GUIDES_PATH = path.join(__dirname, 'data', 'image-guides.json');
 const DOCS_DIR = path.join(__dirname, 'docs');
+const CERTIFICATE_FEES_DOC_PATH = findDocPathByKeyword('비급여비용');
 const YOUTUBE_LINKS_PATH = path.join(DOCS_DIR, '유튜브-링크.txt');
 
 const faqEntries = [
@@ -117,6 +118,7 @@ const RESPONSE_CACHE_MAX_ENTRIES = 200;
 let warmupStarted = false;
 const faqDocuments = buildFaqDocuments();
 const localDocuments = buildLocalDocuments();
+const certificateFeeEntries = buildCertificateFeeEntries();
 
 function readJsonArray(filePath) {
   if (!fs.existsSync(filePath)) {
@@ -125,6 +127,15 @@ function readJsonArray(filePath) {
 
   const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   return Array.isArray(parsed) ? parsed : [];
+}
+
+function findDocPathByKeyword(keyword) {
+  if (!fs.existsSync(DOCS_DIR)) {
+    return '';
+  }
+
+  const matchedFile = fs.readdirSync(DOCS_DIR).find((name) => name.includes(keyword));
+  return matchedFile ? path.join(DOCS_DIR, matchedFile) : '';
 }
 
 function sendJson(res, statusCode, payload) {
@@ -770,6 +781,129 @@ function tokenizeSafe(text) {
   return normalizeSearchTextSafe(text)
     .split(' ')
     .filter((token) => token.length >= 2);
+}
+
+function extractPriceText(line) {
+  const amountMatches = String(line || '').match(/\d{1,3}(?:,\d{3})+/g) || [];
+  return amountMatches[0] || '';
+}
+
+function buildCertificateFeeEntries() {
+  if (!CERTIFICATE_FEES_DOC_PATH || !fs.existsSync(CERTIFICATE_FEES_DOC_PATH)) {
+    return [];
+  }
+
+  const rawLines = fs.readFileSync(CERTIFICATE_FEES_DOC_PATH, 'utf8')
+    .split(/\r?\n/)
+    .map((line) => String(line || '').replace(/\r/g, '').trim())
+    .filter(Boolean);
+
+  const feeConfigs = [
+    {
+      key: 'diagnosis',
+      title: '진단서',
+      requiredTerms: ['진단서', 'pdz01'],
+    },
+    {
+      key: 'diagnosis_reissue',
+      title: '진단서 재발급',
+      requiredTerms: ['진단서', 'pdz16'],
+    },
+    {
+      key: 'surgery_confirmation',
+      title: '수술확인서',
+      requiredTerms: ['수술확인서', '상병', '수술코드'],
+    },
+    {
+      key: 'surgery_confirmation_reissue',
+      title: '수술확인서 재발급',
+      requiredTerms: ['수술확인서', '재발급'],
+    },
+    {
+      key: 'admission_discharge',
+      title: '입퇴원확인서',
+      requiredTerms: ['입퇴원확인서', 'pdz09'],
+    },
+    {
+      key: 'admission_discharge_reissue',
+      title: '입퇴원확인서 재발급',
+      requiredTerms: ['입퇴원확인서', '재발행'],
+    },
+  ];
+
+  return feeConfigs.map((config) => {
+    const matchedLine = rawLines.find((line) => {
+      const normalizedLine = compactSearchTextSafe(line);
+      return config.requiredTerms.every((term) => normalizedLine.includes(compactSearchTextSafe(term)));
+    });
+
+    if (!matchedLine) {
+      return null;
+    }
+
+    return {
+      ...config,
+      price: extractPriceText(matchedLine),
+    };
+  }).filter((entry) => entry && entry.price);
+}
+
+function findCertificateFeeResponse(message) {
+  const normalizedMessage = normalizeSearchTextSafe(message);
+  if (!normalizedMessage) {
+    return null;
+  }
+
+  if (!/(비용|금액|수수료|가격|얼마)/u.test(message)) {
+    return null;
+  }
+
+  const wantsReissue = /(재발급|재발행|사본)/u.test(message);
+  const targets = [
+    {
+      baseKey: 'diagnosis',
+      reissueKey: 'diagnosis_reissue',
+      aliases: ['진단서'],
+    },
+    {
+      baseKey: 'surgery_confirmation',
+      reissueKey: 'surgery_confirmation_reissue',
+      aliases: ['수술확인서', '수술 확인서'],
+    },
+    {
+      baseKey: 'admission_discharge',
+      reissueKey: 'admission_discharge_reissue',
+      aliases: ['입퇴원확인서', '입원확인서', '퇴원확인서'],
+    },
+  ];
+
+  const matchedTarget = targets.find((target) => (
+    target.aliases.some((alias) => normalizedMessage.includes(normalizeSearchTextSafe(alias)))
+  ));
+
+  if (!matchedTarget) {
+    return null;
+  }
+
+  const entryKey = wantsReissue ? matchedTarget.reissueKey : matchedTarget.baseKey;
+  const matchedEntry = certificateFeeEntries.find((entry) => entry.key === entryKey);
+  if (!matchedEntry) {
+    return null;
+  }
+
+  return {
+    type: 'certificate_fee',
+    answer: `${matchedEntry.title} 비용은 ${matchedEntry.price}원입니다.`,
+    followUp: [
+      '기준 문서: 기타-비급여비용.txt',
+      wantsReissue ? '재발급 또는 재발행 기준 금액으로 안내했습니다.' : '발급 기준 금액으로 안내했습니다.',
+      '세부 기준은 원무과 또는 대표전화 02-6925-1111로 다시 확인해 주세요.',
+    ],
+    sources: [{
+      title: '기타-비급여비용',
+      url: `local://docs/${encodeURIComponent(path.basename(CERTIFICATE_FEES_DOC_PATH || '기타-비급여비용.txt'))}`,
+    }],
+  };
 }
 
 function buildFaqDocuments() {
@@ -1501,6 +1635,11 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   if (matchesAnyPattern(message, lateArrivalPatterns)) {
     return enrichResponsePayload(createLateArrivalResponse(), message);
+  }
+
+  const certificateFeeResponse = findCertificateFeeResponse(message);
+  if (certificateFeeResponse) {
+    return enrichResponsePayload(certificateFeeResponse, message);
   }
 
   const smallTalkIntent = getSmallTalkIntent(message);
