@@ -97,6 +97,15 @@ const medicalRestrictionPatterns = [
   /(^|[^가-힣])(약|복용약|먹는약).{0,8}(바꿔|변경|중단|끊어)/u,
 ];
 
+const lateArrivalPatterns = [
+  /늦게\s*도착/u,
+  /늦을\s*것\s*같/u,
+  /지각/u,
+  /예약\s*시간.{0,10}늦/u,
+  /예약.{0,12}늦/u,
+  /도착.{0,12}늦/u,
+];
+
 const documentCache = {
   loadedAt: 0,
   docs: [],
@@ -389,9 +398,17 @@ function findDirectFaqMatch(message) {
   const normalizedMessage = normalizeSearchTextSafe(message);
   const compactMessage = compactSearchTextSafe(message);
   const tokens = tokenizeSafe(normalizedMessage);
+  const isConversationalQuestion = (
+    normalizedMessage.length >= 14
+    || tokens.length >= 4
+    || /[?？]$/.test(String(message || '').trim())
+    || /(했는데|인데|같아|같은데|하려고|되나요|되나요|어떻게|어떡해|가능할까요|될까요|해도 되나요)/u.test(message)
+  );
 
   const rankedEntries = faqEntries
     .map((entry) => {
+      let exactKeywordMatch = false;
+
       const keywordScore = (entry.keywords || []).reduce((score, keyword) => {
         const normalizedKeyword = normalizeSearchTextSafe(keyword);
         const compactKeyword = compactSearchTextSafe(keyword);
@@ -405,6 +422,7 @@ function findDirectFaqMatch(message) {
 
         if (normalizedMessage === normalizedKeyword || compactMessage === compactKeyword) {
           nextScore += 20;
+          exactKeywordMatch = true;
         } else if (
           normalizedMessage.includes(normalizedKeyword)
           || compactMessage.includes(compactKeyword)
@@ -428,6 +446,7 @@ function findDirectFaqMatch(message) {
       return {
         entry,
         score: keywordScore + tokenScore,
+        exactKeywordMatch,
       };
     })
     .filter((item) => item.score > 0)
@@ -438,11 +457,23 @@ function findDirectFaqMatch(message) {
   }
 
   const [bestMatch, secondMatch] = rankedEntries;
-  const hasClearLead = !secondMatch || bestMatch.score >= secondMatch.score + 3;
+  const scoreGap = secondMatch ? bestMatch.score - secondMatch.score : bestMatch.score;
+  const hasClearLead = !secondMatch || scoreGap >= 3;
   const isStrongMatch = bestMatch.score >= 12 || (bestMatch.score >= 8 && hasClearLead);
 
   if (!isStrongMatch) {
     return null;
+  }
+
+  if (!bestMatch.exactKeywordMatch && scoreGap < 4) {
+    return null;
+  }
+
+  if (isConversationalQuestion && !bestMatch.exactKeywordMatch) {
+    const conversationalStrongMatch = bestMatch.score >= 15 && scoreGap >= 5;
+    if (!conversationalStrongMatch) {
+      return null;
+    }
   }
 
   const sourceInfo = getFaqSourceInfo(bestMatch.entry);
@@ -501,6 +532,18 @@ function createApiKeyMissingResponse() {
       '$env:OPENAI_API_KEY="발급받은키"',
       'node .\\server.js',
       '대표전화 02-6925-1111',
+    ],
+  };
+}
+
+function createLateArrivalResponse() {
+  return {
+    type: 'late_arrival',
+    answer: '예약 후 늦게 도착할 것 같으면 대표전화 02-6925-1111로 먼저 연락해 상담원에게 상황을 알려 주세요. 문서 기준으로 도착 예정 시간과 외래 대기 상황에 따라 방문 접수로 안내되거나 예약 가능 여부를 다시 확인해 안내할 수 있습니다.',
+    followUp: [
+      '1시간 이내 도착 가능하면 방문 접수로 안내될 수 있습니다.',
+      '1시간 이상 늦어질 것 같으면 전화로 예약 가능 여부를 먼저 확인하는 편이 안전합니다.',
+      '대표전화: 02-6925-1111',
     ],
   };
 }
@@ -1454,6 +1497,10 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   if (matchesAnyPattern(lowerMessage, medicalRestrictionPatterns)) {
     return enrichResponsePayload(createRestrictedMedicalResponse(), message);
+  }
+
+  if (matchesAnyPattern(message, lateArrivalPatterns)) {
+    return enrichResponsePayload(createLateArrivalResponse(), message);
   }
 
   const smallTalkIntent = getSmallTalkIntent(message);
