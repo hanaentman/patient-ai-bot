@@ -58,6 +58,7 @@ const faqCategoryUrlHints = {
   tinnitus_hearing_loss: 'ear/ear01.html',
   ear_exam_turnaround: 'ear/ear01.html',
   sleep_study_required: 'neck/neck01.html',
+  sleep_study_insurance: 'neck/neck01.html',
   cpap_insurance: 'neck/neck01.html',
   doctor_schedule_general: 'info/info01.html',
   doctor_schedule_dong: 'info/info01.html',
@@ -385,20 +386,48 @@ function findRelevantImages(message, contextDocs = []) {
 }
 
 function findDirectFaqMatch(message) {
-  const normalizedMessage = normalizeMessageForCache(message);
+  const normalizedMessage = normalizeSearchTextSafe(message);
+  const compactMessage = compactSearchTextSafe(message);
   const tokens = tokenizeSafe(normalizedMessage);
 
   const rankedEntries = faqEntries
     .map((entry) => {
-      const keywordScore = getScore(normalizedMessage, entry.keywords || []);
-      const answerText = `${entry.answer} ${(entry.followUp || []).join(' ')}`.toLowerCase();
+      const keywordScore = (entry.keywords || []).reduce((score, keyword) => {
+        const normalizedKeyword = normalizeSearchTextSafe(keyword);
+        const compactKeyword = compactSearchTextSafe(keyword);
+        const keywordTokens = tokenizeSafe(normalizedKeyword);
+
+        if (!normalizedKeyword) {
+          return score;
+        }
+
+        let nextScore = score;
+
+        if (normalizedMessage === normalizedKeyword || compactMessage === compactKeyword) {
+          nextScore += 20;
+        } else if (
+          normalizedMessage.includes(normalizedKeyword)
+          || compactMessage.includes(compactKeyword)
+          || normalizedKeyword.includes(normalizedMessage)
+        ) {
+          nextScore += 12;
+        }
+
+        const keywordTokenScore = keywordTokens.reduce((tokenScore, token) => (
+          tokens.includes(token) ? tokenScore + 3 : tokenScore
+        ), 0);
+
+        return nextScore + keywordTokenScore;
+      }, 0);
+
+      const answerText = normalizeSearchTextSafe(`${entry.answer} ${(entry.followUp || []).join(' ')}`);
       const tokenScore = tokens.reduce((score, token) => (
         answerText.includes(token) ? score + 1 : score
       ), 0);
 
       return {
         entry,
-        score: keywordScore * 4 + tokenScore,
+        score: keywordScore + tokenScore,
       };
     })
     .filter((item) => item.score > 0)
@@ -410,7 +439,7 @@ function findDirectFaqMatch(message) {
 
   const [bestMatch, secondMatch] = rankedEntries;
   const hasClearLead = !secondMatch || bestMatch.score >= secondMatch.score + 3;
-  const isStrongMatch = bestMatch.score >= 8 || (bestMatch.score >= 5 && hasClearLead);
+  const isStrongMatch = bestMatch.score >= 12 || (bestMatch.score >= 8 && hasClearLead);
 
   if (!isStrongMatch) {
     return null;
