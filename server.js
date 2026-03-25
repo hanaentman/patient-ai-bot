@@ -9,12 +9,16 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-5-mini';
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const FAQ_PATH = path.join(__dirname, 'data', 'faq.json');
+const FAQ_EXTENDED_PATH = path.join(__dirname, 'data', 'faq-extended.json');
 const SITE_SOURCES_PATH = path.join(__dirname, 'data', 'site-sources.json');
 const IMAGE_GUIDES_PATH = path.join(__dirname, 'data', 'image-guides.json');
 const DOCS_DIR = path.join(__dirname, 'docs');
 const YOUTUBE_LINKS_PATH = path.join(DOCS_DIR, '유튜브-링크.txt');
 
-const faqEntries = JSON.parse(fs.readFileSync(FAQ_PATH, 'utf8'));
+const faqEntries = [
+  ...readJsonArray(FAQ_PATH),
+  ...readJsonArray(FAQ_EXTENDED_PATH),
+];
 const siteSources = JSON.parse(fs.readFileSync(SITE_SOURCES_PATH, 'utf8'));
 const imageGuides = fs.existsSync(IMAGE_GUIDES_PATH)
   ? JSON.parse(fs.readFileSync(IMAGE_GUIDES_PATH, 'utf8'))
@@ -39,6 +43,22 @@ const faqCategoryUrlHints = {
   doctors_ear: 'ear/ear01.html',
   doctors_throat_sleep: 'neck/neck01.html',
   doctors_internal: 'nerve/nerve01.html',
+  same_day_reservation_detail: 'info/info05.html',
+  first_visit_process: 'info/info05.html',
+  ct_result_submission: 'info/info09.html',
+  multi_department_visit: 'intro/intro02.html',
+  preop_test_detail: 'info/info03.html',
+  surgery_reservation_process: 'info/info03.html',
+  card_refund: 'info/info06.html',
+  guardian_stay: 'info/info03.html',
+  rhinitis_control: 'nose/nose01.html',
+  sinusitis_treatment_options: 'nose/nose01.html',
+  nasal_irrigation: 'nose/nose01.html',
+  nose_exam_turnaround: 'nose/nose01.html',
+  tinnitus_hearing_loss: 'ear/ear01.html',
+  ear_exam_turnaround: 'ear/ear01.html',
+  sleep_study_required: 'neck/neck01.html',
+  cpap_insurance: 'neck/neck01.html',
   doctor_schedule_general: 'info/info01.html',
   doctor_schedule_dong: 'info/info01.html',
   doctor_schedule_kimtaehyun: 'info/info01.html',
@@ -87,6 +107,15 @@ const RESPONSE_CACHE_MAX_ENTRIES = 200;
 let warmupStarted = false;
 const faqDocuments = buildFaqDocuments();
 const localDocuments = buildLocalDocuments();
+
+function readJsonArray(filePath) {
+  if (!fs.existsSync(filePath)) {
+    return [];
+  }
+
+  const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  return Array.isArray(parsed) ? parsed : [];
+}
 
 function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, { 'Content-Type': 'application/json; charset=utf-8' });
