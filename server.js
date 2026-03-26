@@ -107,6 +107,14 @@ const lateArrivalPatterns = [
   /도착.{0,12}늦/u,
 ];
 
+const personalInfoPatterns = [
+  /\b\d{6}[- ]?\d{7}\b/,
+  /\b01[016789][- ]?\d{3,4}[- ]?\d{4}\b/,
+  /\b(?:02|0[3-9]\d)[- ]?\d{3,4}[- ]?\d{4}\b/,
+  /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i,
+  /(주민등록번호|주민번호|휴대폰번호|핸드폰번호|전화번호|이메일|메일주소|상세주소|집주소|우편번호)/u,
+];
+
 const documentCache = {
   loadedAt: 0,
   docs: [],
@@ -428,7 +436,14 @@ function resolvePublicImagePath(value) {
     return normalized;
   }
 
-  const relativePath = normalized.replace(/^\/+/, '').split('/').join(path.sep);
+  let decodedPath = normalized;
+  try {
+    decodedPath = decodeURIComponent(normalized);
+  } catch (error) {
+    decodedPath = normalized;
+  }
+
+  const relativePath = decodedPath.replace(/^\/+/, '').split('/').join(path.sep);
   const absolutePath = path.join(PUBLIC_DIR, relativePath);
 
   if (fs.existsSync(absolutePath)) {
@@ -697,6 +712,17 @@ function createEmergencyResponse() {
       '의식 저하, 호흡곤란, 심한 출혈은 즉시 응급실 권고',
       '대표전화 02-6925-1111',
       '야간에는 응급 대응 체계로 연결 필요',
+    ],
+  };
+}
+
+function createPersonalInfoWarningResponse() {
+  return {
+    type: 'privacy_warning',
+    answer: '개인정보나 민감한 건강정보는 입력하지 말아 주세요. 주민등록번호, 전화번호, 이메일, 상세 주소 같은 정보 없이 질문해 주세요.',
+    followUp: [
+      '예: 진단서 비용, 예약 변경 방법, 진료시간처럼 개인정보 없이 질문해 주세요.',
+      '이미 입력한 개인정보가 있다면 다시 적지 말고 일반적인 표현으로 바꿔 질문해 주세요.',
     ],
   };
 }
@@ -1809,6 +1835,10 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   if (matchesAnyPattern(lowerMessage, medicalRestrictionPatterns)) {
     return enrichResponsePayload(createRestrictedMedicalResponse(), message);
+  }
+
+  if (matchesAnyPattern(message, personalInfoPatterns)) {
+    return enrichResponsePayload(createPersonalInfoWarningResponse(), message);
   }
 
   if (matchesAnyPattern(message, lateArrivalPatterns)) {
