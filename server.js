@@ -115,6 +115,14 @@ const documentCache = {
 const responseCache = new Map();
 const RESPONSE_CACHE_TTL_MS = 10 * 60 * 1000;
 const RESPONSE_CACHE_MAX_ENTRIES = 200;
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const RATE_LIMIT_DAILY_WINDOW_MS = 24 * 60 * 60 * 1000;
+const RATE_LIMIT_IP_PER_MINUTE = 10;
+const RATE_LIMIT_SESSION_PER_MINUTE = 5;
+const RATE_LIMIT_SESSION_PER_DAY = 40;
+const ipRateWindow = new Map();
+const sessionMinuteRateWindow = new Map();
+const sessionDailyRateWindow = new Map();
 let warmupStarted = false;
 const faqDocuments = buildFaqDocuments();
 const localDocuments = buildLocalDocuments();
@@ -241,6 +249,119 @@ function normalizePublicAssetPath(value) {
   }
 
   return normalized.startsWith('/') ? normalized : `/${normalized}`;
+}
+
+function getClientIp(req) {
+  const forwardedFor = req.headers['x-forwarded-for'];
+  if (typeof forwardedFor === 'string' && forwardedFor.trim()) {
+    return forwardedFor.split(',')[0].trim();
+  }
+
+  const realIp = req.headers['x-real-ip'];
+  if (typeof realIp === 'string' && realIp.trim()) {
+    return realIp.trim();
+  }
+
+  return req.socket?.remoteAddress || 'unknown';
+}
+
+function pruneRateLimitMap(store, windowMs, now) {
+  for (const [key, timestamps] of store.entries()) {
+    const filtered = timestamps.filter((timestamp) => now - timestamp < windowMs);
+    if (filtered.length === 0) {
+      store.delete(key);
+      continue;
+    }
+
+    if (filtered.length !== timestamps.length) {
+      store.set(key, filtered);
+    }
+  }
+}
+
+function recordRateLimitHit(store, key, windowMs, limit, now) {
+  if (!key) {
+    return { allowed: true, remaining: limit };
+  }
+
+  const timestamps = (store.get(key) || []).filter((timestamp) => now - timestamp < windowMs);
+  if (timestamps.length >= limit) {
+    store.set(key, timestamps);
+    return {
+      allowed: false,
+      remaining: 0,
+      retryAfterMs: Math.max(windowMs - (now - timestamps[0]), 1000),
+    };
+  }
+
+  timestamps.push(now);
+  store.set(key, timestamps);
+  return {
+    allowed: true,
+    remaining: Math.max(limit - timestamps.length, 0),
+  };
+}
+
+function getRateLimitResult(req, sessionId) {
+  const now = Date.now();
+  pruneRateLimitMap(ipRateWindow, RATE_LIMIT_WINDOW_MS, now);
+  pruneRateLimitMap(sessionMinuteRateWindow, RATE_LIMIT_WINDOW_MS, now);
+  pruneRateLimitMap(sessionDailyRateWindow, RATE_LIMIT_DAILY_WINDOW_MS, now);
+
+  const clientIp = getClientIp(req);
+  const ipCheck = recordRateLimitHit(ipRateWindow, clientIp, RATE_LIMIT_WINDOW_MS, RATE_LIMIT_IP_PER_MINUTE, now);
+  if (!ipCheck.allowed) {
+    return {
+      allowed: false,
+      statusCode: 429,
+      retryAfterMs: ipCheck.retryAfterMs,
+      detail: 'ip_minute_limit',
+      answer: '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.',
+      followUp: ['같은 네트워크에서 요청이 많이 발생하면 잠시 제한될 수 있습니다.'],
+    };
+  }
+
+  if (!sessionId) {
+    return { allowed: true };
+  }
+
+  const minuteCheck = recordRateLimitHit(
+    sessionMinuteRateWindow,
+    sessionId,
+    RATE_LIMIT_WINDOW_MS,
+    RATE_LIMIT_SESSION_PER_MINUTE,
+    now
+  );
+  if (!minuteCheck.allowed) {
+    return {
+      allowed: false,
+      statusCode: 429,
+      retryAfterMs: minuteCheck.retryAfterMs,
+      detail: 'session_minute_limit',
+      answer: '질문이 너무 빠르게 이어지고 있습니다. 1분 정도 후 다시 시도해 주세요.',
+      followUp: ['한 세션에서는 1분에 5회까지 질문할 수 있습니다.'],
+    };
+  }
+
+  const dailyCheck = recordRateLimitHit(
+    sessionDailyRateWindow,
+    sessionId,
+    RATE_LIMIT_DAILY_WINDOW_MS,
+    RATE_LIMIT_SESSION_PER_DAY,
+    now
+  );
+  if (!dailyCheck.allowed) {
+    return {
+      allowed: false,
+      statusCode: 429,
+      retryAfterMs: dailyCheck.retryAfterMs,
+      detail: 'session_daily_limit',
+      answer: '오늘 이 대화의 사용 한도에 도달했습니다. 내일 다시 이용해 주세요.',
+      followUp: ['한 세션에서는 하루 40회까지 질문할 수 있습니다.'],
+    };
+  }
+
+  return { allowed: true };
 }
 
 function resolvePublicImagePath(value) {
@@ -1735,6 +1856,21 @@ function handleApiChat(req, res) {
   req.on('end', async () => {
     try {
       const parsed = JSON.parse(body || '{}');
+      const rateLimitResult = getRateLimitResult(req, parsed.sessionId);
+      if (!rateLimitResult.allowed) {
+        if (rateLimitResult.retryAfterMs) {
+          res.setHeader('Retry-After', Math.ceil(rateLimitResult.retryAfterMs / 1000));
+        }
+
+        sendJson(res, rateLimitResult.statusCode || 429, {
+          type: 'rate_limited',
+          answer: rateLimitResult.answer,
+          followUp: rateLimitResult.followUp || [],
+          detail: rateLimitResult.detail,
+        });
+        return;
+      }
+
       const response = await buildChatResponse(parsed.message, parsed.sessionId);
       sendJson(res, 200, response);
     } catch (error) {
