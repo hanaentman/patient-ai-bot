@@ -123,6 +123,16 @@ const documentCache = {
 const responseCache = new Map();
 const RESPONSE_CACHE_TTL_MS = 10 * 60 * 1000;
 const RESPONSE_CACHE_MAX_ENTRIES = 200;
+const popularQuestionStats = new Map();
+const POPULAR_QUESTION_LIMIT = 6;
+const DEFAULT_POPULAR_QUESTIONS = [
+  { label: '진료과', question: '진료과를 알려줘' },
+  { label: '원장 일정', question: '하나이비인후과 원장 진료시간 알려줘' },
+  { label: '신경과 일정', question: '신경과 원장 진료시간 알려줘' },
+  { label: '병원 진료시간', question: '진료시간 안내해줘' },
+  { label: '예약 변경', question: '예약 변경 방법 알려줘' },
+  { label: '코골이 상담', question: '코골이 진료 과를 알려줘' },
+];
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_DAILY_WINDOW_MS = 24 * 60 * 60 * 1000;
 const RATE_LIMIT_IP_PER_MINUTE = 10;
@@ -203,6 +213,64 @@ function normalizeMessageForCache(message) {
     .toLowerCase()
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function formatPopularQuestionLabel(question) {
+  const value = String(question || '').trim();
+  if (!value) {
+    return '';
+  }
+
+  return value.length > 18 ? `${value.slice(0, 18)}…` : value;
+}
+
+function recordPopularQuestion(message) {
+  const question = String(message || '').trim();
+  const normalized = normalizeSearchTextSafe(question);
+  if (!normalized) {
+    return;
+  }
+
+  const current = popularQuestionStats.get(normalized) || {
+    question,
+    count: 0,
+    updatedAt: 0,
+  };
+
+  current.question = question;
+  current.count += 1;
+  current.updatedAt = Date.now();
+  popularQuestionStats.set(normalized, current);
+}
+
+function getPopularQuestions(limit = POPULAR_QUESTION_LIMIT) {
+  const dynamicItems = [...popularQuestionStats.values()]
+    .sort((a, b) => (
+      b.count - a.count || b.updatedAt - a.updatedAt
+    ))
+    .slice(0, limit)
+    .map((item) => ({
+      label: formatPopularQuestionLabel(item.question),
+      question: item.question,
+      count: item.count,
+      source: 'live',
+    }));
+
+  if (dynamicItems.length >= limit) {
+    return dynamicItems;
+  }
+
+  const seen = new Set(dynamicItems.map((item) => normalizeSearchTextSafe(item.question)));
+  const fallbackItems = DEFAULT_POPULAR_QUESTIONS
+    .filter((item) => !seen.has(normalizeSearchTextSafe(item.question)))
+    .slice(0, Math.max(limit - dynamicItems.length, 0))
+    .map((item) => ({
+      ...item,
+      count: 0,
+      source: 'default',
+    }));
+
+  return [...dynamicItems, ...fallbackItems];
 }
 
 function getCachedResponse(message) {
@@ -1969,6 +2037,7 @@ function handleApiChat(req, res) {
         return;
       }
 
+      recordPopularQuestion(parsed.message);
       const response = await buildChatResponse(parsed.message, parsed.sessionId);
       sendJson(res, 200, response);
     } catch (error) {
@@ -1996,6 +2065,15 @@ const server = http.createServer((req, res) => {
       ok: true,
       aiEnabled: Boolean(OPENAI_API_KEY),
       model: OPENAI_MODEL,
+      timestamp: new Date().toISOString(),
+    });
+    return;
+  }
+
+  if (req.method === 'GET' && pathname === '/api/popular-questions') {
+    sendJson(res, 200, {
+      ok: true,
+      items: getPopularQuestions(),
       timestamp: new Date().toISOString(),
     });
     return;

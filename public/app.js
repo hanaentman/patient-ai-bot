@@ -1,11 +1,20 @@
 const chat = document.getElementById('chat');
 const form = document.getElementById('chat-form');
 const input = document.getElementById('message-input');
+const quickActions = document.querySelector('.quick-actions');
 const chips = document.querySelectorAll('.chip');
 const sessionId = `session-${crypto.randomUUID()}`;
 
 let pendingMessageElement = null;
 let imageViewerElement = null;
+const fallbackQuickActions = [
+  { label: '진료과', question: '진료과를 알려줘' },
+  { label: '원장 일정', question: '하나이비인후과 원장 진료시간 알려줘' },
+  { label: '신경과 일정', question: '신경과 원장 진료시간 알려줘' },
+  { label: '병원 진료시간', question: '진료시간 안내해줘' },
+  { label: '예약 변경', question: '예약 변경 방법 알려줘' },
+  { label: '코골이 상담', question: '코골이 진료 과를 알려줘' },
+];
 
 function isValidExternalUrl(value) {
   try {
@@ -73,6 +82,48 @@ function appendRichText(container, text) {
 
   if (lastIndex < value.length) {
     container.appendChild(document.createTextNode(value.slice(lastIndex)));
+  }
+}
+
+function getChipElements() {
+  return quickActions ? Array.from(quickActions.querySelectorAll('.chip')) : [];
+}
+
+function renderQuickActions(items) {
+  if (!quickActions) {
+    return;
+  }
+
+  const normalizedItems = Array.isArray(items) && items.length > 0
+    ? items
+    : fallbackQuickActions;
+  const chipElements = Array.from(chips);
+
+  chipElements.forEach((button, index) => {
+    const item = normalizedItems[index] || fallbackQuickActions[index];
+    if (!item) {
+      button.hidden = true;
+      return;
+    }
+
+    button.hidden = false;
+    button.dataset.question = item.question;
+    button.textContent = item.label || item.question;
+  });
+}
+
+async function loadPopularQuestions() {
+  try {
+    const response = await fetch('/api/popular-questions');
+    if (!response.ok) {
+      renderQuickActions(fallbackQuickActions);
+      return;
+    }
+
+    const data = await response.json();
+    renderQuickActions(data.items);
+  } catch (error) {
+    renderQuickActions(fallbackQuickActions);
   }
 }
 
@@ -297,7 +348,7 @@ function showPendingMessage() {
 function setBusyState(isBusy) {
   input.disabled = isBusy;
   form.querySelector('button[type="submit"]').disabled = isBusy;
-  chips.forEach((chip) => {
+  getChipElements().forEach((chip) => {
     chip.disabled = isBusy;
   });
 }
@@ -322,6 +373,7 @@ async function sendMessage(message) {
 
     removePendingMessage();
     appendMessage('bot', data.answer, followUp, data.sources || [], data.images || []);
+    loadPopularQuestions();
   } catch (error) {
     removePendingMessage();
     throw error;
@@ -370,3 +422,6 @@ appendMessage(
   '안녕하세요. 하나이비인후과 AI 상담입니다. 병원 문서를 바탕으로 안내해 드립니다. 문서에 없는 내용은 추측하지 않고 안내합니다.',
   ['진료과 알려줘', '하나이비인후과 원장 진료시간 알려줘', '입원 준비물 알려줘']
 );
+
+renderQuickActions(fallbackQuickActions);
+loadPopularQuestions();
