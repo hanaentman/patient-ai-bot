@@ -2,20 +2,10 @@ const chat = document.getElementById('chat');
 const form = document.getElementById('chat-form');
 const input = document.getElementById('message-input');
 const chips = document.querySelectorAll('.chip');
-const turnstileSlot = document.getElementById('turnstile-slot');
 const sessionId = `session-${crypto.randomUUID()}`;
 
 let pendingMessageElement = null;
 let imageViewerElement = null;
-let appConfig = {
-  turnstileEnabled: false,
-  turnstileSiteKey: '',
-};
-let turnstileScriptPromise = null;
-let turnstileWidgetId = null;
-let turnstilePendingRequest = null;
-
-loadAppConfig();
 
 function isValidExternalUrl(value) {
   try {
@@ -84,129 +74,6 @@ function appendRichText(container, text) {
   if (lastIndex < value.length) {
     container.appendChild(document.createTextNode(value.slice(lastIndex)));
   }
-}
-
-async function loadAppConfig() {
-  try {
-    const response = await fetch('/api/config');
-    if (!response.ok) {
-      return;
-    }
-
-    const data = await response.json();
-    appConfig = {
-      turnstileEnabled: Boolean(data.turnstileEnabled && data.turnstileSiteKey),
-      turnstileSiteKey: data.turnstileSiteKey || '',
-    };
-  } catch (error) {
-    appConfig = {
-      turnstileEnabled: false,
-      turnstileSiteKey: '',
-    };
-  }
-}
-
-function ensureTurnstileScript() {
-  if (window.turnstile) {
-    return Promise.resolve(window.turnstile);
-  }
-
-  if (turnstileScriptPromise) {
-    return turnstileScriptPromise;
-  }
-
-  turnstileScriptPromise = new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
-    script.async = true;
-    script.defer = true;
-    script.onload = () => resolve(window.turnstile);
-    script.onerror = () => reject(new Error('turnstile_script_load_failed'));
-    document.head.appendChild(script);
-  });
-
-  return turnstileScriptPromise;
-}
-
-async function ensureTurnstileWidget() {
-  if (!appConfig.turnstileEnabled || !turnstileSlot) {
-    return null;
-  }
-
-  const turnstile = await ensureTurnstileScript();
-  if (turnstileWidgetId !== null) {
-    return turnstileWidgetId;
-  }
-
-  turnstileWidgetId = turnstile.render(turnstileSlot, {
-    sitekey: appConfig.turnstileSiteKey,
-    execution: 'execute',
-    appearance: 'interaction-only',
-    callback: (token) => {
-      if (!turnstilePendingRequest) {
-        return;
-      }
-
-      const { resolve, timeoutId } = turnstilePendingRequest;
-      turnstilePendingRequest = null;
-      window.clearTimeout(timeoutId);
-      resolve(token);
-    },
-    'error-callback': () => {
-      if (!turnstilePendingRequest) {
-        return;
-      }
-
-      const { reject, timeoutId } = turnstilePendingRequest;
-      turnstilePendingRequest = null;
-      window.clearTimeout(timeoutId);
-      reject(new Error('turnstile_failed'));
-    },
-    'expired-callback': () => {
-      if (!turnstilePendingRequest) {
-        return;
-      }
-
-      const { reject, timeoutId } = turnstilePendingRequest;
-      turnstilePendingRequest = null;
-      window.clearTimeout(timeoutId);
-      reject(new Error('turnstile_expired'));
-    },
-    'timeout-callback': () => {
-      if (!turnstilePendingRequest) {
-        return;
-      }
-
-      const { reject, timeoutId } = turnstilePendingRequest;
-      turnstilePendingRequest = null;
-      window.clearTimeout(timeoutId);
-      reject(new Error('turnstile_timeout'));
-    },
-  });
-
-  return turnstileWidgetId;
-}
-
-async function getTurnstileToken() {
-  if (!appConfig.turnstileEnabled) {
-    return '';
-  }
-
-  const widgetId = await ensureTurnstileWidget();
-  if (widgetId === null || !window.turnstile) {
-    return '';
-  }
-
-  return new Promise((resolve, reject) => {
-    const timeoutId = window.setTimeout(() => {
-      turnstilePendingRequest = null;
-      reject(new Error('turnstile_timeout'));
-    }, 10000);
-
-    turnstilePendingRequest = { resolve, reject, timeoutId };
-    window.turnstile.reset(widgetId);
-    window.turnstile.execute(widgetId);
-  });
 }
 
 function ensureImageViewer() {
@@ -440,14 +307,12 @@ async function sendMessage(message) {
   showPendingMessage();
 
   try {
-    await loadAppConfig();
-    const turnstileToken = await getTurnstileToken();
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ message, sessionId, turnstileToken }),
+      body: JSON.stringify({ message, sessionId }),
     });
 
     const data = await response.json();

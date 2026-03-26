@@ -338,15 +338,6 @@ body {
   padding: 8px 4px 2px;
 }
 
-.turnstile-slot {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  opacity: 0;
-  pointer-events: none;
-}
-
 .composer input {
   width: 100%;
   border: 1px solid var(--border);

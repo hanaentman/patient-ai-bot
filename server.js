@@ -7,9 +7,6 @@ const XLSX = require('xlsx');
 const PORT = process.env.PORT || 3000;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-5-mini';
-const TURNSTILE_SITE_KEY = process.env.TURNSTILE_SITE_KEY || '';
-const TURNSTILE_SECRET_KEY = process.env.TURNSTILE_SECRET_KEY || '';
-const TURNSTILE_ENABLED = Boolean(TURNSTILE_SITE_KEY && TURNSTILE_SECRET_KEY);
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const FAQ_PATH = path.join(__dirname, 'data', 'faq.json');
 const FAQ_EXTENDED_PATH = path.join(__dirname, 'data', 'faq-extended.json');
@@ -883,61 +880,6 @@ async function fetchText(url) {
     }
 
     return await response.text();
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-async function verifyTurnstileToken(token, remoteIp) {
-  if (!TURNSTILE_ENABLED) {
-    return { success: true, bypassed: true };
-  }
-
-  if (!token) {
-    return { success: false, detail: 'missing_turnstile_token' };
-  }
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10000);
-
-  try {
-    const body = new URLSearchParams({
-      secret: TURNSTILE_SECRET_KEY,
-      response: token,
-    });
-
-    if (remoteIp) {
-      body.set('remoteip', remoteIp);
-    }
-
-    const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-      method: 'POST',
-      signal: controller.signal,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body,
-    });
-
-    if (!response.ok) {
-      return { success: false, detail: `turnstile_http_${response.status}` };
-    }
-
-    const payload = await response.json();
-    if (payload.success) {
-      return { success: true };
-    }
-
-    const errorCodes = Array.isArray(payload['error-codes']) ? payload['error-codes'] : [];
-    return {
-      success: false,
-      detail: errorCodes[0] || 'turnstile_verification_failed',
-    };
-  } catch (error) {
-    return {
-      success: false,
-      detail: error.name === 'AbortError' ? 'turnstile_timeout' : 'turnstile_request_failed',
-    };
   } finally {
     clearTimeout(timeout);
   }
@@ -1914,17 +1856,6 @@ function handleApiChat(req, res) {
   req.on('end', async () => {
     try {
       const parsed = JSON.parse(body || '{}');
-      const turnstileResult = await verifyTurnstileToken(parsed.turnstileToken, getClientIp(req));
-      if (!turnstileResult.success) {
-        sendJson(res, 403, {
-          type: 'verification_failed',
-          answer: '요청 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.',
-          followUp: ['동일 문제가 반복되면 페이지를 새로고침한 뒤 다시 시도해 주세요.'],
-          detail: turnstileResult.detail,
-        });
-        return;
-      }
-
       const rateLimitResult = getRateLimitResult(req, parsed.sessionId);
       if (!rateLimitResult.allowed) {
         if (rateLimitResult.retryAfterMs) {
@@ -1966,18 +1897,8 @@ const server = http.createServer((req, res) => {
     sendJson(res, 200, {
       ok: true,
       aiEnabled: Boolean(OPENAI_API_KEY),
-      turnstileEnabled: TURNSTILE_ENABLED,
       model: OPENAI_MODEL,
       timestamp: new Date().toISOString(),
-    });
-    return;
-  }
-
-  if (req.method === 'GET' && pathname === '/api/config') {
-    sendJson(res, 200, {
-      ok: true,
-      turnstileEnabled: TURNSTILE_ENABLED,
-      turnstileSiteKey: TURNSTILE_ENABLED ? TURNSTILE_SITE_KEY : '',
     });
     return;
   }
