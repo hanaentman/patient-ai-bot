@@ -1833,6 +1833,11 @@ async function buildChatResponse(rawMessage, sessionId) {
     return enrichResponsePayload(createEmergencyResponse(), message);
   }
 
+  const certificateFeeResponse = findCertificateFeeResponse(message);
+  if (certificateFeeResponse) {
+    return enrichResponsePayload(certificateFeeResponse, message);
+  }
+
   if (matchesAnyPattern(lowerMessage, medicalRestrictionPatterns)) {
     return enrichResponsePayload(createRestrictedMedicalResponse(), message);
   }
@@ -1843,11 +1848,6 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   if (matchesAnyPattern(message, lateArrivalPatterns)) {
     return enrichResponsePayload(createLateArrivalResponse(), message);
-  }
-
-  const certificateFeeResponse = findCertificateFeeResponse(message);
-  if (certificateFeeResponse) {
-    return enrichResponsePayload(certificateFeeResponse, message);
   }
 
   const smallTalkIntent = getSmallTalkIntent(message);
