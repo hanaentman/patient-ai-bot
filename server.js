@@ -265,6 +265,63 @@ function getClientIp(req) {
   return req.socket?.remoteAddress || 'unknown';
 }
 
+function isAllowedRequestOrigin(req) {
+  const host = String(req.headers.host || '').trim().toLowerCase();
+  if (!host) {
+    return false;
+  }
+
+  const candidates = [req.headers.origin, req.headers.referer]
+    .filter((value) => typeof value === 'string' && value.trim());
+
+  if (candidates.length === 0) {
+    return false;
+  }
+
+  return candidates.some((value) => {
+    try {
+      const url = new URL(value);
+      return url.host.toLowerCase() === host;
+    } catch (error) {
+      return false;
+    }
+  });
+}
+
+function hasBrowserLikeUserAgent(req) {
+  const userAgent = String(req.headers['user-agent'] || '').toLowerCase();
+  if (!userAgent) {
+    return false;
+  }
+
+  const browserHints = ['mozilla/', 'chrome/', 'safari/', 'edg/', 'firefox/', 'applewebkit/'];
+  return browserHints.some((hint) => userAgent.includes(hint));
+}
+
+function getRequestGuardResult(req) {
+  if (!hasBrowserLikeUserAgent(req)) {
+    return {
+      allowed: false,
+      statusCode: 403,
+      detail: 'invalid_user_agent',
+      answer: '접근이 제한되었습니다. 브라우저에서 다시 시도해 주세요.',
+      followUp: [],
+    };
+  }
+
+  if (!isAllowedRequestOrigin(req)) {
+    return {
+      allowed: false,
+      statusCode: 403,
+      detail: 'invalid_origin',
+      answer: '직접 호출은 제한되어 있습니다. 서비스 화면에서 다시 시도해 주세요.',
+      followUp: [],
+    };
+  }
+
+  return { allowed: true };
+}
+
 function pruneRateLimitMap(store, windowMs, now) {
   for (const [key, timestamps] of store.entries()) {
     const filtered = timestamps.filter((timestamp) => now - timestamp < windowMs);
@@ -1856,6 +1913,17 @@ function handleApiChat(req, res) {
   req.on('end', async () => {
     try {
       const parsed = JSON.parse(body || '{}');
+      const requestGuardResult = getRequestGuardResult(req);
+      if (!requestGuardResult.allowed) {
+        sendJson(res, requestGuardResult.statusCode || 403, {
+          type: 'request_blocked',
+          answer: requestGuardResult.answer,
+          followUp: requestGuardResult.followUp || [],
+          detail: requestGuardResult.detail,
+        });
+        return;
+      }
+
       const rateLimitResult = getRateLimitResult(req, parsed.sessionId);
       if (!rateLimitResult.allowed) {
         if (rateLimitResult.retryAfterMs) {
