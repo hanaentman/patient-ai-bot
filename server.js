@@ -12,6 +12,7 @@ const FAQ_PATH = path.join(__dirname, 'data', 'faq.json');
 const FAQ_EXTENDED_PATH = path.join(__dirname, 'data', 'faq-extended.json');
 const SITE_SOURCES_PATH = path.join(__dirname, 'data', 'site-sources.json');
 const IMAGE_GUIDES_PATH = path.join(__dirname, 'data', 'image-guides.json');
+const POPULAR_QUESTIONS_PATH = path.join(__dirname, 'data', 'popular-question-stats.json');
 const DOCS_DIR = path.join(__dirname, 'docs');
 const CERTIFICATE_FEES_DOC_PATH = findDocPathByKeyword('비급여비용');
 const YOUTUBE_LINKS_PATH = path.join(DOCS_DIR, '유튜브-링크.txt');
@@ -132,7 +133,7 @@ const documentCache = {
 const responseCache = new Map();
 const RESPONSE_CACHE_TTL_MS = 10 * 60 * 1000;
 const RESPONSE_CACHE_MAX_ENTRIES = 200;
-const popularQuestionStats = new Map();
+const popularQuestionStats = loadPopularQuestionStats();
 const POPULAR_QUESTION_LIMIT = 6;
 const DEFAULT_POPULAR_QUESTIONS = [
   { label: '진료과', question: '진료과를 알려줘' },
@@ -162,6 +163,51 @@ function readJsonArray(filePath) {
 
   const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   return Array.isArray(parsed) ? parsed : [];
+}
+
+function loadPopularQuestionStats() {
+  if (!fs.existsSync(POPULAR_QUESTIONS_PATH)) {
+    return new Map();
+  }
+
+  try {
+    const parsed = JSON.parse(fs.readFileSync(POPULAR_QUESTIONS_PATH, 'utf8'));
+    const items = Array.isArray(parsed) ? parsed : [];
+    const stats = new Map();
+
+    items.forEach((item) => {
+      const question = String(item.question || '').trim();
+      const normalized = normalizeSearchTextSafe(question);
+      const count = Number(item.count) || 0;
+      const updatedAt = Number(item.updatedAt) || 0;
+
+      if (!normalized || !question || count <= 0) {
+        return;
+      }
+
+      stats.set(normalized, {
+        question,
+        count,
+        updatedAt,
+      });
+    });
+
+    return stats;
+  } catch (error) {
+    console.error('[popular-questions-load-error]', error);
+    return new Map();
+  }
+}
+
+function savePopularQuestionStats() {
+  try {
+    const items = [...popularQuestionStats.values()]
+      .sort((a, b) => b.count - a.count || b.updatedAt - a.updatedAt)
+      .slice(0, 200);
+    fs.writeFileSync(POPULAR_QUESTIONS_PATH, JSON.stringify(items, null, 2), 'utf8');
+  } catch (error) {
+    console.error('[popular-questions-save-error]', error);
+  }
 }
 
 function findDocPathByKeyword(keyword) {
@@ -250,6 +296,38 @@ function recordPopularQuestion(message) {
   current.count += 1;
   current.updatedAt = Date.now();
   popularQuestionStats.set(normalized, current);
+  savePopularQuestionStats();
+}
+
+function buildPopularQuestionLabel(question) {
+  const value = String(question || '').trim();
+  const normalized = normalizeSearchTextSafe(value);
+  if (!normalized) {
+    return '';
+  }
+
+  const stopwords = new Set([
+    '나', '저', '좀', '혹시', '관련', '문의', '확인', '부탁', '설명',
+    '알려줘', '알려주세요', '말해줘', '말해주세요', '가르쳐줘', '보여줘',
+    '가능해', '가능한가요', '가능할까요', '되나요', '되나', '돼', '되요',
+    '있어', '있나요', '있을까요', '어떻게', '뭐야', '뭔가요', '궁금해',
+    '궁금합니다', '해주세요', '해줘', '주세요',
+  ]);
+  const simplifiedTokens = tokenizeSafe(normalized)
+    .map((token) => token
+      .replace(/수술통원기간$/u, '통원기간')
+      .replace(/수술입원기간$/u, '입원기간')
+      .replace(/진료시간표$/u, '진료시간')
+    )
+    .filter((token) => token && !stopwords.has(token));
+  const uniqueTokens = [...new Set(simplifiedTokens)];
+
+  if (uniqueTokens.length === 0) {
+    return value.length > 18 ? `${value.slice(0, 18)}...` : value;
+  }
+
+  const label = uniqueTokens.slice(0, 2).join(' ');
+  return label.length > 18 ? `${label.slice(0, 18)}...` : label;
 }
 
 function getPopularQuestions(limit = POPULAR_QUESTION_LIMIT) {
@@ -259,7 +337,7 @@ function getPopularQuestions(limit = POPULAR_QUESTION_LIMIT) {
     ))
     .slice(0, limit)
     .map((item) => ({
-      label: formatPopularQuestionLabel(item.question),
+      label: buildPopularQuestionLabel(item.question),
       question: item.question,
       count: item.count,
       source: 'live',
