@@ -1,4 +1,4 @@
-﻿const chat = document.getElementById('chat');
+const chat = document.getElementById('chat');
 const form = document.getElementById('chat-form');
 const input = document.getElementById('message-input');
 const quickActions = document.querySelector('.quick-actions');
@@ -8,12 +8,12 @@ const sessionId = `session-${crypto.randomUUID()}`;
 let pendingMessageElement = null;
 let imageViewerElement = null;
 const fallbackQuickActions = [
-  { label: '吏꾨즺怨?, question: '吏꾨즺怨쇰? ?뚮젮以? },
-  { label: '?먯옣 ?쇱젙', question: '?섎굹?대퉬?명썑怨??먯옣 吏꾨즺?쒓컙 ?뚮젮以? },
-  { label: '?좉꼍怨??쇱젙', question: '?좉꼍怨??먯옣 吏꾨즺?쒓컙 ?뚮젮以? },
-  { label: '蹂묒썝 吏꾨즺?쒓컙', question: '吏꾨즺?쒓컙 ?덈궡?댁쨾' },
-  { label: '?덉빟 蹂寃?, question: '?덉빟 蹂寃?諛⑸쾿 ?뚮젮以? },
-  { label: '肄붽낏???곷떞', question: '肄붽낏??吏꾨즺 怨쇰? ?뚮젮以? },
+  { label: '진료과', question: '진료과를 알려줘' },
+  { label: '원장 일정', question: '하나이비인후과 원장 진료시간 알려줘' },
+  { label: '신경과 일정', question: '신경과 원장 진료시간 알려줘' },
+  { label: '병원 진료시간', question: '진료시간 안내해줘' },
+  { label: '예약 변경', question: '예약 변경 방법 알려줘' },
+  { label: '코골이 상담', question: '코골이 진료 과를 알려줘' },
 ];
 
 function isValidExternalUrl(value) {
@@ -46,7 +46,7 @@ function splitMessageParagraphs(role, text) {
   }
 
   return normalized
-    .split(/(?<=[.!?][)"'\]]?|?낅땲???⑸땲??蹂댁엯?덈떎|沅뚯옣?⑸땲???덈궡?⑸땲??媛?ν빀?덈떎|?대졄?듬땲??諛붾엻?덈떎)\s+/)
+    .split(/(?<=[.!?]|니다|세요)\s+/)
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
 }
@@ -136,8 +136,8 @@ function ensureImageViewer() {
   overlay.className = 'image-viewer hidden';
   overlay.innerHTML = `
     <div class="image-viewer-backdrop"></div>
-    <div class="image-viewer-dialog" role="dialog" aria-modal="true" aria-label="?대?吏 ?ш쾶 蹂닿린">
-      <button type="button" class="image-viewer-close" aria-label="?リ린">횞</button>
+    <div class="image-viewer-dialog" role="dialog" aria-modal="true" aria-label="이미지 크게 보기">
+      <button type="button" class="image-viewer-close" aria-label="닫기">×</button>
       <img class="image-viewer-image" alt="" />
       <div class="image-viewer-caption"></div>
     </div>
@@ -174,9 +174,9 @@ function openImageViewer(image) {
   const captionElement = viewer.querySelector('.image-viewer-caption');
 
   imageElement.src = image.url;
-  imageElement.alt = image.title || '?덈궡 ?대?吏';
+  imageElement.alt = image.title || '안내 이미지';
   captionElement.textContent = image.description
-    ? `${image.title || ''}${image.title ? ' 쨌 ' : ''}${image.description}`
+    ? `${image.title || ''}${image.title ? ' · ' : ''}${image.description}`
     : (image.title || '');
 
   viewer.classList.remove('hidden');
@@ -221,7 +221,7 @@ function appendMessage(role, text, followUp = [], sources = [], images = []) {
     sourceBox.className = 'source-box';
 
     const sourceTitle = document.createElement('strong');
-    sourceTitle.textContent = '李멸퀬 臾몄꽌';
+    sourceTitle.textContent = '참고 문서';
     sourceBox.appendChild(sourceTitle);
 
     const sourceList = document.createElement('ul');
@@ -249,7 +249,7 @@ function appendMessage(role, text, followUp = [], sources = [], images = []) {
     imageBox.className = 'image-box';
 
     const imageTitle = document.createElement('strong');
-    imageTitle.textContent = '愿???대?吏';
+    imageTitle.textContent = '관련 이미지';
     imageBox.appendChild(imageTitle);
 
     images.forEach((image) => {
@@ -257,11 +257,11 @@ function appendMessage(role, text, followUp = [], sources = [], images = []) {
       card.className = 'image-card';
       card.tabIndex = 0;
       card.setAttribute('role', 'button');
-      card.setAttribute('aria-label', `${image.title || '?덈궡 ?대?吏'} ?ш쾶 蹂닿린`);
+      card.setAttribute('aria-label', `${image.title || '안내 이미지'} 크게 보기`);
 
       const img = document.createElement('img');
       img.src = image.url;
-      img.alt = image.title || '?덈궡 ?대?吏';
+      img.alt = image.title || '안내 이미지';
       img.loading = 'lazy';
       card.appendChild(img);
 
@@ -326,7 +326,7 @@ function showPendingMessage() {
 
   const body = document.createElement('p');
   body.className = 'pending-text';
-  body.textContent = '?듬???以鍮꾪븯怨??덉뒿?덈떎...';
+  body.textContent = '답변을 준비하고 있습니다...';
   wrapper.appendChild(body);
 
   const dots = document.createElement('span');
@@ -368,7 +368,7 @@ async function sendMessage(message) {
 
     const data = await response.json();
     const followUp = data.detail
-      ? [...(data.followUp || []), `?ㅻ쪟 ?곸꽭: ${data.detail}`]
+      ? [...(data.followUp || []), `오류 상세: ${data.detail}`]
       : (data.followUp || []);
 
     removePendingMessage();
@@ -394,7 +394,7 @@ form.addEventListener('submit', async (event) => {
   try {
     await sendMessage(message);
   } catch (error) {
-    appendMessage('bot', '?쒕쾭 ?곌껐???ㅽ뙣?덉뒿?덈떎. ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??');
+    appendMessage('bot', '서버 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.');
   } finally {
     setBusyState(false);
     input.focus();
@@ -409,7 +409,7 @@ chips.forEach((chip) => {
     try {
       await sendMessage(chip.dataset.question);
     } catch (error) {
-      appendMessage('bot', '?쒕쾭 ?곌껐???ㅽ뙣?덉뒿?덈떎. ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??');
+      appendMessage('bot', '서버 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.');
     } finally {
       setBusyState(false);
       input.focus();
@@ -420,7 +420,7 @@ chips.forEach((chip) => {
 appendMessage(
   'bot',
   '안녕하세요. 파란코끼리 상담원입니다. 병원 문서를 바탕으로 안내해 드리며, 문서에 없는 내용은 추측하지 않고 안내합니다.',
-  ['吏꾨즺怨??뚮젮以?, '?섎굹?대퉬?명썑怨??먯옣 吏꾨즺?쒓컙 ?뚮젮以?, '?낆썝 以鍮꾨Ъ ?뚮젮以?]
+  ['진료과 알려줘', '하나이비인후과 원장 진료시간 알려줘', '입원 준비물 알려줘']
 );
 
 renderQuickActions(fallbackQuickActions);

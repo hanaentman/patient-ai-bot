@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
@@ -13,27 +13,27 @@
           <p class="eyebrow">HANA ENT ASSISTANT</p>
           <h1>파란코끼리 상담원</h1>
           <p class="subtitle">
-            ?덉빟, ?꾩튂, 吏꾨즺 以鍮꾩궗??낵 ?쒕쪟 諛쒓툒 ?덈궡瑜?紐⑤컮???붾㈃?먯꽌 諛붾줈 ?뺤씤?????덉뒿?덈떎.
+            예약, 위치, 진료 준비사항과 서류 발급 안내를 모바일 화면에서 바로 확인할 수 있습니다.
           </p>
         </header>
 
         <section class="notice-card">
-          <strong>?덈궡</strong>
+          <strong>안내</strong>
           <p>
-            ???쒕퉬?ㅻ뒗 蹂묒썝 ?덊럹?댁? 臾몄꽌瑜?諛뷀깢?쇰줈 ?듬??⑸땲?? 吏꾨떒, 泥섎갑 蹂寃? ?묎툒 ?먮떒? ?섏? ?딆뒿?덈떎.
-            二쇰??깅줉踰덊샇, ?꾪솕踰덊샇, ?대찓?? ?곸꽭 二쇱냼 ??媛쒖씤?뺣낫???낅젰?섏? 留먯븘 二쇱꽭??
+            이 서비스는 병원 문서를 바탕으로 답변합니다. 진단, 처방 변경, 응급 판단은 하지 않습니다.
+            주민등록번호, 전화번호, 이메일, 상세 주소 같은 개인정보는 입력하지 말아 주세요.
           </p>
         </section>
 
         <section id="chat" class="chat-panel" aria-live="polite"></section>
 
         <section class="quick-actions">
-          <button type="button" class="chip" data-question="吏꾨즺怨쇰? ?뚮젮以?>吏꾨즺怨?/button>
-          <button type="button" class="chip" data-question="?섎굹?대퉬?명썑怨??먯옣 吏꾨즺?쒓컙 ?뚮젮以?>?먯옣 ?쇱젙</button>
-          <button type="button" class="chip" data-question="?좉꼍怨??먯옣 吏꾨즺?쒓컙 ?뚮젮以?>?좉꼍怨??쇱젙</button>
-          <button type="button" class="chip" data-question="吏꾨즺?쒓컙 ?덈궡?댁쨾">蹂묒썝 吏꾨즺?쒓컙</button>
-          <button type="button" class="chip" data-question="?덉빟 蹂寃?諛⑸쾿 ?뚮젮以?>?덉빟 蹂寃?/button>
-          <button type="button" class="chip" data-question="肄붽낏??吏꾨즺 怨쇰? ?뚮젮以?>肄붽낏???곷떞</button>
+          <button type="button" class="chip" data-question="진료과를 알려줘">진료과</button>
+          <button type="button" class="chip" data-question="하나이비인후과 원장 진료시간 알려줘">원장 일정</button>
+          <button type="button" class="chip" data-question="신경과 원장 진료시간 알려줘">신경과 일정</button>
+          <button type="button" class="chip" data-question="진료시간 안내해줘">병원 진료시간</button>
+          <button type="button" class="chip" data-question="예약 변경 방법 알려줘">예약 변경</button>
+          <button type="button" class="chip" data-question="코골이 진료 과를 알려줘">코골이 상담</button>
         </section>
 
         <form id="chat-form" class="composer">
@@ -42,10 +42,10 @@
             name="message"
             type="text"
             maxlength="300"
-            placeholder="媛쒖씤?뺣낫 ?놁씠 吏덈Ц???낅젰??二쇱꽭??
+            placeholder="개인정보 없이 질문을 입력해 주세요"
             autocomplete="off"
           />
-          <button type="submit">?꾩넚</button>
+          <button type="submit">전송</button>
         </form>
       </section>
     </main>
