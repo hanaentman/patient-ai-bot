@@ -107,6 +107,15 @@ const lateArrivalPatterns = [
   /도착.{0,12}늦/u,
 ];
 
+const inpatientMealPolicyPatterns = [
+  /배달\s*음식/u,
+  /음식\s*배달/u,
+  /취사/u,
+  /전자\s*레인지/u,
+  /전자레인지/u,
+  /전자렌지/u,
+];
+
 const personalInfoPatterns = [
   /\b\d{6}[- ]?\d{7}\b/,
   /\b01[016789][- ]?\d{3,4}[- ]?\d{4}\b/,
@@ -828,6 +837,21 @@ function createLateArrivalResponse() {
       '1시간 이상 늦어질 것 같으면 전화로 예약 가능 여부를 먼저 확인하는 편이 안전합니다.',
       '대표전화: 02-6925-1111',
     ],
+  };
+}
+
+function createInpatientMealPolicyResponse() {
+  return {
+    type: 'inpatient_meal_policy',
+    answer: '입원생활 안내문 기준으로 원내 전자레인지는 비치되어 있지 않으며, 취사와 배달음식은 금지입니다.',
+    followUp: [
+      '식사시간은 조식 8시, 중식 12시, 석식 오후 5시 30분으로 안내되어 있습니다.',
+      '세부 안내는 병동 간호사실이나 대표전화 02-6925-1111로 확인할 수 있습니다.',
+    ],
+    sources: [{
+      title: '입원-입원생활안내문',
+      url: 'local://docs/%EC%9E%85%EC%9B%90-%EC%9E%85%EC%9B%90%EC%83%9D%ED%99%9C%EC%95%88%EB%82%B4%EB%AC%B8.txt',
+    }],
   };
 }
 
@@ -1916,6 +1940,10 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   if (matchesAnyPattern(message, lateArrivalPatterns)) {
     return enrichResponsePayload(createLateArrivalResponse(), message);
+  }
+
+  if (matchesAnyPattern(message, inpatientMealPolicyPatterns)) {
+    return enrichResponsePayload(createInpatientMealPolicyResponse(), message);
   }
 
   const smallTalkIntent = getSmallTalkIntent(message);
