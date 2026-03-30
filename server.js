@@ -165,7 +165,7 @@ let warmupStarted = false;
 const faqDocuments = buildFaqDocuments();
 const localDocuments = buildLocalDocuments();
 const certificateFeeEntries = buildCertificateFeeEntries();
-const homepageDiseaseTerms = buildHomepageDiseaseTerms(localDocuments);
+let homepageDiseaseTerms = [];
 
 function readJsonArray(filePath) {
   if (!fs.existsSync(filePath)) {
@@ -1233,6 +1233,8 @@ function buildExpandedSearchState(text) {
     tokens: [...tokenSet],
   };
 }
+
+homepageDiseaseTerms = buildHomepageDiseaseTerms(localDocuments);
 
 function extractPriceText(line) {
   const amountMatches = String(line || '').match(/\d{1,3}(?:,\d{3})+/g) || [];
