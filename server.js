@@ -117,6 +117,16 @@ const inpatientMealPolicyPatterns = [
   /전자렌지/u,
 ];
 
+const rhinitisPostOpVisitPatterns = [
+  /비염.{0,12}수술.{0,12}(통원|내원)/u,
+  /만성비염.{0,12}수술.{0,12}(통원|내원)/u,
+  /(통원|내원).{0,12}비염.{0,12}수술/u,
+  /(통원|내원).{0,12}만성비염.{0,12}수술/u,
+  /비염.{0,12}수술\s*후/u,
+  /만성비염.{0,12}수술\s*후/u,
+  /하비갑개.{0,12}(통원|내원)/u,
+];
+
 const personalInfoPatterns = [
   /\b\d{6}[- ]?\d{7}\b/,
   /\b01[016789][- ]?\d{3,4}[- ]?\d{4}\b/,
@@ -155,6 +165,7 @@ let warmupStarted = false;
 const faqDocuments = buildFaqDocuments();
 const localDocuments = buildLocalDocuments();
 const certificateFeeEntries = buildCertificateFeeEntries();
+const homepageDiseaseTerms = buildHomepageDiseaseTerms(localDocuments);
 
 function readJsonArray(filePath) {
   if (!fs.existsSync(filePath)) {
@@ -941,6 +952,21 @@ function createInpatientMealPolicyResponse() {
   };
 }
 
+function createRhinitisPostOpVisitResponse() {
+  return {
+    type: 'rhinitis_postop_visit',
+    answer: '문서 기준으로 비염 수술 후 내원치료는 보통 8~12회로 안내되어 있습니다.',
+    followUp: [
+      '회복기간은 3~4주로 안내되어 있습니다.',
+      '세부 내원 횟수와 일정은 수술 방식과 경과에 따라 달라질 수 있어 진료 시 최종 안내를 받는 것이 안전합니다.',
+    ],
+    sources: [{
+      title: '비염 수술',
+      url: 'https://hanaent.co.kr/nose/nose05.html?type=A&sub_tp=3',
+    }],
+  };
+}
+
 function createFallbackResponse(contextTitles) {
   return {
     type: 'fallback',
@@ -1443,6 +1469,56 @@ function buildLocalDocuments() {
   return docs;
 }
 
+function extractHomepageDiseaseName(sourceTitle) {
+  const value = String(sourceTitle || '').trim();
+  if (!value.startsWith('홈페이지-')) {
+    return '';
+  }
+
+  const diseaseName = value.replace(/^홈페이지-/, '').trim();
+  const excludedTitles = new Set([
+    '셔틀버스 및 오시는길',
+    '외래진료안내',
+    '의료진 정보',
+    '입퇴원 안내',
+  ]);
+
+  if (!diseaseName || excludedTitles.has(diseaseName)) {
+    return '';
+  }
+
+  return diseaseName;
+}
+
+function buildHomepageDiseaseTerms(docs) {
+  const terms = new Set();
+
+  (docs || []).forEach((doc) => {
+    const diseaseName = extractHomepageDiseaseName(doc.sourceTitle || doc.title);
+    if (!diseaseName) {
+      return;
+    }
+
+    expandSearchAliases(diseaseName).forEach((term) => {
+      if (term) {
+        terms.add(term);
+      }
+    });
+  });
+
+  return [...terms];
+}
+
+function getMatchedHomepageDiseaseTerms(question) {
+  const expandedState = buildExpandedSearchState(question);
+
+  return homepageDiseaseTerms.filter((term) => (
+    expandedState.normalizedVariants.some((variant) => (
+      variant.includes(term) || term.includes(variant)
+    ))
+  ));
+}
+
 function getFaqSourceInfo(entry) {
   const categoryHint = faqCategoryUrlHints[entry.category];
   if (categoryHint) {
@@ -1660,6 +1736,7 @@ function warmupKnowledgeDocuments() {
 
 function rankDocuments(question, docs, limit = 7) {
   const expandedSearchState = buildExpandedSearchState(question);
+  const matchedDiseaseTerms = getMatchedHomepageDiseaseTerms(question);
   const normalizedQuestion = normalizeSearchTextSafe(question);
   const compactQuestion = compactSearchTextSafe(question);
   const tokens = expandedSearchState.tokens;
@@ -1672,6 +1749,9 @@ function rankDocuments(question, docs, limit = 7) {
       const compactTitle = normalizedTitle.replace(/\s+/g, '');
       const normalizedText = normalizeSearchTextSafe(doc.text);
       const compactText = normalizedText.replace(/\s+/g, '');
+      const diseaseName = extractHomepageDiseaseName(doc.sourceTitle || doc.title);
+      const normalizedDiseaseName = normalizeSearchTextSafe(diseaseName);
+      const diseaseDocBonus = normalizedDiseaseName && matchedDiseaseTerms.includes(normalizedDiseaseName) ? 24 : 0;
       const keywordScore = (doc.keywords || []).reduce((score, keyword) => {
         const normalizedKeyword = normalizeSearchTextSafe(keyword);
         const matched = normalizedQuestionVariants.some((variant) => variant.includes(normalizedKeyword));
@@ -1690,7 +1770,7 @@ function rankDocuments(question, docs, limit = 7) {
       )) ? 8 : 0;
       const localDocBonus = doc.sourceType === 'local' && (titleScore > 0 || phraseScore > 0 || compactScore > 0) ? 3 : 0;
       const sourceWeight = sourceTypeWeights[doc.sourceType] ?? 0.1;
-      const rawScore = keywordScore * 4 + titleScore + tokenScore + phraseScore + titlePhraseScore + compactScore + localDocBonus;
+      const rawScore = keywordScore * 4 + titleScore + tokenScore + phraseScore + titlePhraseScore + compactScore + localDocBonus + diseaseDocBonus;
 
       return {
         ...doc,
@@ -2080,6 +2160,10 @@ async function buildChatResponse(rawMessage, sessionId) {
     return enrichResponsePayload(createInpatientMealPolicyResponse(), message);
   }
 
+  if (matchesAnyPattern(message, rhinitisPostOpVisitPatterns)) {
+    return enrichResponsePayload(createRhinitisPostOpVisitResponse(), message);
+  }
+
   const smallTalkIntent = getSmallTalkIntent(message);
   if (smallTalkIntent) {
     return enrichResponsePayload(createSmallTalkResponse(smallTalkIntent), message);
@@ -2090,7 +2174,10 @@ async function buildChatResponse(rawMessage, sessionId) {
     return cachedResponse;
   }
 
-  const directFaqResponse = findDirectFaqMatch(message);
+  const matchedDiseaseTerms = getMatchedHomepageDiseaseTerms(message);
+  const shouldPrioritizeDiseaseDocs = matchedDiseaseTerms.length > 0;
+
+  const directFaqResponse = shouldPrioritizeDiseaseDocs ? null : findDirectFaqMatch(message);
   if (directFaqResponse) {
     const simplifiedFaqResponse = {
       ...directFaqResponse,
