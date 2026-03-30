@@ -756,7 +756,10 @@ function findRelevantImages(message, contextDocs = []) {
 function findDirectFaqMatch(message) {
   const normalizedMessage = normalizeSearchTextSafe(message);
   const compactMessage = compactSearchTextSafe(message);
-  const tokens = tokenizeSafe(normalizedMessage);
+  const expandedSearchState = buildExpandedSearchState(message);
+  const expandedNormalizedVariants = expandedSearchState.normalizedVariants;
+  const expandedCompactVariants = expandedSearchState.compactVariants;
+  const tokens = expandedSearchState.tokens;
   const isConversationalQuestion = (
     normalizedMessage.length >= 14
     || tokens.length >= 4
@@ -779,12 +782,17 @@ function findDirectFaqMatch(message) {
 
         let nextScore = score;
 
-        if (normalizedMessage === normalizedKeyword || compactMessage === compactKeyword) {
+        const isExactAliasMatch = expandedNormalizedVariants.includes(normalizedKeyword)
+          || expandedCompactVariants.includes(compactKeyword);
+
+        if (normalizedMessage === normalizedKeyword || compactMessage === compactKeyword || isExactAliasMatch) {
           nextScore += 20;
           exactKeywordMatch = true;
         } else if (
           normalizedMessage.includes(normalizedKeyword)
           || compactMessage.includes(compactKeyword)
+          || expandedNormalizedVariants.some((variant) => variant.includes(normalizedKeyword))
+          || expandedCompactVariants.some((variant) => variant.includes(compactKeyword))
           || normalizedKeyword.includes(normalizedMessage)
         ) {
           nextScore += 12;
@@ -1155,6 +1163,49 @@ function tokenizeSafe(text) {
   return normalizeSearchTextSafe(text)
     .split(' ')
     .filter((token) => token.length >= 2);
+}
+
+const searchAliasGroups = [
+  ['비염', '만성비염', '알레르기비염', '비후성비염'],
+  ['축농증', '부비동염', '만성부비동염'],
+  ['코막힘', '비염', '비후성비염'],
+  ['코물혹', '비용종', '비강용종', '비폴립'],
+];
+
+function expandSearchAliases(text) {
+  const normalized = normalizeSearchTextSafe(text);
+  const expanded = new Set([normalized]);
+
+  searchAliasGroups.forEach((group) => {
+    const matched = group.some((term) => normalized.includes(normalizeSearchTextSafe(term)));
+    if (!matched) {
+      return;
+    }
+
+    group.forEach((term) => {
+      expanded.add(normalizeSearchTextSafe(term));
+    });
+  });
+
+  return [...expanded].filter(Boolean);
+}
+
+function buildExpandedSearchState(text) {
+  const normalizedVariants = expandSearchAliases(text);
+  const compactVariants = normalizedVariants.map((value) => compactSearchTextSafe(value));
+  const tokenSet = new Set();
+
+  normalizedVariants.forEach((value) => {
+    tokenizeSafe(value).forEach((token) => {
+      tokenSet.add(token);
+    });
+  });
+
+  return {
+    normalizedVariants,
+    compactVariants,
+    tokens: [...tokenSet],
+  };
 }
 
 function extractPriceText(line) {
@@ -1608,9 +1659,12 @@ function warmupKnowledgeDocuments() {
 }
 
 function rankDocuments(question, docs, limit = 7) {
-  const tokens = tokenizeSafe(question);
+  const expandedSearchState = buildExpandedSearchState(question);
   const normalizedQuestion = normalizeSearchTextSafe(question);
   const compactQuestion = compactSearchTextSafe(question);
+  const tokens = expandedSearchState.tokens;
+  const normalizedQuestionVariants = expandedSearchState.normalizedVariants;
+  const compactQuestionVariants = expandedSearchState.compactVariants;
 
   return docs
     .map((doc) => {
@@ -1618,20 +1672,22 @@ function rankDocuments(question, docs, limit = 7) {
       const compactTitle = normalizedTitle.replace(/\s+/g, '');
       const normalizedText = normalizeSearchTextSafe(doc.text);
       const compactText = normalizedText.replace(/\s+/g, '');
-      const keywordScore = (doc.keywords || []).reduce((score, keyword) => (
-        normalizedQuestion.includes(normalizeSearchTextSafe(keyword)) ? score + 1 : score
-      ), 0);
+      const keywordScore = (doc.keywords || []).reduce((score, keyword) => {
+        const normalizedKeyword = normalizeSearchTextSafe(keyword);
+        const matched = normalizedQuestionVariants.some((variant) => variant.includes(normalizedKeyword));
+        return matched ? score + 1 : score;
+      }, 0);
       const titleScore = tokens.reduce((score, token) => (
         normalizedTitle.includes(token) ? score + 3 : score
       ), 0);
       const tokenScore = tokens.reduce((score, token) => (
         normalizedText.includes(token) ? score + 1 : score
       ), 0);
-      const phraseScore = normalizedQuestion && normalizedText.includes(normalizedQuestion) ? 10 : 0;
-      const titlePhraseScore = normalizedQuestion && normalizedTitle.includes(normalizedQuestion) ? 14 : 0;
-      const compactScore = compactQuestion && (
-        compactTitle.includes(compactQuestion) || compactText.includes(compactQuestion)
-      ) ? 8 : 0;
+      const phraseScore = normalizedQuestionVariants.some((variant) => variant && normalizedText.includes(variant)) ? 10 : 0;
+      const titlePhraseScore = normalizedQuestionVariants.some((variant) => variant && normalizedTitle.includes(variant)) ? 14 : 0;
+      const compactScore = compactQuestionVariants.some((variant) => (
+        variant && (compactTitle.includes(variant) || compactText.includes(variant))
+      )) ? 8 : 0;
       const localDocBonus = doc.sourceType === 'local' && (titleScore > 0 || phraseScore > 0 || compactScore > 0) ? 3 : 0;
       const sourceWeight = sourceTypeWeights[doc.sourceType] ?? 0.1;
       const rawScore = keywordScore * 4 + titleScore + tokenScore + phraseScore + titlePhraseScore + compactScore + localDocBonus;
