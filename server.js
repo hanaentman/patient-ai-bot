@@ -53,7 +53,7 @@ const faqCategoryUrlHints = {
   surgery_reservation_process: 'info/info03.html',
   card_refund: 'info/info06.html',
   guardian_stay: 'info/info03.html',
-  rhinitis_control: 'nose/nose01.html',
+  rhinitis_control: 'nose/nose05.html',
   sinusitis_treatment_options: 'nose/nose01.html',
   nasal_irrigation: 'nose/nose01.html',
   nose_exam_turnaround: 'nose/nose01.html',

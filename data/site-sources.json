@@ -19,7 +19,7 @@
   },
   {
     "type": "official",
-    "title": "오시는길",
+    "title": "오시는 길",
     "url": "https://www.hanaent.co.kr/info/info04.html",
     "keywords": ["주소", "위치", "오시는길", "주차", "셔틀"]
   },
@@ -58,6 +58,12 @@
     "title": "코 질환 센터",
     "url": "https://www.hanaent.co.kr/nose/nose01.html",
     "keywords": ["코", "비염", "축농증", "비중격"]
+  },
+  {
+    "type": "official",
+    "title": "비염 수술",
+    "url": "https://hanaent.co.kr/nose/nose05.html?type=A&sub_tp=3",
+    "keywords": ["비염", "만성비염", "비염 수술", "만성비염 수술", "수술 후", "하비갑개"]
   },
   {
     "type": "official",
