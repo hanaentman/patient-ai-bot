@@ -2508,6 +2508,11 @@ function handleApiChat(req, res) {
         sessionId: parsed.sessionId || '',
         question: String(parsed.message || '').trim(),
         answer: response.answer || '',
+        followUp: response.followUp || [],
+        answerFull: [
+          response.answer || '',
+          ...((response.followUp || []).map((item) => `- ${item}`)),
+        ].filter(Boolean).join('\n'),
         type: response.type || 'unknown',
         sources: response.sources || [],
         flag: 'normal',
