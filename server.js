@@ -13,6 +13,7 @@ const FAQ_EXTENDED_PATH = path.join(__dirname, 'data', 'faq-extended.json');
 const SITE_SOURCES_PATH = path.join(__dirname, 'data', 'site-sources.json');
 const IMAGE_GUIDES_PATH = path.join(__dirname, 'data', 'image-guides.json');
 const POPULAR_QUESTIONS_PATH = path.join(__dirname, 'data', 'popular-question-stats.json');
+const CHAT_LOGS_PATH = path.join(__dirname, 'data', 'chat-logs.json');
 const DOCS_DIR = path.join(__dirname, 'docs');
 const FLOOR_GUIDE_DOC_PATH = path.join(DOCS_DIR, '기타-층별안내도.txt');
 const CERTIFICATE_FEES_DOC_PATH = findDocPathByKeyword('비급여비용');
@@ -172,11 +173,13 @@ const ipRateWindow = new Map();
 const sessionMinuteRateWindow = new Map();
 const sessionDailyRateWindow = new Map();
 let warmupStarted = false;
+const MAX_CHAT_LOG_ENTRIES = 5000;
 const faqDocuments = buildFaqDocuments();
 const localDocuments = buildLocalDocuments();
 const certificateFeeEntries = buildCertificateFeeEntries();
 let homepageDiseaseTerms = [];
 const floorGuideIndex = buildFloorGuideIndex();
+const chatLogs = loadChatLogs();
 
 function readJsonArray(filePath) {
   if (!fs.existsSync(filePath)) {
@@ -232,6 +235,78 @@ function savePopularQuestionStats() {
   }
 }
 
+function loadChatLogs() {
+  if (!fs.existsSync(CHAT_LOGS_PATH)) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(fs.readFileSync(CHAT_LOGS_PATH, 'utf8'));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.error('[chat-logs-load-error]', error);
+    return [];
+  }
+}
+
+function saveChatLogs() {
+  try {
+    fs.writeFileSync(CHAT_LOGS_PATH, JSON.stringify(chatLogs.slice(-MAX_CHAT_LOG_ENTRIES), null, 2), 'utf8');
+  } catch (error) {
+    console.error('[chat-logs-save-error]', error);
+  }
+}
+
+function appendChatLog(entry) {
+  chatLogs.push(entry);
+  if (chatLogs.length > MAX_CHAT_LOG_ENTRIES) {
+    chatLogs.splice(0, chatLogs.length - MAX_CHAT_LOG_ENTRIES);
+  }
+  saveChatLogs();
+}
+
+function updateChatLogFlag(logId, flag, note = '') {
+  const matchedLog = chatLogs.find((item) => item.id === logId);
+  if (!matchedLog) {
+    return null;
+  }
+
+  matchedLog.flag = flag || 'normal';
+  matchedLog.note = String(note || '').trim();
+  matchedLog.reviewedAt = new Date().toISOString();
+  saveChatLogs();
+  return matchedLog;
+}
+
+function getChatLogsForAdmin(query) {
+  const getQueryValue = (key) => (typeof query.get === 'function' ? query.get(key) : query[key]);
+  const limit = Math.min(Math.max(Number(getQueryValue('limit')) || 100, 1), 300);
+  const search = normalizeSearchTextSafe(getQueryValue('q') || '');
+  const flag = String(getQueryValue('flag') || '').trim();
+
+  let items = [...chatLogs].sort((a, b) => (
+    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  ));
+
+  if (flag) {
+    items = items.filter((item) => item.flag === flag);
+  }
+
+  if (search) {
+    items = items.filter((item) => {
+      const haystack = normalizeSearchTextSafe([
+        item.question,
+        item.answer,
+        ...(item.sources || []).map((source) => source.title || ''),
+        item.note || '',
+      ].join(' '));
+      return haystack.includes(search);
+    });
+  }
+
+  return items.slice(0, limit);
+}
+
 function findDocPathByKeyword(keyword) {
   if (!fs.existsSync(DOCS_DIR)) {
     return '';
@@ -270,6 +345,7 @@ function sendFile(res, filePath) {
 
     res.writeHead(200, {
       'Content-Type': contentTypes[ext] || 'application/octet-stream',
+      'Cache-Control': ext === '.html' ? 'no-store, no-cache, must-revalidate' : 'public, max-age=300',
     });
     res.end(data);
   });
@@ -2392,6 +2468,17 @@ function handleApiChat(req, res) {
 
       recordPopularQuestion(parsed.message);
       const response = await buildChatResponse(parsed.message, parsed.sessionId);
+      appendChatLog({
+        id: `log-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        timestamp: new Date().toISOString(),
+        sessionId: parsed.sessionId || '',
+        question: String(parsed.message || '').trim(),
+        answer: response.answer || '',
+        type: response.type || 'unknown',
+        sources: response.sources || [],
+        flag: 'normal',
+        note: '',
+      });
       sendJson(res, 200, response);
     } catch (error) {
       console.error('[chat-error]', error);
@@ -2404,12 +2491,49 @@ function handleApiChat(req, res) {
   });
 }
 
+function handleApiAdminLogFlag(req, res) {
+  let body = '';
+
+  req.on('data', (chunk) => {
+    body += chunk;
+  });
+
+  req.on('end', () => {
+    try {
+      const parsed = JSON.parse(body || '{}');
+      const updated = updateChatLogFlag(parsed.id, parsed.flag, parsed.note);
+      if (!updated) {
+        sendJson(res, 404, {
+          ok: false,
+          error: 'Log not found',
+        });
+        return;
+      }
+
+      sendJson(res, 200, {
+        ok: true,
+        item: updated,
+      });
+    } catch (error) {
+      sendJson(res, 400, {
+        ok: false,
+        error: error.message,
+      });
+    }
+  });
+}
+
 const server = http.createServer((req, res) => {
   const requestUrl = new URL(req.url, `http://${req.headers.host}`);
   const pathname = decodeURIComponent(requestUrl.pathname);
 
   if (req.method === 'POST' && pathname === '/api/chat') {
     handleApiChat(req, res);
+    return;
+  }
+
+  if (req.method === 'POST' && pathname === '/api/admin/logs/flag') {
+    handleApiAdminLogFlag(req, res);
     return;
   }
 
@@ -2432,7 +2556,19 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  const safePath = pathname === '/' ? '/index.html' : pathname;
+  if (req.method === 'GET' && pathname === '/api/admin/logs') {
+    sendJson(res, 200, {
+      ok: true,
+      items: getChatLogsForAdmin(requestUrl.searchParams),
+      total: chatLogs.length,
+      timestamp: new Date().toISOString(),
+    });
+    return;
+  }
+
+  const safePath = pathname === '/'
+    ? '/index.html'
+    : (pathname === '/admin' ? '/admin.html' : pathname);
   const filePath = path.join(PUBLIC_DIR, safePath);
 
   if (!filePath.startsWith(PUBLIC_DIR)) {

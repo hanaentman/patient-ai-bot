@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Logs</title>
+    <style>
+      :root {
+        --bg: #f4f8fb;
+        --panel: #ffffff;
+        --text: #18344c;
+        --muted: #5e7892;
+        --line: #d7e4ef;
+        --primary: #2c8fd6;
+        --warn: #d9822b;
+        --danger: #d9534f;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: "Segoe UI", "Malgun Gothic", sans-serif;
+        color: var(--text);
+        background: var(--bg);
+      }
+
+      .page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px 16px 40px;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      h1 {
+        margin: 0 0 6px;
+        font-size: 28px;
+      }
+
+      .muted {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .filters,
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        box-shadow: 0 10px 30px rgba(25, 61, 96, 0.08);
+      }
+
+      .filters {
+        display: grid;
+        grid-template-columns: 1fr 180px 120px;
+        gap: 10px;
+        padding: 14px;
+        margin-bottom: 16px;
+      }
+
+      input,
+      select,
+      button,
+      textarea {
+        font: inherit;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: #fff;
+      }
+
+      button {
+        border: 0;
+        border-radius: 12px;
+        padding: 10px 14px;
+        background: var(--primary);
+        color: #fff;
+        cursor: pointer;
+        font-weight: 700;
+      }
+
+      .stats {
+        margin-bottom: 12px;
+      }
+
+      .list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .card {
+        padding: 16px;
+      }
+
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 14px;
+        margin-bottom: 10px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .question,
+      .answer {
+        white-space: pre-line;
+        line-height: 1.6;
+      }
+
+      .question strong,
+      .answer strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .sources {
+        margin-top: 12px;
+        font-size: 13px;
+      }
+
+      .sources ul {
+        margin: 6px 0 0;
+        padding-left: 18px;
+      }
+
+      .review {
+        display: grid;
+        grid-template-columns: 160px 1fr auto;
+        gap: 10px;
+        margin-top: 14px;
+        align-items: start;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        background: #e8f4fd;
+        color: var(--primary);
+      }
+
+      .badge.needs_review {
+        background: #fff4e8;
+        color: var(--warn);
+      }
+
+      .badge.important {
+        background: #fdecec;
+        color: var(--danger);
+      }
+
+      @media (max-width: 800px) {
+        .filters,
+        .review {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="topbar">
+        <div>
+          <h1>상담 로그 관리자</h1>
+          <div class="muted">질문과 답변을 확인하고 수정 필요 상태를 표시하는 화면입니다.</div>
+        </div>
+      </section>
+
+      <section class="filters">
+        <input id="search-input" type="text" placeholder="질문, 답변, 메모 검색" />
+        <select id="flag-filter">
+          <option value="">전체 상태</option>
+          <option value="normal">정상</option>
+          <option value="needs_review">수정 필요</option>
+          <option value="important">중요</option>
+        </select>
+        <button id="refresh-button" type="button">새로고침</button>
+      </section>
+
+      <section class="stats muted" id="stats">로드 중...</section>
+      <section class="list" id="log-list"></section>
+    </main>
+
+    <script>
+      const searchInput = document.getElementById('search-input');
+      const flagFilter = document.getElementById('flag-filter');
+      const refreshButton = document.getElementById('refresh-button');
+      const stats = document.getElementById('stats');
+      const logList = document.getElementById('log-list');
+
+      function escapeHtml(value) {
+        return String(value || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function formatFlagLabel(flag) {
+        if (flag === 'needs_review') return '수정 필요';
+        if (flag === 'important') return '중요';
+        return '정상';
+      }
+
+      async function updateFlag(id, card) {
+        const flag = card.querySelector('.flag-select').value;
+        const note = card.querySelector('.note-input').value;
+        const response = await fetch('/api/admin/logs/flag', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, flag, note }),
+        });
+
+        if (!response.ok) {
+          alert('상태 저장에 실패했습니다.');
+          return;
+        }
+
+        await loadLogs();
+      }
+
+      function renderLogs(items, total) {
+        stats.textContent = `전체 로그 ${total}건 중 최근 ${items.length}건 표시`;
+
+        if (!items.length) {
+          logList.innerHTML = '<section class="card">조건에 맞는 로그가 없습니다.</section>';
+          return;
+        }
+
+        logList.innerHTML = items.map((item) => `
+          <article class="card" data-id="${escapeHtml(item.id)}">
+            <div class="row">
+              <span>${escapeHtml(item.timestamp)}</span>
+              <span>세션: ${escapeHtml(item.sessionId || '-')}</span>
+              <span>유형: ${escapeHtml(item.type || '-')}</span>
+              <span class="badge ${escapeHtml(item.flag || 'normal')}">${escapeHtml(formatFlagLabel(item.flag))}</span>
+            </div>
+
+            <section class="question">
+              <strong>질문</strong>
+              <div>${escapeHtml(item.question)}</div>
+            </section>
+
+            <section class="answer" style="margin-top: 12px;">
+              <strong>답변</strong>
+              <div>${escapeHtml(item.answer)}</div>
+            </section>
+
+            <section class="sources">
+              <strong>출처</strong>
+              <ul>
+                ${(item.sources || []).map((source) => `<li>${escapeHtml(source.title || source.url || '-')}</li>`).join('') || '<li>-</li>'}
+              </ul>
+            </section>
+
+            <section class="review">
+              <select class="flag-select">
+                <option value="normal" ${item.flag === 'normal' ? 'selected' : ''}>정상</option>
+                <option value="needs_review" ${item.flag === 'needs_review' ? 'selected' : ''}>수정 필요</option>
+                <option value="important" ${item.flag === 'important' ? 'selected' : ''}>중요</option>
+              </select>
+              <textarea class="note-input" rows="2" placeholder="메모">${escapeHtml(item.note || '')}</textarea>
+              <button type="button" class="save-button">저장</button>
+            </section>
+          </article>
+        `).join('');
+
+        document.querySelectorAll('.card').forEach((card) => {
+          const id = card.dataset.id;
+          const saveButton = card.querySelector('.save-button');
+          saveButton.addEventListener('click', () => {
+            updateFlag(id, card);
+          });
+        });
+      }
+
+      async function loadLogs() {
+        const params = new URLSearchParams();
+        params.set('limit', '100');
+        if (searchInput.value.trim()) params.set('q', searchInput.value.trim());
+        if (flagFilter.value) params.set('flag', flagFilter.value);
+
+        try {
+          const response = await fetch(`/api/admin/logs?${params.toString()}`);
+          const data = await response.json();
+          renderLogs(data.items || [], data.total || 0);
+        } catch (error) {
+          stats.textContent = '로그를 불러오지 못했습니다.';
+          logList.innerHTML = '<section class="card">API 호출에 실패했습니다.</section>';
+        }
+      }
+
+      refreshButton.addEventListener('click', loadLogs);
+      searchInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          loadLogs();
+        }
+      });
+      flagFilter.addEventListener('change', loadLogs);
+
+      loadLogs();
+    </script>
+  </body>
+</html>
