@@ -54,18 +54,24 @@ body {
   padding: 10px 8px 6px;
 }
 
-.eyebrow {
-  margin: 0 0 6px;
-  font-size: 11px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--primary);
+.hero-logo {
+  display: flex;
+  justify-content: center;
+  margin: 0 0 14px;
+}
+
+.hero-logo img {
+  display: block;
+  width: min(220px, 70%);
+  height: auto;
+  object-fit: contain;
 }
 
 .hero h1 {
   margin: 0;
   font-size: 24px;
   line-height: 1.1;
+  text-align: center;
 }
 
 .subtitle {
@@ -73,6 +79,7 @@ body {
   font-size: 13px;
   color: var(--muted);
   line-height: 1.5;
+  text-align: center;
 }
 
 .notice-card {

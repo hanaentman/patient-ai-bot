@@ -114,6 +114,21 @@ const lateArrivalPatterns = [
   /도착.{0,12}늦/u,
 ];
 
+const certificateDocumentQuestionPatterns = [
+  /진단서/u,
+  /병사용\s*진단서/u,
+  /영문\s*진단서/u,
+  /상해\s*진단서/u,
+  /후유장애\s*진단서/u,
+  /장애\s*진단서/u,
+  /진료확인서/u,
+  /입퇴원\s*확인서/u,
+  /제증명/u,
+  /서류\s*발급/u,
+  /재발급/u,
+  /의무기록/u,
+];
+
 const inpatientMealPolicyPatterns = [
   /취사/u,
   /전자\s*레인지/u,
@@ -2413,7 +2428,10 @@ async function buildChatResponse(rawMessage, sessionId) {
     return enrichResponsePayload(floorGuideResponse, message);
   }
 
-  if (matchesAnyPattern(lowerMessage, medicalRestrictionPatterns)) {
+  if (
+    matchesAnyPattern(lowerMessage, medicalRestrictionPatterns)
+    && !matchesAnyPattern(message, certificateDocumentQuestionPatterns)
+  ) {
     return enrichResponsePayload(createRestrictedMedicalResponse(), message);
   }
 
