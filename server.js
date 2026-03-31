@@ -7,6 +7,10 @@ const XLSX = require('xlsx');
 const PORT = process.env.PORT || 3000;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-5-mini';
+const ADMIN_LOGIN_USERNAME = 'hanaent';
+const ADMIN_LOGIN_PASSWORD = 'hana1120@@';
+const ADMIN_SESSION_COOKIE = 'admin_session';
+const ADMIN_SESSION_VALUE = 'hanaent-admin-authenticated';
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const FAQ_PATH = path.join(__dirname, 'data', 'faq.json');
 const FAQ_EXTENDED_PATH = path.join(__dirname, 'data', 'faq-extended.json');
@@ -319,6 +323,36 @@ function findDocPathByKeyword(keyword) {
 function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, { 'Content-Type': 'application/json; charset=utf-8' });
   res.end(JSON.stringify(payload));
+}
+
+function parseCookies(req) {
+  const cookieHeader = String(req.headers.cookie || '');
+  if (!cookieHeader) {
+    return {};
+  }
+
+  return cookieHeader.split(';').reduce((result, part) => {
+    const [rawKey, ...rawValue] = part.trim().split('=');
+    if (!rawKey) {
+      return result;
+    }
+
+    result[rawKey] = decodeURIComponent(rawValue.join('=') || '');
+    return result;
+  }, {});
+}
+
+function isAuthorizedAdminRequest(req) {
+  const cookies = parseCookies(req);
+  return cookies[ADMIN_SESSION_COOKIE] === ADMIN_SESSION_VALUE;
+}
+
+function redirectToAdminLogin(res) {
+  res.writeHead(302, {
+    Location: '/admin/login',
+    'Cache-Control': 'no-store',
+  });
+  res.end();
 }
 
 function sendFile(res, filePath) {
@@ -2523,12 +2557,83 @@ function handleApiAdminLogFlag(req, res) {
   });
 }
 
+function handleApiAdminLogin(req, res) {
+  let body = '';
+
+  req.on('data', (chunk) => {
+    body += chunk;
+  });
+
+  req.on('end', () => {
+    try {
+      const parsed = JSON.parse(body || '{}');
+      const username = String(parsed.username || '').trim();
+      const password = String(parsed.password || '');
+
+      if (username !== ADMIN_LOGIN_USERNAME || password !== ADMIN_LOGIN_PASSWORD) {
+        sendJson(res, 401, {
+          ok: false,
+          error: 'Invalid credentials',
+        });
+        return;
+      }
+
+      res.writeHead(200, {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Set-Cookie': `${ADMIN_SESSION_COOKIE}=${encodeURIComponent(ADMIN_SESSION_VALUE)}; Path=/; HttpOnly; SameSite=Lax`,
+        'Cache-Control': 'no-store',
+      });
+      res.end(JSON.stringify({ ok: true }));
+    } catch (error) {
+      sendJson(res, 400, {
+        ok: false,
+        error: error.message,
+      });
+    }
+  });
+}
+
+function handleApiAdminLogout(req, res) {
+  res.writeHead(200, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Set-Cookie': `${ADMIN_SESSION_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`,
+    'Cache-Control': 'no-store',
+  });
+  res.end(JSON.stringify({ ok: true }));
+}
+
 const server = http.createServer((req, res) => {
   const requestUrl = new URL(req.url, `http://${req.headers.host}`);
   const pathname = decodeURIComponent(requestUrl.pathname);
 
+  const isAdminPageRequest = pathname === '/admin';
+  const isAdminApiRequest = pathname.startsWith('/api/admin/');
+  const isAdminLoginRequest = pathname === '/admin/login' || pathname === '/api/admin/login';
+
+  if ((isAdminPageRequest || isAdminApiRequest) && !isAdminLoginRequest && !isAuthorizedAdminRequest(req)) {
+    if (isAdminPageRequest) {
+      redirectToAdminLogin(res);
+    } else {
+      sendJson(res, 401, {
+        ok: false,
+        error: 'Unauthorized',
+      });
+    }
+    return;
+  }
+
   if (req.method === 'POST' && pathname === '/api/chat') {
     handleApiChat(req, res);
+    return;
+  }
+
+  if (req.method === 'POST' && pathname === '/api/admin/login') {
+    handleApiAdminLogin(req, res);
+    return;
+  }
+
+  if (req.method === 'POST' && pathname === '/api/admin/logout') {
+    handleApiAdminLogout(req, res);
     return;
   }
 
@@ -2568,7 +2673,9 @@ const server = http.createServer((req, res) => {
 
   const safePath = pathname === '/'
     ? '/index.html'
-    : (pathname === '/admin' ? '/admin.html' : pathname);
+    : (pathname === '/admin'
+      ? '/admin.html'
+      : (pathname === '/admin/login' ? '/admin-login.html' : pathname));
   const filePath = path.join(PUBLIC_DIR, safePath);
 
   if (!filePath.startsWith(PUBLIC_DIR)) {

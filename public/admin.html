@@ -181,6 +181,7 @@
           <h1>상담 로그 관리자</h1>
           <div class="muted">질문과 답변을 확인하고 수정 필요 상태를 표시하는 화면입니다.</div>
         </div>
+        <button id="logout-button" type="button">로그아웃</button>
       </section>
 
       <section class="filters">
@@ -202,6 +203,7 @@
       const searchInput = document.getElementById('search-input');
       const flagFilter = document.getElementById('flag-filter');
       const refreshButton = document.getElementById('refresh-button');
+      const logoutButton = document.getElementById('logout-button');
       const stats = document.getElementById('stats');
       const logList = document.getElementById('log-list');
 
@@ -309,6 +311,10 @@
       }
 
       refreshButton.addEventListener('click', loadLogs);
+      logoutButton.addEventListener('click', async () => {
+        await fetch('/api/admin/logout', { method: 'POST' });
+        window.location.href = '/admin/login';
+      });
       searchInput.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
           loadLogs();
