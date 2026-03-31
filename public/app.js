@@ -189,7 +189,7 @@ function appendMessage(role, text, followUp = [], sources = [], images = []) {
 
   const label = document.createElement('span');
   label.className = 'message-label';
-  label.textContent = role === 'bot' ? '파란코끼리 상담원' : '고객';
+  label.textContent = role === 'bot' ? '파란코끼리 AI상담원' : '고객';
   wrapper.appendChild(label);
 
   const paragraphs = splitMessageParagraphs(role, text);
@@ -216,7 +216,9 @@ function appendMessage(role, text, followUp = [], sources = [], images = []) {
     wrapper.appendChild(list);
   }
 
-  if (sources.length > 0) {
+  const linkedSources = (sources || []).filter((source) => isValidExternalUrl(source.url));
+
+  if (linkedSources.length > 0) {
     const sourceBox = document.createElement('div');
     sourceBox.className = 'source-box';
 
@@ -225,18 +227,14 @@ function appendMessage(role, text, followUp = [], sources = [], images = []) {
     sourceBox.appendChild(sourceTitle);
 
     const sourceList = document.createElement('ul');
-    sources.forEach((source) => {
+    linkedSources.forEach((source) => {
       const li = document.createElement('li');
-      if (isValidExternalUrl(source.url)) {
-        const link = document.createElement('a');
-        link.href = source.url;
-        link.target = '_blank';
-        link.rel = 'noreferrer';
-        link.textContent = source.title;
-        li.appendChild(link);
-      } else {
-        li.textContent = source.title;
-      }
+      const link = document.createElement('a');
+      link.href = source.url;
+      link.target = '_blank';
+      link.rel = 'noreferrer';
+      link.textContent = source.title;
+      li.appendChild(link);
       sourceList.appendChild(li);
     });
 
@@ -321,7 +319,7 @@ function showPendingMessage() {
 
   const label = document.createElement('span');
   label.className = 'message-label';
-  label.textContent = '파란코끼리 상담원';
+  label.textContent = '파란코끼리 AI상담원';
   wrapper.appendChild(label);
 
   const body = document.createElement('p');
@@ -419,7 +417,7 @@ chips.forEach((chip) => {
 
 appendMessage(
   'bot',
-  '안녕하세요. 파란코끼리 상담원입니다. 병원 문서를 바탕으로 안내해 드리며, 문서에 없는 내용은 추측하지 않고 안내합니다.',
+  '안녕하세요. 파란코끼리 AI상담원입니다. 병원 문서를 바탕으로 안내해 드리며, 문서에 없는 내용은 추측하지 않고 안내합니다.',
   ['진료과 알려줘', '하나이비인후과 원장 진료시간 알려줘', '입원 준비물 알려줘']
 );
 

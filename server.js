@@ -325,6 +325,15 @@ function sendJson(res, statusCode, payload) {
   res.end(JSON.stringify(payload));
 }
 
+function isPublicHttpUrl(value) {
+  try {
+    const url = new URL(String(value || ''));
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch (error) {
+    return false;
+  }
+}
+
 function parseCookies(req) {
   const cookieHeader = String(req.headers.cookie || '');
   if (!cookieHeader) {
@@ -1765,6 +1774,52 @@ function getFaqSourceInfo(entry) {
   };
 }
 
+function resolvePublicSourceForDoc(doc) {
+  if (isPublicHttpUrl(doc.url)) {
+    return {
+      title: doc.sourceTitle || doc.title,
+      url: doc.url,
+    };
+  }
+
+  const sourceTitle = String(doc.sourceTitle || doc.title || '').trim();
+  const normalizedTitle = normalizeSearchTextSafe(sourceTitle.replace(/^홈페이지-/, ''));
+  if (!normalizedTitle) {
+    return null;
+  }
+
+  const matchedOfficialSource = siteSources.find((source) => {
+    if (source.type !== 'official' || !isPublicHttpUrl(source.url)) {
+      return false;
+    }
+
+    const normalizedSourceTitle = normalizeSearchTextSafe(source.title || '');
+    if (
+      normalizedSourceTitle.includes(normalizedTitle)
+      || normalizedTitle.includes(normalizedSourceTitle)
+    ) {
+      return true;
+    }
+
+    return (source.keywords || []).some((keyword) => {
+      const normalizedKeyword = normalizeSearchTextSafe(keyword);
+      return normalizedKeyword && (
+        normalizedTitle.includes(normalizedKeyword)
+        || normalizedKeyword.includes(normalizedTitle)
+      );
+    });
+  });
+
+  if (!matchedOfficialSource) {
+    return null;
+  }
+
+  return {
+    title: matchedOfficialSource.title || sourceTitle,
+    url: matchedOfficialSource.url,
+  };
+}
+
 function extractPageTitle(html, fallbackTitle) {
   const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
   if (!titleMatch) {
@@ -2448,17 +2503,19 @@ function dedupeSources(docs) {
       continue;
     }
 
-    const key = `${doc.title}::${doc.url}`;
-    if (seen.has(key) || seen.has(doc.url)) {
+    const resolvedSource = resolvePublicSourceForDoc(doc);
+    if (!resolvedSource || !isPublicHttpUrl(resolvedSource.url)) {
+      continue;
+    }
+
+    const key = `${resolvedSource.title}::${resolvedSource.url}`;
+    if (seen.has(key) || seen.has(resolvedSource.url)) {
       continue;
     }
 
     seen.add(key);
-    seen.add(doc.url);
-    sources.push({
-      title: doc.sourceTitle || doc.title,
-      url: doc.url,
-    });
+    seen.add(resolvedSource.url);
+    sources.push(resolvedSource);
   }
 
   return sources;
@@ -2500,7 +2557,9 @@ function handleApiChat(req, res) {
         return;
       }
 
-      recordPopularQuestion(parsed.message);
+      if (!matchesAnyPattern(String(parsed.message || ''), personalInfoPatterns)) {
+        recordPopularQuestion(parsed.message);
+      }
       const response = await buildChatResponse(parsed.message, parsed.sessionId);
       appendChatLog({
         id: `log-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,

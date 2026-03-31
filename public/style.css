@@ -90,6 +90,16 @@ body {
   white-space: pre-line;
 }
 
+.privacy-emphasis {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 2px 6px;
+  border-radius: 8px;
+  background: rgba(217, 46, 46, 0.12);
+  color: #b42318;
+  font-weight: 800;
+}
+
 .message p:first-of-type {
   margin-top: 0;
 }
