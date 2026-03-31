@@ -14,6 +14,7 @@ const SITE_SOURCES_PATH = path.join(__dirname, 'data', 'site-sources.json');
 const IMAGE_GUIDES_PATH = path.join(__dirname, 'data', 'image-guides.json');
 const POPULAR_QUESTIONS_PATH = path.join(__dirname, 'data', 'popular-question-stats.json');
 const DOCS_DIR = path.join(__dirname, 'docs');
+const FLOOR_GUIDE_DOC_PATH = path.join(DOCS_DIR, '기타-층별안내도.txt');
 const CERTIFICATE_FEES_DOC_PATH = findDocPathByKeyword('비급여비용');
 const YOUTUBE_LINKS_PATH = path.join(DOCS_DIR, '유튜브-링크.txt');
 
@@ -117,6 +118,17 @@ const inpatientMealPolicyPatterns = [
   /전자렌지/u,
 ];
 
+const floorGuidePatterns = [
+  /\d+\s*번\s*진료실/u,
+  /\d+\s*진료실/u,
+  /몇\s*층/u,
+  /어느\s*층/u,
+  /어디/u,
+  /위치/u,
+  /층별/u,
+  /안내도/u,
+];
+
 const rhinitisPostOpVisitPatterns = [
   /비염.{0,12}수술.{0,12}(통원|내원)/u,
   /만성비염.{0,12}수술.{0,12}(통원|내원)/u,
@@ -166,6 +178,7 @@ const faqDocuments = buildFaqDocuments();
 const localDocuments = buildLocalDocuments();
 const certificateFeeEntries = buildCertificateFeeEntries();
 let homepageDiseaseTerms = [];
+const floorGuideIndex = buildFloorGuideIndex();
 
 function readJsonArray(filePath) {
   if (!fs.existsSync(filePath)) {
@@ -1301,6 +1314,92 @@ function buildCertificateFeeEntries() {
   }).filter((entry) => entry && entry.price);
 }
 
+function buildFloorGuideIndex() {
+  const index = {
+    byRoomNumber: new Map(),
+  };
+
+  if (!fs.existsSync(FLOOR_GUIDE_DOC_PATH)) {
+    return index;
+  }
+
+  const lines = fs.readFileSync(FLOOR_GUIDE_DOC_PATH, 'utf8')
+    .split(/\r?\n/)
+    .map((line) => String(line || '').trim())
+    .filter(Boolean);
+
+  lines.forEach((line) => {
+    const floorMatch = line.match(/(\d)\s*층/);
+    if (!floorMatch) {
+      return;
+    }
+
+    const floor = Number(floorMatch[1]);
+    const rangeRegex = /(\d+)\s*~\s*(\d+)\s*진료실/g;
+    let rangeMatch = rangeRegex.exec(line);
+
+    while (rangeMatch) {
+      const start = Number(rangeMatch[1]);
+      const end = Number(rangeMatch[2]);
+      for (let roomNumber = start; roomNumber <= end; roomNumber += 1) {
+        index.byRoomNumber.set(roomNumber, {
+          floor,
+          line,
+        });
+      }
+      rangeMatch = rangeRegex.exec(line);
+    }
+
+    const singleRoomRegex = /(\d+)\s*진료실/g;
+    let singleRoomMatch = singleRoomRegex.exec(line);
+    while (singleRoomMatch) {
+      const roomNumber = Number(singleRoomMatch[1]);
+      if (!index.byRoomNumber.has(roomNumber)) {
+        index.byRoomNumber.set(roomNumber, {
+          floor,
+          line,
+        });
+      }
+      singleRoomMatch = singleRoomRegex.exec(line);
+    }
+  });
+
+  return index;
+}
+
+function findFloorGuideResponse(message) {
+  if (!matchesAnyPattern(message, floorGuidePatterns)) {
+    return null;
+  }
+
+  const roomMatch = String(message || '').match(/(\d+)\s*번?\s*진료실/u);
+  if (!roomMatch) {
+    return null;
+  }
+
+  const roomNumber = Number(roomMatch[1]);
+  const floorInfo = floorGuideIndex.byRoomNumber.get(roomNumber);
+  if (!floorInfo) {
+    return null;
+  }
+
+  const department = floorInfo.floor === 2
+    ? '이비인후과 진료실(1~6진료실)'
+    : (floorInfo.floor === 1 ? '이비인후과 진료실(7~8진료실)' : '진료실');
+
+  return {
+    type: 'floor_guide',
+    answer: `${roomNumber}번 진료실은 ${floorInfo.floor}층입니다. 층별안내도 기준으로 ${department}에 해당합니다.`,
+    followUp: [
+      '정확한 위치가 헷갈리면 1층 또는 해당 층 안내 데스크에서 다시 안내받으시면 됩니다.',
+    ],
+    sources: [{
+      title: '기타-층별안내도',
+      url: `local://docs/${encodeURIComponent(path.basename(FLOOR_GUIDE_DOC_PATH))}`,
+    }],
+  };
+}
+
 function findCertificateFeeResponse(message) {
   const normalizedMessage = normalizeSearchTextSafe(message);
   if (!normalizedMessage) {
@@ -2144,6 +2243,11 @@ async function buildChatResponse(rawMessage, sessionId) {
   const certificateFeeResponse = findCertificateFeeResponse(message);
   if (certificateFeeResponse) {
     return enrichResponsePayload(certificateFeeResponse, message);
+  }
+
+  const floorGuideResponse = findFloorGuideResponse(message);
+  if (floorGuideResponse) {
+    return enrichResponsePayload(floorGuideResponse, message);
   }
 
   if (matchesAnyPattern(lowerMessage, medicalRestrictionPatterns)) {
