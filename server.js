@@ -110,8 +110,6 @@ const lateArrivalPatterns = [
 ];
 
 const inpatientMealPolicyPatterns = [
-  /배달\s*음식/u,
-  /음식\s*배달/u,
   /취사/u,
   /전자\s*레인지/u,
   /전자레인지/u,
