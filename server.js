@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { URL } = require('url');
+const { DatabaseSync } = require('node:sqlite');
 const XLSX = require('xlsx');
 
 const PORT = process.env.PORT || 3000;
@@ -18,6 +19,7 @@ const SITE_SOURCES_PATH = path.join(__dirname, 'data', 'site-sources.json');
 const IMAGE_GUIDES_PATH = path.join(__dirname, 'data', 'image-guides.json');
 const POPULAR_QUESTIONS_PATH = path.join(__dirname, 'data', 'popular-question-stats.json');
 const CHAT_LOGS_PATH = path.join(__dirname, 'data', 'chat-logs.json');
+const CHAT_LOGS_DB_PATH = path.join(__dirname, 'data', 'chat-logs.db');
 const DOCS_DIR = path.join(__dirname, 'docs');
 const FLOOR_GUIDE_DOC_PATH = path.join(DOCS_DIR, '기타-층별안내도.txt');
 const CERTIFICATE_FEES_DOC_PATH = findDocPathByKeyword('비급여비용');
@@ -198,7 +200,7 @@ const localDocuments = buildLocalDocuments();
 const certificateFeeEntries = buildCertificateFeeEntries();
 let homepageDiseaseTerms = [];
 const floorGuideIndex = buildFloorGuideIndex();
-const chatLogs = loadChatLogs();
+const chatLogDb = createChatLogDatabase();
 
 function readJsonArray(filePath) {
   if (!fs.existsSync(filePath)) {
@@ -254,47 +256,149 @@ function savePopularQuestionStats() {
   }
 }
 
-function loadChatLogs() {
+function createChatLogDatabase() {
+  const db = new DatabaseSync(CHAT_LOGS_DB_PATH);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS chat_logs (
+      id TEXT PRIMARY KEY,
+      timestamp TEXT NOT NULL,
+      session_id TEXT,
+      question TEXT NOT NULL,
+      answer TEXT NOT NULL,
+      follow_up TEXT NOT NULL,
+      answer_full TEXT NOT NULL,
+      type TEXT NOT NULL,
+      sources TEXT NOT NULL,
+      flag TEXT NOT NULL DEFAULT 'normal',
+      note TEXT NOT NULL DEFAULT '',
+      reviewed_at TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_chat_logs_timestamp ON chat_logs(timestamp DESC);
+    CREATE INDEX IF NOT EXISTS idx_chat_logs_flag ON chat_logs(flag);
+  `);
+
+  migrateChatLogsJsonToSqlite(db);
+  trimChatLogs(db);
+  return db;
+}
+
+function migrateChatLogsJsonToSqlite(db) {
   if (!fs.existsSync(CHAT_LOGS_PATH)) {
-    return [];
+    return;
   }
 
   try {
     const parsed = JSON.parse(fs.readFileSync(CHAT_LOGS_PATH, 'utf8'));
+    const items = Array.isArray(parsed) ? parsed : [];
+    const insert = db.prepare(`
+      INSERT OR IGNORE INTO chat_logs (
+        id, timestamp, session_id, question, answer, follow_up, answer_full, type, sources, flag, note, reviewed_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    items.forEach((item) => {
+      insert.run(
+        String(item.id || `migrated-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
+        String(item.timestamp || new Date().toISOString()),
+        String(item.sessionId || ''),
+        String(item.question || ''),
+        String(item.answer || ''),
+        JSON.stringify(Array.isArray(item.followUp) ? item.followUp : []),
+        String(item.answerFull || item.answer || ''),
+        String(item.type || 'unknown'),
+        JSON.stringify(Array.isArray(item.sources) ? item.sources : []),
+        String(item.flag || 'normal'),
+        String(item.note || ''),
+        item.reviewedAt ? String(item.reviewedAt) : null
+      );
+    });
+
+    fs.renameSync(CHAT_LOGS_PATH, `${CHAT_LOGS_PATH}.migrated`);
+  } catch (error) {
+    console.error('[chat-logs-migrate-error]', error);
+  }
+}
+
+function trimChatLogs(db) {
+  db.prepare(`
+    DELETE FROM chat_logs
+    WHERE id NOT IN (
+      SELECT id FROM chat_logs
+      ORDER BY datetime(timestamp) DESC
+      LIMIT ?
+    )
+  `).run(MAX_CHAT_LOG_ENTRIES);
+}
+
+function appendChatLog(entry) {
+  chatLogDb.prepare(`
+    INSERT INTO chat_logs (
+      id, timestamp, session_id, question, answer, follow_up, answer_full, type, sources, flag, note, reviewed_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    String(entry.id),
+    String(entry.timestamp),
+    String(entry.sessionId || ''),
+    String(entry.question || ''),
+    String(entry.answer || ''),
+    JSON.stringify(Array.isArray(entry.followUp) ? entry.followUp : []),
+    String(entry.answerFull || entry.answer || ''),
+    String(entry.type || 'unknown'),
+    JSON.stringify(Array.isArray(entry.sources) ? entry.sources : []),
+    String(entry.flag || 'normal'),
+    String(entry.note || ''),
+    entry.reviewedAt ? String(entry.reviewedAt) : null
+  );
+
+  trimChatLogs(chatLogDb);
+}
+
+function mapChatLogRow(row) {
+  if (!row) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    timestamp: row.timestamp,
+    sessionId: row.session_id || '',
+    question: row.question || '',
+    answer: row.answer || '',
+    followUp: safeJsonParseArray(row.follow_up),
+    answerFull: row.answer_full || row.answer || '',
+    type: row.type || 'unknown',
+    sources: safeJsonParseArray(row.sources),
+    flag: row.flag || 'normal',
+    note: row.note || '',
+    reviewedAt: row.reviewed_at || '',
+  };
+}
+
+function safeJsonParseArray(value) {
+  try {
+    const parsed = JSON.parse(String(value || '[]'));
     return Array.isArray(parsed) ? parsed : [];
   } catch (error) {
-    console.error('[chat-logs-load-error]', error);
     return [];
   }
 }
 
-function saveChatLogs() {
-  try {
-    fs.writeFileSync(CHAT_LOGS_PATH, JSON.stringify(chatLogs.slice(-MAX_CHAT_LOG_ENTRIES), null, 2), 'utf8');
-  } catch (error) {
-    console.error('[chat-logs-save-error]', error);
-  }
-}
-
-function appendChatLog(entry) {
-  chatLogs.push(entry);
-  if (chatLogs.length > MAX_CHAT_LOG_ENTRIES) {
-    chatLogs.splice(0, chatLogs.length - MAX_CHAT_LOG_ENTRIES);
-  }
-  saveChatLogs();
-}
-
 function updateChatLogFlag(logId, flag, note = '') {
-  const matchedLog = chatLogs.find((item) => item.id === logId);
-  if (!matchedLog) {
-    return null;
-  }
+  chatLogDb.prepare(`
+    UPDATE chat_logs
+    SET flag = ?, note = ?, reviewed_at = ?
+    WHERE id = ?
+  `).run(
+    String(flag || 'normal'),
+    String(note || '').trim(),
+    new Date().toISOString(),
+    String(logId)
+  );
 
-  matchedLog.flag = flag || 'normal';
-  matchedLog.note = String(note || '').trim();
-  matchedLog.reviewedAt = new Date().toISOString();
-  saveChatLogs();
-  return matchedLog;
+  return mapChatLogRow(
+    chatLogDb.prepare(`SELECT * FROM chat_logs WHERE id = ?`).get(String(logId))
+  );
 }
 
 function getChatLogsForAdmin(query) {
@@ -303,27 +407,34 @@ function getChatLogsForAdmin(query) {
   const search = normalizeSearchTextSafe(getQueryValue('q') || '');
   const flag = String(getQueryValue('flag') || '').trim();
 
-  let items = [...chatLogs].sort((a, b) => (
-    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-  ));
+  let sql = 'SELECT * FROM chat_logs';
+  const conditions = [];
+  const params = [];
 
   if (flag) {
-    items = items.filter((item) => item.flag === flag);
+    conditions.push('flag = ?');
+    params.push(flag);
   }
 
   if (search) {
-    items = items.filter((item) => {
-      const haystack = normalizeSearchTextSafe([
-        item.question,
-        item.answer,
-        ...(item.sources || []).map((source) => source.title || ''),
-        item.note || '',
-      ].join(' '));
-      return haystack.includes(search);
-    });
+    conditions.push('(question LIKE ? OR answer LIKE ? OR answer_full LIKE ? OR note LIKE ? OR sources LIKE ?)');
+    const likeValue = `%${search}%`;
+    params.push(likeValue, likeValue, likeValue, likeValue, likeValue);
   }
 
-  return items.slice(0, limit);
+  if (conditions.length > 0) {
+    sql += ` WHERE ${conditions.join(' AND ')}`;
+  }
+
+  sql += ' ORDER BY datetime(timestamp) DESC LIMIT ?';
+  params.push(limit);
+
+  return chatLogDb.prepare(sql).all(...params).map(mapChatLogRow);
+}
+
+function getChatLogCount() {
+  const row = chatLogDb.prepare('SELECT COUNT(*) AS count FROM chat_logs').get();
+  return Number(row?.count || 0);
 }
 
 function findDocPathByKeyword(keyword) {
@@ -2747,7 +2858,7 @@ const server = http.createServer((req, res) => {
     sendJson(res, 200, {
       ok: true,
       items: getChatLogsForAdmin(requestUrl.searchParams),
-      total: chatLogs.length,
+      total: getChatLogCount(),
       timestamp: new Date().toISOString(),
     });
     return;
