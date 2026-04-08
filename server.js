@@ -1,4 +1,5 @@
 const http = require('http');
+const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const { URL } = require('url');
@@ -21,19 +22,17 @@ const POPULAR_QUESTIONS_PATH = path.join(__dirname, 'data', 'popular-question-st
 const CHAT_LOGS_PATH = path.join(__dirname, 'data', 'chat-logs.json');
 const CHAT_LOGS_DB_PATH = path.join(__dirname, 'data', 'chat-logs.db');
 const DOCS_DIR = path.join(__dirname, 'docs');
+const DOCTOR_LIST_DOC_FILENAME = '외래-의료진 명단.txt';
+const DOCTOR_INFO_DOC_FILENAME = '홈페이지-의료진 정보.txt';
+const DOCTOR_SYNC_SCRIPT_PATH = path.join(__dirname, 'scripts', 'sync_doctor_schedule_faq.js');
 const FLOOR_GUIDE_DOC_PATH = path.join(DOCS_DIR, '기타-층별안내도.txt');
 const CERTIFICATE_FEES_DOC_PATH = findDocPathByKeyword('비급여비용');
 const YOUTUBE_LINKS_PATH = path.join(DOCS_DIR, '유튜브-링크.txt');
 
-const faqEntries = [
-  ...readJsonArray(FAQ_PATH),
-  ...readJsonArray(FAQ_EXTENDED_PATH),
-];
 const siteSources = JSON.parse(fs.readFileSync(SITE_SOURCES_PATH, 'utf8'));
 const imageGuides = fs.existsSync(IMAGE_GUIDES_PATH)
   ? JSON.parse(fs.readFileSync(IMAGE_GUIDES_PATH, 'utf8'))
   : [];
-const youtubeLinks = loadYoutubeLinks();
 const sessions = new Map();
 const allowedHostnames = ['www.hanaent.co.kr', 'hanaent.co.kr'];
 const LOCAL_FAQ_URL = (
@@ -195,12 +194,12 @@ const sessionMinuteRateWindow = new Map();
 const sessionDailyRateWindow = new Map();
 let warmupStarted = false;
 const MAX_CHAT_LOG_ENTRIES = 5000;
-const faqDocuments = buildFaqDocuments();
-const localDocuments = buildLocalDocuments();
-const certificateFeeEntries = buildCertificateFeeEntries();
-let homepageDiseaseTerms = [];
-const floorGuideIndex = buildFloorGuideIndex();
 const chatLogDb = createChatLogDatabase();
+let docsWatchDebounceTimer = null;
+let pendingDoctorDocsUpdate = false;
+let doctorScheduleSyncInProgress = false;
+let doctorScheduleSyncQueued = false;
+let runtimeData = createRuntimeData();
 
 function readJsonArray(filePath) {
   if (!fs.existsSync(filePath)) {
@@ -209,6 +208,120 @@ function readJsonArray(filePath) {
 
   const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   return Array.isArray(parsed) ? parsed : [];
+}
+
+function loadFaqEntries() {
+  return [
+    ...readJsonArray(FAQ_PATH),
+    ...readJsonArray(FAQ_EXTENDED_PATH),
+  ];
+}
+
+function createRuntimeData() {
+  const faqEntries = loadFaqEntries();
+  const localDocuments = buildLocalDocuments();
+
+  return {
+    faqEntries,
+    faqDocuments: buildFaqDocuments(faqEntries),
+    localDocuments,
+    certificateFeeEntries: buildCertificateFeeEntries(),
+    floorGuideIndex: buildFloorGuideIndex(),
+    homepageDiseaseTerms: buildHomepageDiseaseTerms(localDocuments),
+    youtubeLinks: loadYoutubeLinks(),
+  };
+}
+
+function invalidateDynamicCaches() {
+  documentCache.loadedAt = 0;
+  documentCache.docs = [];
+  documentCache.pendingPromise = null;
+  responseCache.clear();
+  warmupStarted = false;
+}
+
+function refreshRuntimeData(reason = 'manual refresh') {
+  runtimeData = createRuntimeData();
+  invalidateDynamicCaches();
+  console.log(`[docs-refresh] ${reason}`);
+  return runtimeData;
+}
+
+function isDoctorScheduleSourceFile(filename) {
+  return filename === DOCTOR_INFO_DOC_FILENAME || filename === DOCTOR_LIST_DOC_FILENAME;
+}
+
+function runDoctorScheduleSync(trigger = 'docs update') {
+  if (doctorScheduleSyncInProgress) {
+    doctorScheduleSyncQueued = true;
+    return;
+  }
+
+  doctorScheduleSyncInProgress = true;
+  const child = spawn(process.execPath, [DOCTOR_SYNC_SCRIPT_PATH], {
+    cwd: __dirname,
+    stdio: 'ignore',
+  });
+
+  child.on('error', (error) => {
+    doctorScheduleSyncInProgress = false;
+    console.error('[doctor-sync-error]', error);
+    refreshRuntimeData(`${trigger} (reload after sync error)`);
+    if (doctorScheduleSyncQueued) {
+      doctorScheduleSyncQueued = false;
+      runDoctorScheduleSync('queued docs update');
+    }
+  });
+
+  child.on('exit', (code) => {
+    doctorScheduleSyncInProgress = false;
+
+    if (code !== 0) {
+      console.error(`[doctor-sync-error] exited with code ${code}`);
+    }
+
+    refreshRuntimeData(`${trigger}${code === 0 ? '' : ' (reload after sync failure)'}`);
+    if (doctorScheduleSyncQueued) {
+      doctorScheduleSyncQueued = false;
+      runDoctorScheduleSync('queued docs update');
+    }
+  });
+}
+
+function scheduleDocsRefresh(filename = '') {
+  if (isDoctorScheduleSourceFile(filename)) {
+    pendingDoctorDocsUpdate = true;
+  }
+
+  if (docsWatchDebounceTimer) {
+    clearTimeout(docsWatchDebounceTimer);
+  }
+
+  docsWatchDebounceTimer = setTimeout(() => {
+    docsWatchDebounceTimer = null;
+
+    if (pendingDoctorDocsUpdate) {
+      pendingDoctorDocsUpdate = false;
+      runDoctorScheduleSync(`doctor docs changed: ${filename}`);
+      return;
+    }
+
+    refreshRuntimeData(`docs changed: ${filename || 'unknown file'}`);
+  }, 300);
+}
+
+function watchDocsDirectory() {
+  if (!fs.existsSync(DOCS_DIR)) {
+    return;
+  }
+
+  try {
+    fs.watch(DOCS_DIR, (_eventType, filename) => {
+      scheduleDocsRefresh(String(filename || ''));
+    });
+  } catch (error) {
+    console.error('[docs-watch-error]', error);
+  }
 }
 
 function loadPopularQuestionStats() {
@@ -926,7 +1039,7 @@ function findRelevantYoutubeLink(question, answer = '') {
   const normalizedAnswer = normalizeSearchTextSafe(answer);
   const compactAnswer = compactSearchTextSafe(answer);
 
-  return youtubeLinks.find((item) => (
+  return runtimeData.youtubeLinks.find((item) => (
     (item.normalizedTopic && normalizedQuestion.includes(item.normalizedTopic))
     || (item.compactTopic && compactQuestion.includes(item.compactTopic))
     || (item.normalizedTopic && normalizedAnswer.includes(item.normalizedTopic))
@@ -1034,7 +1147,7 @@ function findDirectFaqMatch(message) {
     || /(했는데|인데|같아|같은데|하려고|되나요|되나요|어떻게|어떡해|가능할까요|될까요|해도 되나요)/u.test(message)
   );
 
-  const rankedEntries = faqEntries
+  const rankedEntries = runtimeData.faqEntries
     .map((entry) => {
       let exactKeywordMatch = false;
 
@@ -1490,8 +1603,6 @@ function buildExpandedSearchState(text) {
   };
 }
 
-homepageDiseaseTerms = buildHomepageDiseaseTerms(localDocuments);
-
 function extractPriceText(line) {
   const amountMatches = String(line || '').match(/\d{1,3}(?:,\d{3})+/g) || [];
   return amountMatches[0] || '';
@@ -1621,7 +1732,7 @@ function findFloorGuideResponse(message) {
   }
 
   const roomNumber = Number(roomMatch[1]);
-  const floorInfo = floorGuideIndex.byRoomNumber.get(roomNumber);
+  const floorInfo = runtimeData.floorGuideIndex.byRoomNumber.get(roomNumber);
   if (!floorInfo) {
     return null;
   }
@@ -1681,7 +1792,7 @@ function findCertificateFeeResponse(message) {
   }
 
   const entryKey = wantsReissue ? matchedTarget.reissueKey : matchedTarget.baseKey;
-  const matchedEntry = certificateFeeEntries.find((entry) => entry.key === entryKey);
+  const matchedEntry = runtimeData.certificateFeeEntries.find((entry) => entry.key === entryKey);
   if (!matchedEntry) {
     return null;
   }
@@ -1701,8 +1812,8 @@ function findCertificateFeeResponse(message) {
   };
 }
 
-function buildFaqDocuments() {
-  return faqEntries.map((entry) => {
+function buildFaqDocuments(entries) {
+  return entries.map((entry) => {
     const sourceInfo = getFaqSourceInfo(entry);
 
     return {
@@ -1856,7 +1967,7 @@ function buildHomepageDiseaseTerms(docs) {
 function getMatchedHomepageDiseaseTerms(question) {
   const expandedState = buildExpandedSearchState(question);
 
-  return homepageDiseaseTerms.filter((term) => (
+  return runtimeData.homepageDiseaseTerms.filter((term) => (
     expandedState.normalizedVariants.some((variant) => (
       variant.includes(term) || term.includes(variant)
     ))
@@ -2078,8 +2189,8 @@ async function getKnowledgeDocuments() {
   if (!documentCache.pendingPromise) {
     documentCache.pendingPromise = (async () => {
       const docs = [
-        ...faqDocuments,
-        ...localDocuments,
+        ...runtimeData.faqDocuments,
+        ...runtimeData.localDocuments,
         ...(await crawlOfficialSite()),
         ...(await loadTrustedExternalDocuments()),
       ];
@@ -2109,7 +2220,7 @@ async function getDocumentsForRequest() {
   }
 
   warmupKnowledgeDocuments();
-  return [...faqDocuments, ...localDocuments];
+  return [...runtimeData.faqDocuments, ...runtimeData.localDocuments];
 }
 
 function warmupKnowledgeDocuments() {
@@ -2883,5 +2994,6 @@ const server = http.createServer((req, res) => {
 server.listen(PORT, () => {
   console.log(`Patient AI bot server running at http://localhost:${PORT}`);
   console.log(`AI enabled: ${OPENAI_API_KEY ? 'yes' : 'no'} (${OPENAI_MODEL})`);
+  watchDocsDirectory();
   warmupKnowledgeDocuments();
 });
