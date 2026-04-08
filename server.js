@@ -199,7 +199,7 @@ let docsWatchDebounceTimer = null;
 let pendingDoctorDocsUpdate = false;
 let doctorScheduleSyncInProgress = false;
 let doctorScheduleSyncQueued = false;
-let runtimeData = createRuntimeData();
+let runtimeData = null;
 
 function readJsonArray(filePath) {
   if (!fs.existsSync(filePath)) {
@@ -1973,6 +1973,8 @@ function getMatchedHomepageDiseaseTerms(question) {
     ))
   ));
 }
+
+runtimeData = createRuntimeData();
 
 function getFaqSourceInfo(entry) {
   const categoryHint = faqCategoryUrlHints[entry.category];
