@@ -7,6 +7,7 @@ const { DatabaseSync } = require('node:sqlite');
 const XLSX = require('xlsx');
 
 const PORT = process.env.PORT || 3000;
+const IS_RENDER = Boolean(process.env.RENDER || process.env.RENDER_SERVICE_ID);
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-5-mini';
 const ADMIN_LOGIN_USERNAME = 'hanaent';
@@ -200,6 +201,7 @@ let pendingDoctorDocsUpdate = false;
 let doctorScheduleSyncInProgress = false;
 let doctorScheduleSyncQueued = false;
 let runtimeData = null;
+let docsWatcher = null;
 
 function readJsonArray(filePath) {
   if (!fs.existsSync(filePath)) {
@@ -315,14 +317,46 @@ function watchDocsDirectory() {
     return;
   }
 
+  if (IS_RENDER) {
+    console.log('[docs-watch] disabled on Render');
+    return;
+  }
+
   try {
-    fs.watch(DOCS_DIR, (_eventType, filename) => {
+    docsWatcher = fs.watch(DOCS_DIR, (_eventType, filename) => {
       scheduleDocsRefresh(String(filename || ''));
+    });
+    docsWatcher.on('error', (error) => {
+      console.error('[docs-watch-error]', error);
+      if (docsWatcher) {
+        docsWatcher.close();
+        docsWatcher = null;
+      }
     });
   } catch (error) {
     console.error('[docs-watch-error]', error);
   }
 }
+
+process.on('uncaughtException', (error) => {
+  console.error('[process-uncaught-exception]', error);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[process-unhandled-rejection]', reason);
+});
+
+process.on('SIGTERM', () => {
+  console.warn('[process-signal] SIGTERM received');
+});
+
+process.on('SIGINT', () => {
+  console.warn('[process-signal] SIGINT received');
+});
+
+process.on('exit', (code) => {
+  console.warn(`[process-exit] code=${code}`);
+});
 
 function loadPopularQuestionStats() {
   if (!fs.existsSync(POPULAR_QUESTIONS_PATH)) {
@@ -2991,6 +3025,10 @@ const server = http.createServer((req, res) => {
   }
 
   sendFile(res, filePath);
+});
+
+server.on('error', (error) => {
+  console.error('[server-error]', error);
 });
 
 server.listen(PORT, () => {
