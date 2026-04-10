@@ -138,6 +138,12 @@ const inpatientMealPolicyPatterns = [
   /전자렌지/u,
 ];
 
+const inpatientOutingPatterns = [
+  /입원.{0,10}(외출|외박)/u,
+  /(외출|외박).{0,10}입원/u,
+  /병동.{0,10}(외출|외박)/u,
+];
+
 const floorGuidePatterns = [
   /\d+\s*번\s*진료실/u,
   /\d+\s*진료실/u,
@@ -1351,6 +1357,22 @@ function createInpatientMealPolicyResponse() {
     sources: [{
       title: '입원-입원생활안내문',
       url: 'local://docs/%EC%9E%85%EC%9B%90-%EC%9E%85%EC%9B%90%EC%83%9D%ED%99%9C%EC%95%88%EB%82%B4%EB%AC%B8.txt',
+    }],
+  };
+}
+
+function createInpatientOutingResponse() {
+  return {
+    type: 'inpatient_outing',
+    answer: '입원 중 외출과 외박은 특별한 사유가 없는 한 원칙적으로 제한됩니다. 다만 외출이나 외박이 필요하면 외출·외박 신청서를 작성하고, 담당의사 또는 주치의의 허가를 받은 경우에만 가능합니다.',
+    followUp: [
+      '외출·외박 시에는 병동에서 안내한 정해진 시간을 반드시 지켜야 합니다.',
+      '담당의사 허가 없이 무단 외출·외박은 인정되지 않습니다.',
+      '무단 외출·외박 등 준수의무 위반 시 즉시 퇴원 및 치료 중단이 될 수 있습니다.',
+    ],
+    sources: [{
+      title: '병동-FAQ',
+      url: 'local://docs/%EB%B3%91%EB%8F%99-FAQ.txt',
     }],
   };
 }
@@ -2703,6 +2725,10 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   if (matchesAnyPattern(message, inpatientMealPolicyPatterns)) {
     return enrichResponsePayload(createInpatientMealPolicyResponse(), message);
+  }
+
+  if (matchesAnyPattern(message, inpatientOutingPatterns)) {
+    return enrichResponsePayload(createInpatientOutingResponse(), message);
   }
 
   if (matchesAnyPattern(message, rhinitisPostOpVisitPatterns)) {
