@@ -35,6 +35,7 @@ const imageGuides = fs.existsSync(IMAGE_GUIDES_PATH)
   ? JSON.parse(fs.readFileSync(IMAGE_GUIDES_PATH, 'utf8'))
   : [];
 const sessions = new Map();
+const conversationStates = new Map();
 const allowedHostnames = ['www.hanaent.co.kr', 'hanaent.co.kr'];
 const LOCAL_FAQ_URL = (
   siteSources.find((source) => source.type === 'official' && /faq|info06/i.test(source.url))
@@ -104,6 +105,23 @@ const MEDICATION_STOP_QUERY_PATTERNS = [
   /항응고/u,
   /항혈소판/u,
 ];
+
+const PARKING_QUERY_PATTERNS = [/주차/u, /발렛/u, /주차권/u, /영수증/u];
+const PARKING_OUTPATIENT_PATTERNS = [/외래/u, /방문객/u, /보호자/u, /내원/u, /통원/u];
+const PARKING_INPATIENT_PATTERNS = [/입원/u, /수술/u, /퇴원/u];
+const NASAL_IRRIGATION_SURGERY_PATTERNS = [/수술/u, /퇴원/u, /수술후/u, /수술 후/u];
+const NASAL_IRRIGATION_GENERAL_PATTERNS = [/일반/u, /평소/u, /비수술/u];
+const PREP_BROAD_PATTERNS = [
+  /입원\s*준비/u,
+  /수술\s*준비/u,
+  /입원.*뭐/u,
+  /수술.*뭐/u,
+  /입원.*알아/u,
+  /수술.*알아/u,
+  /입원.*챙기/u,
+  /수술.*챙기/u,
+];
+const PREP_DETAIL_PATTERNS = [/준비물/u, /주차/u, /보호자/u, /검사/u, /약/u, /금식/u, /퇴원/u];
 
 const emergencyPatterns = [
   /응급/u,
@@ -2430,6 +2448,157 @@ function rankDocuments(question, docs, limit = 7) {
   return prioritizeDocumentsForQuestion(question, rankedDocs, docs, limit);
 }
 
+function getConversationState(sessionId) {
+  if (!sessionId) {
+    return null;
+  }
+
+  return conversationStates.get(sessionId) || null;
+}
+
+function setConversationState(sessionId, state) {
+  if (!sessionId) {
+    return;
+  }
+
+  conversationStates.set(sessionId, state);
+}
+
+function clearConversationState(sessionId) {
+  if (!sessionId) {
+    return;
+  }
+
+  conversationStates.delete(sessionId);
+}
+
+function createGuidedQuestionResponse(answer, followUp = []) {
+  return {
+    type: 'guided_question',
+    answer,
+    followUp,
+    sources: [],
+    images: [],
+  };
+}
+
+function detectGuidedFlowStart(message) {
+  if (
+    matchesAnyPattern(message, PARKING_QUERY_PATTERNS)
+    && !matchesAnyPattern(message, PARKING_OUTPATIENT_PATTERNS)
+    && !matchesAnyPattern(message, PARKING_INPATIENT_PATTERNS)
+  ) {
+    return {
+      topic: 'parking',
+      prompt: createGuidedQuestionResponse(
+        '주차 안내는 외래 방문인지 입원인지에 따라 달라집니다. 외래 방문이신가요, 입원이신가요?',
+        ['외래 방문이에요', '입원 예정이에요']
+      ),
+    };
+  }
+
+  if (
+    isNasalIrrigationQuestion(message)
+    && !matchesAnyPattern(message, NASAL_IRRIGATION_SURGERY_PATTERNS)
+    && !matchesAnyPattern(message, NASAL_IRRIGATION_GENERAL_PATTERNS)
+  ) {
+    return {
+      topic: 'nasal_irrigation',
+      prompt: createGuidedQuestionResponse(
+        '코세척 안내는 수술 후인지 일반 코세척인지에 따라 달라집니다. 수술 후 코세척인지, 일반 코세척인지 알려주세요.',
+        ['수술 후 코세척이에요', '일반 코세척이에요']
+      ),
+    };
+  }
+
+  if (matchesAnyPattern(message, PREP_BROAD_PATTERNS) && !matchesAnyPattern(message, PREP_DETAIL_PATTERNS)) {
+    return {
+      topic: 'admission_prep',
+      originalMessage: message,
+      prompt: createGuidedQuestionResponse(
+        '입원이나 수술 준비는 항목이 나뉘어 있습니다. 준비물, 주차, 보호자, 수술 전 검사, 복용 중단 약 중 어떤 내용이 궁금하신가요?',
+        ['준비물이 궁금해요', '주차가 궁금해요', '보호자가 궁금해요', '수술 전 검사가 궁금해요', '복용 중단 약이 궁금해요']
+      ),
+    };
+  }
+
+  return null;
+}
+
+function resolveGuidedFlowMessage(message, state) {
+  if (!state || !state.topic) {
+    return { resolved: false };
+  }
+
+  if (state.topic === 'parking') {
+    if (matchesAnyPattern(message, PARKING_OUTPATIENT_PATTERNS)) {
+      return { resolved: true, message: '외래 방문객 주차 안내' };
+    }
+
+    if (matchesAnyPattern(message, PARKING_INPATIENT_PATTERNS)) {
+      return { resolved: true, message: '입원 환자 주차 안내' };
+    }
+
+    return {
+      resolved: false,
+      prompt: createGuidedQuestionResponse(
+        '주차 안내를 정확히 드리려면 외래 방문인지 입원인지 먼저 확인이 필요합니다. 외래 방문이신가요, 입원이신가요?',
+        ['외래 방문이에요', '입원 예정이에요']
+      ),
+    };
+  }
+
+  if (state.topic === 'nasal_irrigation') {
+    if (matchesAnyPattern(message, NASAL_IRRIGATION_SURGERY_PATTERNS)) {
+      return { resolved: true, message: '수술 환자 코세척 방법' };
+    }
+
+    if (matchesAnyPattern(message, NASAL_IRRIGATION_GENERAL_PATTERNS)) {
+      return { resolved: true, message: '일반 환자 코세척 방법' };
+    }
+
+    return {
+      resolved: false,
+      prompt: createGuidedQuestionResponse(
+        '코세척 안내를 맞춰 드리려면 수술 후인지 일반 코세척인지 확인이 필요합니다. 어느 경우인지 알려주세요.',
+        ['수술 후 코세척이에요', '일반 코세척이에요']
+      ),
+    };
+  }
+
+  if (state.topic === 'admission_prep') {
+    if (/준비물/u.test(message)) {
+      return { resolved: true, message: `${state.originalMessage || '입원 준비'} 준비물` };
+    }
+
+    if (/주차/u.test(message)) {
+      return { resolved: true, message: `${state.originalMessage || '입원 준비'} 주차` };
+    }
+
+    if (/보호자/u.test(message)) {
+      return { resolved: true, message: `${state.originalMessage || '입원 준비'} 보호자 상주` };
+    }
+
+    if (/검사/u.test(message)) {
+      return { resolved: true, message: `${state.originalMessage || '수술 준비'} 수술 전 검사` };
+    }
+
+    if (/약/u.test(message)) {
+      return { resolved: true, message: `${state.originalMessage || '수술 준비'} 복용 중단 약물` };
+    }
+
+    return {
+      resolved: false,
+      prompt: createGuidedQuestionResponse(
+        '원하시는 준비 항목을 한 가지만 먼저 알려주세요. 준비물, 주차, 보호자, 수술 전 검사, 복용 중단 약 중에서 선택해 주세요.',
+        ['준비물', '주차', '보호자', '수술 전 검사', '복용 중단 약']
+      ),
+    };
+  }
+
+  return { resolved: false };
+}
+
 function getSessionHistory(sessionId) {
   if (!sessionId) {
     return [];
@@ -2777,77 +2946,101 @@ async function callOpenAI(question, history, contextDocs) {
 async function buildChatResponse(rawMessage, sessionId) {
   const message = String(rawMessage || '').trim();
   const lowerMessage = message.toLowerCase();
+  const conversationState = getConversationState(sessionId);
+  let effectiveMessage = message;
 
   if (!message) {
     return enrichResponsePayload(createWelcomeResponse(), message);
+  }
+
+  if (conversationState) {
+    const guidedResolution = resolveGuidedFlowMessage(message, conversationState);
+
+    if (!guidedResolution.resolved) {
+      if (guidedResolution.prompt) {
+        return enrichResponsePayload(guidedResolution.prompt, message);
+      }
+    } else {
+      clearConversationState(sessionId);
+      effectiveMessage = guidedResolution.message;
+    }
+  } else {
+    const guidedFlow = detectGuidedFlowStart(message);
+    if (guidedFlow) {
+      setConversationState(sessionId, {
+        topic: guidedFlow.topic,
+        originalMessage: guidedFlow.originalMessage || message,
+      });
+      return enrichResponsePayload(guidedFlow.prompt, message);
+    }
   }
 
   if (matchesAnyPattern(lowerMessage, emergencyPatterns)) {
     return enrichResponsePayload(createEmergencyResponse(), message);
   }
 
-  const certificateFeeResponse = findCertificateFeeResponse(message);
+  const certificateFeeResponse = findCertificateFeeResponse(effectiveMessage);
   if (certificateFeeResponse) {
     return enrichResponsePayload(certificateFeeResponse, message);
   }
 
-  const floorGuideResponse = findFloorGuideResponse(message);
+  const floorGuideResponse = findFloorGuideResponse(effectiveMessage);
   if (floorGuideResponse) {
     return enrichResponsePayload(floorGuideResponse, message);
   }
 
   if (
-    matchesAnyPattern(lowerMessage, medicalRestrictionPatterns)
-    && !matchesAnyPattern(message, certificateDocumentQuestionPatterns)
+    matchesAnyPattern(String(effectiveMessage || '').toLowerCase(), medicalRestrictionPatterns)
+    && !matchesAnyPattern(effectiveMessage, certificateDocumentQuestionPatterns)
   ) {
     return enrichResponsePayload(createRestrictedMedicalResponse(), message);
   }
 
-  if (matchesAnyPattern(message, personalInfoPatterns)) {
+  if (matchesAnyPattern(effectiveMessage, personalInfoPatterns)) {
     return enrichResponsePayload(createPersonalInfoWarningResponse(), message);
   }
 
-  if (matchesAnyPattern(message, lateArrivalPatterns)) {
+  if (matchesAnyPattern(effectiveMessage, lateArrivalPatterns)) {
     return enrichResponsePayload(createLateArrivalResponse(), message);
   }
 
-  if (matchesAnyPattern(message, inpatientMealPolicyPatterns)) {
+  if (matchesAnyPattern(effectiveMessage, inpatientMealPolicyPatterns)) {
     return enrichResponsePayload(createInpatientMealPolicyResponse(), message);
   }
 
-  if (matchesAnyPattern(message, inpatientOutingPatterns)) {
+  if (matchesAnyPattern(effectiveMessage, inpatientOutingPatterns)) {
     return enrichResponsePayload(createInpatientOutingResponse(), message);
   }
 
-  if (matchesAnyPattern(message, rhinitisPostOpVisitPatterns)) {
+  if (matchesAnyPattern(effectiveMessage, rhinitisPostOpVisitPatterns)) {
     return enrichResponsePayload(createRhinitisPostOpVisitResponse(), message);
   }
 
-  const smallTalkIntent = getSmallTalkIntent(message);
+  const smallTalkIntent = getSmallTalkIntent(effectiveMessage);
   if (smallTalkIntent) {
     return enrichResponsePayload(createSmallTalkResponse(smallTalkIntent), message);
   }
 
-  const cachedResponse = getCachedResponse(message);
+  const cachedResponse = getCachedResponse(effectiveMessage);
   if (cachedResponse) {
     return cachedResponse;
   }
 
-  const matchedDiseaseTerms = getMatchedHomepageDiseaseTerms(message);
+  const matchedDiseaseTerms = getMatchedHomepageDiseaseTerms(effectiveMessage);
   const shouldPrioritizeDiseaseDocs = matchedDiseaseTerms.length > 0;
-  const shouldPrioritizeNasalIrrigationDocs = isNasalIrrigationQuestion(message);
+  const shouldPrioritizeNasalIrrigationDocs = isNasalIrrigationQuestion(effectiveMessage);
 
   const directFaqResponse = shouldPrioritizeDiseaseDocs || shouldPrioritizeNasalIrrigationDocs
     ? null
-    : findDirectFaqMatch(message);
+    : findDirectFaqMatch(effectiveMessage);
   if (directFaqResponse) {
     const simplifiedFaqResponse = {
       ...directFaqResponse,
-      answer: appendSupportLinks(applyPatientFriendlyTemplate(directFaqResponse.answer, message), message),
+      answer: appendSupportLinks(applyPatientFriendlyTemplate(directFaqResponse.answer, effectiveMessage), message),
       followUp: (directFaqResponse.followUp || []).map((item) => applyPatientFriendlyTemplate(item, message)),
-      images: findRelevantImages(message),
+      images: findRelevantImages(effectiveMessage),
     };
-    setCachedResponse(message, simplifiedFaqResponse);
+    setCachedResponse(effectiveMessage, simplifiedFaqResponse);
     return simplifiedFaqResponse;
   }
 
@@ -2856,7 +3049,7 @@ async function buildChatResponse(rawMessage, sessionId) {
   }
 
   const docs = await getDocumentsForRequest();
-  const contextDocs = rankDocuments(message, docs);
+  const contextDocs = rankDocuments(effectiveMessage, docs);
 
   if (contextDocs.length === 0) {
     return enrichResponsePayload(createFallbackResponse([]), message);
@@ -2864,7 +3057,7 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   const history = getSessionHistory(sessionId);
   const answer = appendSupportLinks(
-    applyPatientFriendlyTemplate(await callOpenAI(message, history, contextDocs), message),
+    applyPatientFriendlyTemplate(await callOpenAI(effectiveMessage, history, contextDocs), effectiveMessage),
     message
   );
 
@@ -2880,10 +3073,10 @@ async function buildChatResponse(rawMessage, sessionId) {
     answer,
     followUp: [],
     sources: dedupeSources(contextDocs).slice(0, 3),
-    images: findRelevantImages(message, contextDocs),
+    images: findRelevantImages(effectiveMessage, contextDocs),
   };
 
-  setCachedResponse(message, responsePayload);
+  setCachedResponse(effectiveMessage, responsePayload);
   return responsePayload;
 }
 
