@@ -253,6 +253,9 @@ function appendMessage(role, text, followUp = [], sources = [], images = []) {
     images.forEach((image) => {
       const card = document.createElement('figure');
       card.className = 'image-card';
+      if (image.display === 'document') {
+        card.classList.add('image-card--document');
+      }
       card.tabIndex = 0;
       card.setAttribute('role', 'button');
       card.setAttribute('aria-label', `${image.title || '안내 이미지'} 크게 보기`);

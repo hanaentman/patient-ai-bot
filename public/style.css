@@ -208,11 +208,20 @@ body {
   cursor: zoom-in;
 }
 
+.image-card--document {
+  width: min(560px, calc(100vw - 64px));
+  max-width: none;
+}
+
 .image-card img {
   display: block;
   width: 100%;
   height: auto;
   background: #dfeaf5;
+}
+
+.image-card--document img {
+  background: #fff;
 }
 
 .image-card figcaption {

@@ -1164,13 +1164,14 @@ function findRelevantImages(message, contextDocs = []) {
     .map((guide) => ({
       title: guide.title || '안내 이미지',
       description: guide.description || '',
+      display: guide.display || '',
       url: resolvePublicImagePath(guide.path),
       score: scoreImageGuide(guide, normalizedQuestion, compactQuestion, contextDocs),
     }))
     .filter((guide) => guide.url && guide.score > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, 2)
-    .map(({ title, description, url }) => ({ title, description, url }));
+    .map(({ title, description, display, url }) => ({ title, description, display, url }));
 }
 
 function findDirectFaqMatch(message) {
