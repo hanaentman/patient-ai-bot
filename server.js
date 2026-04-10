@@ -84,6 +84,15 @@ const sourceTypeWeights = {
   external: 0.2,
   low_trust: 0.1,
 };
+const NASAL_IRRIGATION_QUERY_PATTERNS = [
+  /코\s*세척/u,
+  /비강\s*세척/u,
+  /코\s*세정/u,
+  /세척기/u,
+  /세척\s*분말/u,
+  /생리식염수\s*분말/u,
+];
+const NASAL_IRRIGATION_DOC_NAMES = ['외래-코세척 방법'];
 
 const emergencyPatterns = [
   /응급/u,
@@ -2294,6 +2303,51 @@ function warmupKnowledgeDocuments() {
   });
 }
 
+function isNasalIrrigationQuestion(question) {
+  const value = String(question || '').trim();
+
+  if (!value) {
+    return false;
+  }
+
+  return NASAL_IRRIGATION_QUERY_PATTERNS.some((pattern) => pattern.test(value));
+}
+
+function isNasalIrrigationDoc(doc) {
+  const normalizedTitle = normalizeSearchTextSafe(`${doc?.title || ''} ${doc?.sourceTitle || ''}`);
+  const compactTitle = compactSearchTextSafe(`${doc?.title || ''} ${doc?.sourceTitle || ''}`);
+
+  return NASAL_IRRIGATION_DOC_NAMES.some((name) => {
+    const normalizedName = normalizeSearchTextSafe(name);
+    const compactName = compactSearchTextSafe(name);
+    return normalizedTitle.includes(normalizedName) || compactTitle.includes(compactName);
+  });
+}
+
+function prioritizeDocumentsForQuestion(question, rankedDocs, allDocs, limit = 7) {
+  if (!isNasalIrrigationQuestion(question)) {
+    return rankedDocs.slice(0, limit);
+  }
+
+  const prioritizedDocs = allDocs
+    .filter((doc) => isNasalIrrigationDoc(doc))
+    .sort((a, b) => (b.score || 0) - (a.score || 0));
+  const merged = [];
+  const seen = new Set();
+
+  [...prioritizedDocs, ...rankedDocs].forEach((doc) => {
+    const key = `${doc.url}::${doc.chunkLabel || ''}::${doc.text}`;
+    if (seen.has(key)) {
+      return;
+    }
+
+    seen.add(key);
+    merged.push(doc);
+  });
+
+  return merged.slice(0, limit);
+}
+
 function rankDocuments(question, docs, limit = 7) {
   const expandedSearchState = buildExpandedSearchState(question);
   const matchedDiseaseTerms = getMatchedHomepageDiseaseTerms(question);
@@ -2302,8 +2356,9 @@ function rankDocuments(question, docs, limit = 7) {
   const tokens = expandedSearchState.tokens;
   const normalizedQuestionVariants = expandedSearchState.normalizedVariants;
   const compactQuestionVariants = expandedSearchState.compactVariants;
+  const shouldPrioritizeNasalIrrigation = isNasalIrrigationQuestion(question);
 
-  return docs
+  const rankedDocs = docs
     .map((doc) => {
       const normalizedTitle = normalizeSearchTextSafe(`${doc.title} ${doc.sourceTitle || ''}`);
       const compactTitle = normalizedTitle.replace(/\s+/g, '');
@@ -2329,8 +2384,9 @@ function rankDocuments(question, docs, limit = 7) {
         variant && (compactTitle.includes(variant) || compactText.includes(variant))
       )) ? 8 : 0;
       const localDocBonus = doc.sourceType === 'local' && (titleScore > 0 || phraseScore > 0 || compactScore > 0) ? 3 : 0;
+      const nasalIrrigationDocBonus = shouldPrioritizeNasalIrrigation && isNasalIrrigationDoc(doc) ? 120 : 0;
       const sourceWeight = sourceTypeWeights[doc.sourceType] ?? 0.1;
-      const rawScore = keywordScore * 4 + titleScore + tokenScore + phraseScore + titlePhraseScore + compactScore + localDocBonus + diseaseDocBonus;
+      const rawScore = keywordScore * 4 + titleScore + tokenScore + phraseScore + titlePhraseScore + compactScore + localDocBonus + diseaseDocBonus + nasalIrrigationDocBonus;
 
       return {
         ...doc,
@@ -2339,8 +2395,9 @@ function rankDocuments(question, docs, limit = 7) {
       };
     })
     .filter((doc) => doc.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, limit);
+    .sort((a, b) => b.score - a.score);
+
+  return prioritizeDocumentsForQuestion(question, rankedDocs, docs, limit);
 }
 
 function getSessionHistory(sessionId) {
@@ -2748,8 +2805,11 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   const matchedDiseaseTerms = getMatchedHomepageDiseaseTerms(message);
   const shouldPrioritizeDiseaseDocs = matchedDiseaseTerms.length > 0;
+  const shouldPrioritizeNasalIrrigationDocs = isNasalIrrigationQuestion(message);
 
-  const directFaqResponse = shouldPrioritizeDiseaseDocs ? null : findDirectFaqMatch(message);
+  const directFaqResponse = shouldPrioritizeDiseaseDocs || shouldPrioritizeNasalIrrigationDocs
+    ? null
+    : findDirectFaqMatch(message);
   if (directFaqResponse) {
     const simplifiedFaqResponse = {
       ...directFaqResponse,
