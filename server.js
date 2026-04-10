@@ -93,6 +93,17 @@ const NASAL_IRRIGATION_QUERY_PATTERNS = [
   /생리식염수\s*분말/u,
 ];
 const NASAL_IRRIGATION_DOC_NAMES = ['외래-코세척 방법'];
+const MEDICATION_STOP_IMAGE_PATH_FRAGMENT = '입원전%20복용중단%20약물%20리스트.jpg';
+const MEDICATION_STOP_QUERY_PATTERNS = [
+  /입원\s*전.*약/u,
+  /수술\s*전.*약/u,
+  /복용\s*중단/u,
+  /중단\s*약물/u,
+  /금지\s*약물/u,
+  /아스피린/u,
+  /항응고/u,
+  /항혈소판/u,
+];
 
 const emergencyPatterns = [
   /응급/u,
@@ -1123,6 +1134,10 @@ function enrichResponsePayload(payload, question) {
 }
 
 function scoreImageGuide(guide, normalizedQuestion, compactQuestion, contextDocs) {
+  if (isMedicationStopImageGuide(guide) && !isMedicationStopQuestion(normalizedQuestion)) {
+    return 0;
+  }
+
   const keywords = Array.isArray(guide.keywords) ? guide.keywords : [];
   const docHints = Array.isArray(guide.docHints) ? guide.docHints : [];
   const normalizedDocTitles = contextDocs.map((doc) => normalizeSearchTextSafe(`${doc.title} ${doc.sourceTitle || ''}`));
@@ -2322,6 +2337,21 @@ function isNasalIrrigationDoc(doc) {
     const compactName = compactSearchTextSafe(name);
     return normalizedTitle.includes(normalizedName) || compactTitle.includes(compactName);
   });
+}
+
+function isMedicationStopImageGuide(guide) {
+  const pathValue = String(guide?.path || '');
+  return pathValue.includes(MEDICATION_STOP_IMAGE_PATH_FRAGMENT);
+}
+
+function isMedicationStopQuestion(question) {
+  const value = String(question || '').trim();
+
+  if (!value) {
+    return false;
+  }
+
+  return MEDICATION_STOP_QUERY_PATTERNS.some((pattern) => pattern.test(value));
 }
 
 function prioritizeDocumentsForQuestion(question, rankedDocs, allDocs, limit = 7) {
