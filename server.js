@@ -1332,9 +1332,130 @@ function enrichResponsePayload(payload, question) {
     return payload;
   }
 
+  const localizedPayload = localizeFixedResponsePayload(payload, question);
+
+  return {
+    ...localizedPayload,
+    answer: appendSupportLinks(localizedPayload.answer, question),
+  };
+}
+
+function localizeFixedResponsePayload(payload, question) {
+  if (!isEnglishDominantText(question)) {
+    return payload;
+  }
+
+  if (payload.type === 'guided_question') {
+    const defaultGuidedAnswer = Array.isArray(payload.followUp) && payload.followUp.length > 2
+      ? 'Please choose the topic you want help with so I can guide you more accurately.'
+      : 'Please choose one of the options below so I can guide you more accurately.';
+    let defaultGuidedFollowUp = payload.followUp || [];
+
+    if (!Array.isArray(payload.followUpEn) || payload.followUpEn.length === 0) {
+      if (Array.isArray(payload.followUp) && payload.followUp.length === 2) {
+        defaultGuidedFollowUp = ['Outpatient visit', 'Admission'];
+      } else if (Array.isArray(payload.followUp) && payload.followUp.length >= 5) {
+        defaultGuidedFollowUp = ['Preparation items', 'Parking', 'Guardian stay', 'Pre-op tests', 'Medication stop'];
+      }
+    }
+
+    return {
+      ...payload,
+      answer: payload.answerEn || defaultGuidedAnswer,
+      followUp: Array.isArray(payload.followUpEn) && payload.followUpEn.length > 0
+        ? payload.followUpEn
+        : defaultGuidedFollowUp,
+    };
+  }
+
+  if (payload.type === 'smalltalk') {
+    if (Array.isArray(payload.followUp) && payload.followUp.length > 0) {
+      return {
+        ...payload,
+        answer: 'Hello. This is the Hana ENT Hospital assistant. You can ask about appointments, clinic hours, doctors, admission, or the shuttle bus.',
+        followUp: ['Show me clinic hours', 'Show me the shuttle bus schedule', 'Tell me about admission'],
+      };
+    }
+
+    if (String(payload.answer || '').includes('02-6925-1111')) {
+      return {
+        ...payload,
+        answer: 'Please contact me again anytime you need help. For urgent inquiries, you can call 02-6925-1111.',
+        followUp: [],
+      };
+    }
+
+    return {
+      ...payload,
+      answer: 'You are welcome. If you need anything else, please continue your question and I will help with hospital information.',
+      followUp: [],
+    };
+  }
+
+  const englishByType = {
+    restricted: {
+      answer: 'This assistant cannot make diagnoses, decide whether to stop medications, or change treatment plans. For symptom or medication questions, please contact the clinic or a staff member.',
+      followUp: ['Main phone number: 02-6925-1111', 'Phone appointment or appointment change', 'If symptoms are urgent, call 119 or visit the nearest emergency room'],
+    },
+    emergency: {
+      answer: 'This may be an emergency. Please do not delay care through the chat and contact 119 or the nearest emergency room immediately.',
+      followUp: ['Severe breathing trouble, heavy bleeding, or loss of consciousness requires immediate emergency care', 'Main phone number: 02-6925-1111', 'After hours, use the emergency care system if needed'],
+    },
+    privacy_warning: {
+      answer: 'Please do not enter personal or sensitive health information. Ask your question without details such as resident number, phone number, email address, or full address.',
+      followUp: ['You can ask about fees, appointment changes, or clinic hours without personal information', 'If you already entered personal information, rewrite the question in a general way'],
+    },
+    welcome: {
+      answer: 'Hello. This is the Hana ENT Hospital AI assistant. Based on hospital website information, I can help with appointments, clinic hours, doctors, admission, and document issuance.',
+      followUp: ['Show me clinic hours', 'Show me a doctor schedule', 'Tell me about admission'],
+    },
+    config_error: {
+      answer: 'The OpenAI API key is not configured, so AI responses are currently unavailable. Set OPENAI_API_KEY in PowerShell and restart the server.',
+      followUp: ['$env:OPENAI_API_KEY="your_api_key"', 'node .\\server.js', 'Main phone number: 02-6925-1111'],
+    },
+    late_arrival: {
+      answer: 'If you expect to arrive late after making an appointment, please call 02-6925-1111 first and let the staff know. Based on the documents, the hospital may guide you as a walk-in or recheck appointment availability depending on your arrival time and outpatient waiting status.',
+      followUp: ['If you are less than one hour late, you may be guided as a walk-in visit', 'If you will be more than one hour late, it is safer to confirm appointment availability by phone first', 'Main phone number: 02-6925-1111'],
+    },
+    inpatient_meal_policy: {
+      answer: 'According to the admission guide, there is no microwave available in the hospital, and cooking or food delivery is not allowed.',
+      followUp: ['Meal times are breakfast at 8:00 AM, lunch at 12:00 PM, and dinner at 5:30 PM', 'For details, please check with the ward staff or call 02-6925-1111'],
+    },
+    inpatient_outing: {
+      answer: 'During hospitalization, going out or staying out overnight is generally restricted unless there is a special reason. If it is necessary, you must submit a request form and receive approval from the attending doctor.',
+      followUp: ['Please return within the approved time given by the ward', 'Leaving without approval is not allowed', 'Unauthorized outings may lead to discharge or interruption of treatment'],
+    },
+    shuttle_bus: {
+      answer: 'According to the shuttle schedule, the bus runs about every 15 minutes on weekdays. It operates from 8:55 AM to 12:25 PM in the morning and from 1:40 PM to 5:40 PM in the afternoon.',
+      followUp: ['On Saturdays, it runs about every 30 minutes from 8:55 AM to 12:55 PM', 'The shuttle stop is near Exit 1 of Yeoksam Station', 'Example weekday departures: 8:55, 9:10, 9:25 AM / 1:40, 1:55, 2:10 PM'],
+    },
+    discharge_procedure: {
+      answer: 'According to the document, discharge usually proceeds in this order: discharge guidance, bill review, payment, and then leaving the hospital. On the day of discharge, the medical team checks the surgical area and explains aftercare and precautions.',
+      followUp: ['If you need a certificate, ask the ward nurse in advance', 'If there is a payment balance, it will be explained separately', 'After payment on the first floor, the next outpatient visit can be scheduled'],
+    },
+    hospital_phone: {
+      answer: 'The main phone number for Hana ENT Hospital is 02-6925-1111.',
+      followUp: ['You can receive guidance for phone appointments or appointment changes through the main number'],
+    },
+    rhinitis_postop_visit: {
+      answer: 'According to the document, follow-up visits after rhinitis surgery are usually guided as about 8 to 12 visits.',
+      followUp: ['The recovery period is usually about 3 to 4 weeks', 'The exact number of visits may vary depending on the procedure and recovery, so it is safest to follow the doctor’s final guidance'],
+    },
+    fallback: {
+      answer: 'This question is difficult to answer immediately based only on the information confirmed on the website. Please ask in a more specific way or call 02-6925-1111.',
+      followUp: ['Clinic hours', 'Doctor schedule', 'Document issuance'],
+    },
+  };
+
+  const localized = englishByType[payload.type];
+  if (!localized) {
+    return payload;
+  }
+
   return {
     ...payload,
-    answer: appendSupportLinks(payload.answer, question),
+    answer: localized.answer,
+    followUp: localized.followUp,
   };
 }
 
@@ -2746,11 +2867,13 @@ function clearConversationState(sessionId) {
   conversationStates.delete(sessionId);
 }
 
-function createGuidedQuestionResponse(answer, followUp = []) {
+function createGuidedQuestionResponse(answer, followUp = [], answerEn = '', followUpEn = []) {
   return {
     type: 'guided_question',
     answer,
     followUp,
+    answerEn,
+    followUpEn,
     sources: [],
     images: [],
   };
