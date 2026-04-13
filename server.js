@@ -253,6 +253,8 @@ const RATE_LIMIT_DAILY_WINDOW_MS = 24 * 60 * 60 * 1000;
 const RATE_LIMIT_IP_PER_MINUTE = 10;
 const RATE_LIMIT_SESSION_PER_MINUTE = 5;
 const RATE_LIMIT_SESSION_PER_DAY = 40;
+const MAX_SESSION_HISTORY_TURNS = 8;
+const MAX_SESSION_MESSAGE_ENTRIES = MAX_SESSION_HISTORY_TURNS * 2;
 const ipRateWindow = new Map();
 const sessionMinuteRateWindow = new Map();
 const sessionDailyRateWindow = new Map();
@@ -500,10 +502,20 @@ function createChatLogDatabase() {
     );
     CREATE INDEX IF NOT EXISTS idx_chat_logs_timestamp ON chat_logs(timestamp DESC);
     CREATE INDEX IF NOT EXISTS idx_chat_logs_flag ON chat_logs(flag);
+    CREATE TABLE IF NOT EXISTS chat_messages (
+      id TEXT PRIMARY KEY,
+      session_id TEXT NOT NULL,
+      role TEXT NOT NULL,
+      content TEXT NOT NULL,
+      timestamp TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_chat_messages_session_timestamp
+      ON chat_messages(session_id, timestamp DESC);
   `);
 
   migrateChatLogsJsonToSqlite(db);
   trimChatLogs(db);
+  trimChatMessages(db);
   return db;
 }
 
@@ -555,6 +567,45 @@ function trimChatLogs(db) {
   `).run(MAX_CHAT_LOG_ENTRIES);
 }
 
+function trimChatMessages(db, sessionId = '') {
+  const normalizedSessionId = String(sessionId || '').trim();
+  if (normalizedSessionId) {
+    db.prepare(`
+      DELETE FROM chat_messages
+      WHERE session_id = ?
+        AND id NOT IN (
+          SELECT id FROM chat_messages
+          WHERE session_id = ?
+          ORDER BY datetime(timestamp) DESC, id DESC
+          LIMIT ?
+        )
+    `).run(normalizedSessionId, normalizedSessionId, MAX_SESSION_MESSAGE_ENTRIES);
+    return;
+  }
+
+  db.exec(`
+    DELETE FROM chat_messages
+    WHERE session_id IN (
+      SELECT session_id
+      FROM chat_messages
+      GROUP BY session_id
+      HAVING COUNT(*) > ${MAX_SESSION_MESSAGE_ENTRIES}
+    )
+    AND id NOT IN (
+      SELECT id
+      FROM (
+        SELECT id,
+               ROW_NUMBER() OVER (
+                 PARTITION BY session_id
+                 ORDER BY datetime(timestamp) DESC, id DESC
+               ) AS row_number
+        FROM chat_messages
+      )
+      WHERE row_number <= ${MAX_SESSION_MESSAGE_ENTRIES}
+    );
+  `);
+}
+
 function appendChatLog(entry) {
   chatLogDb.prepare(`
     INSERT INTO chat_logs (
@@ -576,6 +627,49 @@ function appendChatLog(entry) {
   );
 
   trimChatLogs(chatLogDb);
+}
+
+function appendSessionMessage(sessionId, role, content, timestamp = new Date().toISOString()) {
+  const normalizedSessionId = String(sessionId || '').trim();
+  const normalizedRole = String(role || '').trim();
+  const normalizedContent = String(content || '').trim();
+  if (!normalizedSessionId || !normalizedRole || !normalizedContent) {
+    return;
+  }
+
+  chatLogDb.prepare(`
+    INSERT INTO chat_messages (
+      id, session_id, role, content, timestamp
+    ) VALUES (?, ?, ?, ?, ?)
+  `).run(
+    `msg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    normalizedSessionId,
+    normalizedRole,
+    normalizedContent,
+    String(timestamp)
+  );
+
+  trimChatMessages(chatLogDb, normalizedSessionId);
+}
+
+function getStoredSessionHistory(sessionId) {
+  const normalizedSessionId = String(sessionId || '').trim();
+  if (!normalizedSessionId) {
+    return [];
+  }
+
+  const rows = chatLogDb.prepare(`
+    SELECT role, content, timestamp
+    FROM chat_messages
+    WHERE session_id = ?
+    ORDER BY datetime(timestamp) ASC, id ASC
+    LIMIT ?
+  `).all(normalizedSessionId, MAX_SESSION_MESSAGE_ENTRIES);
+
+  return rows.map((row) => ({
+    role: String(row.role || ''),
+    content: String(row.content || ''),
+  })).filter((row) => row.role && row.content);
 }
 
 function mapChatLogRow(row) {
@@ -659,6 +753,28 @@ function getChatLogsForAdmin(query) {
 function getChatLogCount() {
   const row = chatLogDb.prepare('SELECT COUNT(*) AS count FROM chat_logs').get();
   return Number(row?.count || 0);
+}
+
+function getSessionMessagesForAdmin(sessionId, limit = MAX_SESSION_MESSAGE_ENTRIES) {
+  const normalizedSessionId = String(sessionId || '').trim();
+  if (!normalizedSessionId) {
+    return [];
+  }
+
+  const normalizedLimit = Math.min(Math.max(Number(limit) || MAX_SESSION_MESSAGE_ENTRIES, 1), 40);
+  const rows = chatLogDb.prepare(`
+    SELECT role, content, timestamp
+    FROM chat_messages
+    WHERE session_id = ?
+    ORDER BY datetime(timestamp) ASC, id ASC
+    LIMIT ?
+  `).all(normalizedSessionId, normalizedLimit);
+
+  return rows.map((row) => ({
+    role: String(row.role || ''),
+    content: String(row.content || ''),
+    timestamp: String(row.timestamp || ''),
+  })).filter((row) => row.role && row.content);
 }
 
 function findDocPathByKeyword(keyword) {
@@ -2684,7 +2800,17 @@ function getSessionHistory(sessionId) {
     return [];
   }
 
-  return sessions.get(sessionId) || [];
+  const cached = sessions.get(sessionId);
+  if (Array.isArray(cached) && cached.length > 0) {
+    return cached;
+  }
+
+  const restored = getStoredSessionHistory(sessionId);
+  if (restored.length > 0) {
+    sessions.set(sessionId, restored);
+  }
+
+  return restored;
 }
 
 function saveSessionHistory(sessionId, history) {
@@ -2692,7 +2818,52 @@ function saveSessionHistory(sessionId, history) {
     return;
   }
 
-  sessions.set(sessionId, history.slice(-8));
+  sessions.set(sessionId, history.slice(-MAX_SESSION_MESSAGE_ENTRIES));
+}
+
+function recordSessionTurn(sessionId, userMessage, answer) {
+  if (!sessionId) {
+    return;
+  }
+
+  const history = getSessionHistory(sessionId);
+  const nextHistory = [
+    ...history,
+    { role: 'user', content: String(userMessage || '') },
+    { role: 'assistant', content: String(answer || '') },
+  ];
+
+  saveSessionHistory(sessionId, nextHistory);
+  const timestamp = new Date().toISOString();
+  appendSessionMessage(sessionId, 'user', userMessage, timestamp);
+  appendSessionMessage(sessionId, 'assistant', answer, timestamp);
+}
+
+function buildContextualUserMessage(message, history) {
+  const current = String(message || '').trim();
+  if (!current || !Array.isArray(history) || history.length === 0) {
+    return current;
+  }
+
+  const normalized = normalizeSearchTextSafe(current);
+  const tokenCount = tokenizeSafe(normalized).length;
+  const isShortFollowUp = current.length <= 18 || tokenCount <= 3;
+  const needsContext = (
+    isShortFollowUp
+    || /^(그거|그건|그건요|그럼|그럼요|그때|그건데|그 이후|그 다음|그 다음은|퇴원은|입원은|주차는|준비물은|비용은)/u.test(current)
+    || /(언제|어디|어떻게|얼마|가능해|가능한가|가능해요|돼|되나요|있어|있나요|필요해|필요한가|필요해요)$/u.test(current)
+  );
+
+  if (!needsContext) {
+    return current;
+  }
+
+  const lastUserMessage = [...history].reverse().find((item) => item?.role === 'user' && item.content)?.content;
+  if (!lastUserMessage) {
+    return current;
+  }
+
+  return `${lastUserMessage}\n후속 질문: ${current}`;
 }
 
 async function callOpenAI(question, history, contextDocs) {
@@ -3027,6 +3198,7 @@ async function buildChatResponse(rawMessage, sessionId) {
   const message = String(rawMessage || '').trim();
   const lowerMessage = message.toLowerCase();
   const conversationState = getConversationState(sessionId);
+  const history = getSessionHistory(sessionId);
   let effectiveMessage = message;
 
   if (!message) {
@@ -3054,6 +3226,8 @@ async function buildChatResponse(rawMessage, sessionId) {
       return enrichResponsePayload(guidedFlow.prompt, message);
     }
   }
+
+  effectiveMessage = buildContextualUserMessage(effectiveMessage, history);
 
   if (matchesAnyPattern(lowerMessage, emergencyPatterns)) {
     return enrichResponsePayload(createEmergencyResponse(), message);
@@ -3143,18 +3317,10 @@ async function buildChatResponse(rawMessage, sessionId) {
     return enrichResponsePayload(createFallbackResponse([]), message);
   }
 
-  const history = getSessionHistory(sessionId);
   const answer = appendSupportLinks(
     applyPatientFriendlyTemplate(await callOpenAI(effectiveMessage, history, contextDocs), effectiveMessage),
     message
   );
-
-  const nextHistory = [
-    ...history,
-    { role: 'user', content: message },
-    { role: 'assistant', content: answer },
-  ];
-  saveSessionHistory(sessionId, nextHistory);
 
   const responsePayload = {
     type: 'ai',
@@ -3235,6 +3401,7 @@ function handleApiChat(req, res) {
         recordPopularQuestion(parsed.message);
       }
       const response = await buildChatResponse(parsed.message, parsed.sessionId);
+      recordSessionTurn(parsed.sessionId, parsed.message, response.answer);
       appendChatLog({
         id: `log-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         timestamp: new Date().toISOString(),
@@ -3292,6 +3459,24 @@ function handleApiAdminLogFlag(req, res) {
         error: error.message,
       });
     }
+  });
+}
+
+function handleApiAdminSessionHistory(req, res, requestUrl) {
+  const sessionId = String(requestUrl.searchParams.get('sessionId') || '').trim();
+  if (!sessionId) {
+    sendJson(res, 400, {
+      ok: false,
+      error: 'sessionId is required',
+    });
+    return;
+  }
+
+  sendJson(res, 200, {
+    ok: true,
+    sessionId,
+    items: getSessionMessagesForAdmin(sessionId, requestUrl.searchParams.get('limit')),
+    timestamp: new Date().toISOString(),
   });
 }
 
@@ -3377,6 +3562,11 @@ const server = http.createServer((req, res) => {
 
   if (req.method === 'POST' && pathname === '/api/admin/logs/flag') {
     handleApiAdminLogFlag(req, res);
+    return;
+  }
+
+  if (req.method === 'GET' && pathname === '/api/admin/session-history') {
+    handleApiAdminSessionHistory(req, res, requestUrl);
     return;
   }
 

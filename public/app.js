@@ -3,7 +3,17 @@ const form = document.getElementById('chat-form');
 const input = document.getElementById('message-input');
 const quickActions = document.querySelector('.quick-actions');
 const chips = document.querySelectorAll('.chip');
-const sessionId = `session-${crypto.randomUUID()}`;
+const SESSION_STORAGE_KEY = 'patient-ai-bot-session-id';
+const sessionId = (() => {
+  const existing = window.sessionStorage.getItem(SESSION_STORAGE_KEY);
+  if (existing) {
+    return existing;
+  }
+
+  const created = `session-${crypto.randomUUID()}`;
+  window.sessionStorage.setItem(SESSION_STORAGE_KEY, created);
+  return created;
+})();
 
 let pendingMessageElement = null;
 let imageViewerElement = null;
