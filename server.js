@@ -3367,7 +3367,7 @@ async function buildChatResponse(rawMessage, sessionId) {
       ...directFaqResponse,
       answer: appendSupportLinks(applyPatientFriendlyTemplate(directFaqResponse.answer, effectiveMessage), message),
       followUp: (directFaqResponse.followUp || []).map((item) => applyPatientFriendlyTemplate(item, message)),
-      images: findRelevantImages(effectiveMessage),
+      images: findRelevantImages(message),
     };
     setCachedResponse(effectiveMessage, simplifiedFaqResponse);
     return simplifiedFaqResponse;
@@ -3394,7 +3394,7 @@ async function buildChatResponse(rawMessage, sessionId) {
     answer,
     followUp: [],
     sources: dedupeSources(contextDocs).slice(0, 3),
-    images: findRelevantImages(effectiveMessage, contextDocs),
+    images: findRelevantImages(message, contextDocs),
   };
 
   setCachedResponse(effectiveMessage, responsePayload);
