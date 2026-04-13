@@ -194,6 +194,13 @@ const shuttleBusPatterns = [
   /(버스|셔틀).{0,10}운행/u,
 ];
 
+const dischargeProcedurePatterns = [
+  /퇴원.{0,10}(절차|수속|안내)/u,
+  /(절차|수속|안내).{0,10}퇴원/u,
+  /퇴원\s*어떻게/u,
+  /퇴원\s*순서/u,
+];
+
 const floorGuidePatterns = [
   /\d+\s*번\s*진료실/u,
   /\d+\s*진료실/u,
@@ -1474,6 +1481,22 @@ function createShuttleBusResponse() {
         url: 'local://docs/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-%EC%85%94%ED%8B%80%EB%B2%84%EC%8A%A4%20%EB%B0%8F%20%EC%98%A4%EC%8B%9C%EB%8A%94%EA%B8%B8.txt',
       },
     ],
+  };
+}
+
+function createDischargeProcedureResponse() {
+  return {
+    type: 'discharge_procedure',
+    answer: '퇴원 절차는 문서 기준으로 퇴원안내, 진료비 심사, 진료비 수납, 귀가 순서로 진행됩니다. 퇴원 당일 오전에는 해당 의료진이 수술부위를 확인하고 수술 후 관리법과 주의사항을 안내합니다.',
+    followUp: [
+      '제증명서류가 필요하면 퇴원 하루 전 간호사실에 미리 말씀해 주세요.',
+      '퇴원약이 있으면 설명을 듣고 수령합니다.',
+      '진료비 심사가 끝나면 1층 원무과에서 수납하고 다음 통원치료 날짜를 예약합니다.',
+    ],
+    sources: [{
+      title: '홈페이지-입퇴원 안내',
+      url: 'local://docs/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-%EC%9E%85%ED%87%B4%EC%9B%90%20%EC%95%88%EB%82%B4.txt',
+    }],
   };
 }
 
@@ -3071,6 +3094,10 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   if (matchesAnyPattern(effectiveMessage, shuttleBusPatterns)) {
     return enrichResponsePayload(createShuttleBusResponse(), message);
+  }
+
+  if (matchesAnyPattern(effectiveMessage, dischargeProcedurePatterns)) {
+    return enrichResponsePayload(createDischargeProcedureResponse(), message);
   }
 
   if (matchesAnyPattern(effectiveMessage, rhinitisPostOpVisitPatterns)) {
