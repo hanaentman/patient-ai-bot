@@ -3335,6 +3335,10 @@ async function buildChatResponse(rawMessage, sessionId) {
     return enrichResponsePayload(createRestrictedMedicalResponse(), message);
   }
 
+  if (matchesAnyPattern(effectiveMessage, hospitalPhonePatterns)) {
+    return enrichResponsePayload(createHospitalPhoneResponse(), message);
+  }
+
   if (matchesAnyPattern(effectiveMessage, personalInfoPatterns)) {
     return enrichResponsePayload(createPersonalInfoWarningResponse(), message);
   }
@@ -3357,10 +3361,6 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   if (matchesAnyPattern(effectiveMessage, dischargeProcedurePatterns)) {
     return enrichResponsePayload(createDischargeProcedureResponse(), message);
-  }
-
-  if (matchesAnyPattern(effectiveMessage, hospitalPhonePatterns)) {
-    return enrichResponsePayload(createHospitalPhoneResponse(), message);
   }
 
   if (matchesAnyPattern(effectiveMessage, rhinitisPostOpVisitPatterns)) {
