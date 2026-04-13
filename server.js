@@ -272,7 +272,7 @@ const DEFAULT_POPULAR_QUESTIONS = [
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_DAILY_WINDOW_MS = 24 * 60 * 60 * 1000;
 const RATE_LIMIT_IP_PER_MINUTE = 10;
-const RATE_LIMIT_SESSION_PER_MINUTE = 5;
+const RATE_LIMIT_SESSION_PER_MINUTE = 10;
 const RATE_LIMIT_SESSION_PER_DAY = 40;
 const MAX_SESSION_HISTORY_TURNS = 8;
 const MAX_SESSION_MESSAGE_ENTRIES = MAX_SESSION_HISTORY_TURNS * 2;
@@ -1187,7 +1187,7 @@ function getRateLimitResult(req, sessionId) {
       retryAfterMs: minuteCheck.retryAfterMs,
       detail: 'session_minute_limit',
       answer: '질문이 너무 빠르게 이어지고 있습니다. 1분 정도 후 다시 시도해 주세요.',
-      followUp: ['한 세션에서는 1분에 5회까지 질문할 수 있습니다.'],
+      followUp: ['한 세션에서는 1분에 10회까지 질문할 수 있습니다.'],
     };
   }
 
@@ -2907,11 +2907,18 @@ function buildContextualUserMessage(message, history) {
 
   const normalized = normalizeSearchTextSafe(current);
   const tokenCount = tokenizeSafe(normalized).length;
-  const isShortFollowUp = current.length <= 18 || tokenCount <= 3;
+  const hasExplicitFollowUpCue = /^(그거|그건|그건요|그럼|그럼요|그때|그건데|그 이후|그 다음|그 다음은)/u.test(current);
+  const hasTopicCarryOverCue = /^(퇴원은|입원은|주차는|준비물은|비용은|시간은|위치는|일정은)/u.test(current);
+  const hasStandaloneTopic = /(오늘|내일|모레|이번주|토요일|일요일|월요일|화요일|수요일|목요일|금요일|진료|예약|접수|의사|원장|의료진|셔틀|주차|입원|퇴원|수술|서류|비용|금액|검사|코세척|약물|진단서)/u.test(current);
+  const isShortQuestion = current.length <= 18 || tokenCount <= 3;
   const needsContext = (
-    isShortFollowUp
-    || /^(그거|그건|그건요|그럼|그럼요|그때|그건데|그 이후|그 다음|그 다음은|퇴원은|입원은|주차는|준비물은|비용은)/u.test(current)
-    || /(언제|어디|어떻게|얼마|가능해|가능한가|가능해요|돼|되나요|있어|있나요|필요해|필요한가|필요해요)$/u.test(current)
+    hasExplicitFollowUpCue
+    || (hasTopicCarryOverCue && !hasStandaloneTopic)
+    || (
+      isShortQuestion
+      && !hasStandaloneTopic
+      && /(언제|어디|어떻게|얼마|가능해|가능한가|가능해요|돼|되나요|있어|있나요|필요해|필요한가|필요해요)$/u.test(current)
+    )
   );
 
   if (!needsContext) {
