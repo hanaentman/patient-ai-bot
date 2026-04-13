@@ -13,6 +13,7 @@ const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-5-mini';
 const PERSISTENT_DATA_DIR = process.env.PERSISTENT_DATA_DIR
   ? path.resolve(process.env.PERSISTENT_DATA_DIR)
   : path.join(__dirname, 'data');
+const NONPAY_PAGE_URL = 'https://hanaent.co.kr/nonpay.html';
 const ADMIN_LOGIN_USERNAME = 'hanaent';
 const ADMIN_LOGIN_PASSWORD = 'hana1120@@';
 const ADMIN_SESSION_COOKIE = 'admin_session';
@@ -183,6 +184,14 @@ const inpatientOutingPatterns = [
   /입원.{0,10}(외출|외박)/u,
   /(외출|외박).{0,10}입원/u,
   /병동.{0,10}(외출|외박)/u,
+];
+
+const shuttleBusPatterns = [
+  /셔틀/u,
+  /셔틀버스/u,
+  /역삼역.{0,10}(버스|셔틀)/u,
+  /(버스|셔틀).{0,10}시간표/u,
+  /(버스|셔틀).{0,10}운행/u,
 ];
 
 const floorGuidePatterns = [
@@ -1144,6 +1153,8 @@ function findRelevantYoutubeLink(question, answer = '') {
 
 function appendSupportLinks(answer, question) {
   let result = String(answer || '').trim();
+  const normalizedQuestion = normalizeSearchTextSafe(question);
+  const normalizedAnswer = normalizeSearchTextSafe(result);
 
   if (!result) {
     return result;
@@ -1152,6 +1163,13 @@ function appendSupportLinks(answer, question) {
   const youtubeLink = findRelevantYoutubeLink(question, result);
   if (youtubeLink && !result.includes(youtubeLink.url)) {
     result = `${result}\n\n${youtubeLink.topic} 관련 영상 보기: ${youtubeLink.url}`;
+  }
+
+  if (
+    (normalizedQuestion.includes('비급여') || normalizedAnswer.includes('비급여'))
+    && !result.includes(NONPAY_PAGE_URL)
+  ) {
+    result = `${result}\n\n비급여 안내 페이지: ${NONPAY_PAGE_URL}`;
   }
 
   return result.replace(/(?:대표전화\s*)?02-6925-1111/g, '대표전화 02-6925-1111');
@@ -1434,6 +1452,28 @@ function createInpatientOutingResponse() {
       title: '병동-FAQ',
       url: 'local://docs/%EB%B3%91%EB%8F%99-FAQ.txt',
     }],
+  };
+}
+
+function createShuttleBusResponse() {
+  return {
+    type: 'shuttle_bus',
+    answer: '셔틀버스 시간표 기준으로 평일은 약 15분 간격으로 운행합니다. 오전은 08:55부터 12:25까지, 오후는 13:40부터 17:40까지 병원에서 출발해 역삼역을 거쳐 다시 병원으로 운행합니다.',
+    followUp: [
+      '토요일은 08:55부터 12:55까지 약 30분 간격으로 운행합니다.',
+      '셔틀 승차 위치는 역삼역 1번 출구 인근입니다.',
+      '예: 평일 오전 08:55, 09:10, 09:25 / 오후 13:40, 13:55, 14:10',
+    ],
+    sources: [
+      {
+        title: '기타-병원셔틀시간표',
+        url: 'local://docs/%EA%B8%B0%ED%83%80-%EB%B3%91%EC%9B%90%EC%85%94%ED%8B%80%EC%8B%9C%EA%B0%84%ED%91%9C.txt',
+      },
+      {
+        title: '홈페이지-셔틀버스 및 오시는길',
+        url: 'local://docs/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-%EC%85%94%ED%8B%80%EB%B2%84%EC%8A%A4%20%EB%B0%8F%20%EC%98%A4%EC%8B%9C%EB%8A%94%EA%B8%B8.txt',
+      },
+    ],
   };
 }
 
@@ -3027,6 +3067,10 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   if (matchesAnyPattern(effectiveMessage, inpatientOutingPatterns)) {
     return enrichResponsePayload(createInpatientOutingResponse(), message);
+  }
+
+  if (matchesAnyPattern(effectiveMessage, shuttleBusPatterns)) {
+    return enrichResponsePayload(createShuttleBusResponse(), message);
   }
 
   if (matchesAnyPattern(effectiveMessage, rhinitisPostOpVisitPatterns)) {
