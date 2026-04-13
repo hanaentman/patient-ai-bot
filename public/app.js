@@ -8,9 +8,9 @@ const sessionId = `session-${crypto.randomUUID()}`;
 let pendingMessageElement = null;
 let imageViewerElement = null;
 const fallbackQuickActions = [
-  { label: '진료과', question: '진료과를 알려줘' },
-  { label: '원장 일정', question: '하나이비인후과 원장 진료시간 알려줘' },
-  { label: '신경과 일정', question: '신경과 원장 진료시간 알려줘' },
+  { label: '진료시간', question: '진료시간 알려줘' },
+  { label: '셔틀버스', question: '셔틀버스시간 알려줘' },
+  { label: '입원전 약물', question: '입원전 금지 약물 알려줘' },
   { label: '병원 진료시간', question: '진료시간 안내해줘' },
   { label: '예약 변경', question: '예약 변경 방법 알려줘' },
   { label: '코골이 상담', question: '코골이 진료 과를 알려줘' },
@@ -421,7 +421,7 @@ chips.forEach((chip) => {
 appendMessage(
   'bot',
   '안녕하세요. 파란코끼리 AI상담원입니다. 병원 문서를 바탕으로 안내해 드리며, 문서에 없는 내용은 추측하지 않고 안내합니다.',
-  ['진료과 알려줘', '하나이비인후과 원장 진료시간 알려줘', '입원 준비물 알려줘']
+  ['진료시간 알려줘', '셔틀버스시간 알려줘', '입원전 금지 약물 알려줘']
 );
 
 renderQuickActions(fallbackQuickActions);

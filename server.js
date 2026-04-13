@@ -222,9 +222,9 @@ const RESPONSE_CACHE_MAX_ENTRIES = 200;
 const popularQuestionStats = loadPopularQuestionStats();
 const POPULAR_QUESTION_LIMIT = 6;
 const DEFAULT_POPULAR_QUESTIONS = [
-  { label: '진료과', question: '진료과를 알려줘' },
-  { label: '원장 일정', question: '하나이비인후과 원장 진료시간 알려줘' },
-  { label: '신경과 일정', question: '신경과 원장 진료시간 알려줘' },
+  { label: '진료시간', question: '진료시간 알려줘' },
+  { label: '셔틀버스', question: '셔틀버스시간 알려줘' },
+  { label: '입원전 약물', question: '입원전 금지 약물 알려줘' },
   { label: '병원 진료시간', question: '진료시간 안내해줘' },
   { label: '예약 변경', question: '예약 변경 방법 알려줘' },
   { label: '코골이 상담', question: '코골이 진료 과를 알려줘' },
