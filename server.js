@@ -223,6 +223,8 @@ const dischargeProcedurePatterns = [
 const floorGuidePatterns = [
   /\d+\s*번\s*진료실/u,
   /\d+\s*진료실/u,
+  /지하\s*\d+\s*층/u,
+  /\d+\s*층/u,
   /몇\s*층/u,
   /어느\s*층/u,
   /어디/u,
@@ -1985,6 +1987,7 @@ function buildCertificateFeeEntries() {
 function buildFloorGuideIndex() {
   const index = {
     byRoomNumber: new Map(),
+    byFloorLabel: new Map(),
   };
 
   if (!fs.existsSync(FLOOR_GUIDE_DOC_PATH)) {
@@ -1997,12 +2000,19 @@ function buildFloorGuideIndex() {
     .filter(Boolean);
 
   lines.forEach((line) => {
-    const floorMatch = line.match(/(\d)\s*층/);
+    const floorMatch = line.match(/(지하\s*\d+\s*층|\d+\s*층)/u);
     if (!floorMatch) {
       return;
     }
 
-    const floor = Number(floorMatch[1]);
+    const floorLabel = floorMatch[1].replace(/\s+/g, '');
+    const floorNumberMatch = floorLabel.match(/(\d+)/);
+    const floor = floorNumberMatch ? Number(floorNumberMatch[1]) : 0;
+    index.byFloorLabel.set(floorLabel, {
+      floor,
+      line,
+    });
+
     const rangeRegex = /(\d+)\s*~\s*(\d+)\s*진료실/g;
     let rangeMatch = rangeRegex.exec(line);
 
@@ -2038,6 +2048,25 @@ function buildFloorGuideIndex() {
 function findFloorGuideResponse(message) {
   if (!matchesAnyPattern(message, floorGuidePatterns)) {
     return null;
+  }
+
+  const floorLabelMatch = String(message || '').match(/(지하\s*\d+\s*층|\d+\s*층)/u);
+  if (floorLabelMatch) {
+    const floorLabel = floorLabelMatch[1].replace(/\s+/g, '');
+    const floorInfo = runtimeData.floorGuideIndex.byFloorLabel.get(floorLabel);
+    if (floorInfo) {
+      return {
+        type: 'floor_guide',
+        answer: `${floorLabel}에는 ${floorInfo.line.replace(/^지하\s*\d+\s*층|\d+\s*층/u, '').trim()}가 있습니다.`,
+        followUp: [
+          '다른 층 안내가 필요하면 1층, 2층, 3층처럼 다시 질문해 주세요.',
+        ],
+        sources: [{
+          title: '기타-층별안내도',
+          url: `local://docs/${encodeURIComponent(path.basename(FLOOR_GUIDE_DOC_PATH))}`,
+        }],
+      };
+    }
   }
 
   const roomMatch = String(message || '').match(/(\d+)\s*번?\s*진료실/u);
@@ -2869,6 +2898,10 @@ function recordSessionTurn(sessionId, userMessage, answer) {
 function buildContextualUserMessage(message, history) {
   const current = String(message || '').trim();
   if (!current || !Array.isArray(history) || history.length === 0) {
+    return current;
+  }
+
+  if (/(지하\s*\d+\s*층|\d+\s*층).{0,12}(뭐|어디|있|안내|위치)/u.test(current) || /(\d+)\s*번?\s*진료실/u.test(current)) {
     return current;
   }
 
