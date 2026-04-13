@@ -99,15 +99,34 @@ const NASAL_IRRIGATION_QUERY_PATTERNS = [
 ];
 const NASAL_IRRIGATION_DOC_NAMES = ['외래-코세척 방법'];
 const MEDICATION_STOP_IMAGE_PATH_FRAGMENT = '입원전%20복용중단%20약물%20리스트.jpg';
-const MEDICATION_STOP_QUERY_PATTERNS = [
-  /입원\s*전.*약/u,
-  /수술\s*전.*약/u,
+const MEDICATION_STOP_DIRECT_QUERY_PATTERNS = [
   /복용\s*중단/u,
   /중단\s*약물/u,
   /금지\s*약물/u,
+  /끊어야\s*하는\s*약/u,
+  /먹으면\s*안\s*되는\s*약/u,
+  /먹지\s*말아야\s*하는\s*약/u,
   /아스피린/u,
   /항응고/u,
   /항혈소판/u,
+];
+const MEDICATION_STOP_PREP_QUERY_PATTERNS = [
+  /입원\s*전/u,
+  /수술\s*전/u,
+];
+const MEDICATION_STOP_MEDICATION_QUERY_PATTERNS = [
+  /약/u,
+  /약물/u,
+  /복용약/u,
+  /먹는\s*약/u,
+];
+const MEDICATION_STOP_ACTION_QUERY_PATTERNS = [
+  /중단/u,
+  /금지/u,
+  /끊/u,
+  /복용\s*중단/u,
+  /먹으면\s*안/u,
+  /먹지\s*말/u,
 ];
 
 const PARKING_QUERY_PATTERNS = [/주차/u, /발렛/u, /주차권/u, /영수증/u];
@@ -2565,7 +2584,15 @@ function isMedicationStopQuestion(question) {
     return false;
   }
 
-  return MEDICATION_STOP_QUERY_PATTERNS.some((pattern) => pattern.test(value));
+  if (MEDICATION_STOP_DIRECT_QUERY_PATTERNS.some((pattern) => pattern.test(value))) {
+    return true;
+  }
+
+  const hasPrepContext = MEDICATION_STOP_PREP_QUERY_PATTERNS.some((pattern) => pattern.test(value));
+  const hasMedicationTerm = MEDICATION_STOP_MEDICATION_QUERY_PATTERNS.some((pattern) => pattern.test(value));
+  const hasStopAction = MEDICATION_STOP_ACTION_QUERY_PATTERNS.some((pattern) => pattern.test(value));
+
+  return hasPrepContext && hasMedicationTerm && hasStopAction;
 }
 
 function prioritizeDocumentsForQuestion(question, rankedDocs, allDocs, limit = 7) {
