@@ -1378,6 +1378,10 @@ function scoreImageGuide(guide, normalizedQuestion, compactQuestion, contextDocs
     return matched ? score + 4 : score;
   }, 0);
 
+  if (keywordScore <= 0) {
+    return 0;
+  }
+
   return keywordScore + docHintScore;
 }
 
@@ -2951,6 +2955,61 @@ function buildContextualUserMessage(message, history) {
   return `${lastUserMessage}\n후속 질문: ${current}`;
 }
 
+function extractDoctorName(text) {
+  const value = String(text || '');
+  if (!value) {
+    return '';
+  }
+
+  const doctorNames = [
+    '동헌종',
+    '이상덕',
+    '정도광',
+    '남순열',
+    '주형로',
+    '장선오',
+    '장정훈',
+    '김태현',
+    '정종인',
+    '김종세',
+    '장규선',
+    '김병길',
+    '이영미',
+    '강매화',
+    '문보은',
+    '김태영',
+    '이용배',
+  ];
+
+  return doctorNames.find((name) => value.includes(name)) || '';
+}
+
+function isDoctorCareerQuestion(text) {
+  return /(경력|약력|이력|프로필|학력|논문|연구실적|전공|전문분야)/u.test(String(text || ''));
+}
+
+function buildDoctorContextualUserMessage(message, history) {
+  const current = String(message || '').trim();
+  if (!current || !Array.isArray(history) || history.length === 0) {
+    return current;
+  }
+
+  if (!isDoctorCareerQuestion(current) || extractDoctorName(current)) {
+    return current;
+  }
+
+  const lastUserMessage = [...history]
+    .reverse()
+    .find((item) => item?.role === 'user' && item.content)?.content;
+
+  const doctorName = extractDoctorName(lastUserMessage);
+  if (!doctorName) {
+    return current;
+  }
+
+  return `${doctorName} ${current}`;
+}
+
 async function callOpenAI(question, history, contextDocs) {
   const contextText = contextDocs.map((doc, index) => (
     `[문서 ${index + 1}] ${doc.title}\n출처 유형: ${doc.sourceType}\n출처: ${doc.url}\n내용: ${doc.text}`
@@ -3313,6 +3372,7 @@ async function buildChatResponse(rawMessage, sessionId) {
   }
 
   effectiveMessage = buildContextualUserMessage(effectiveMessage, history);
+  effectiveMessage = buildDoctorContextualUserMessage(effectiveMessage, history);
 
   if (matchesAnyPattern(lowerMessage, emergencyPatterns)) {
     return enrichResponsePayload(createEmergencyResponse(), message);
