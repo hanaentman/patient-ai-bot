@@ -220,6 +220,14 @@ const dischargeProcedurePatterns = [
   /퇴원\s*순서/u,
 ];
 
+const hospitalPhonePatterns = [
+  /병원.{0,12}(전화번호|번호|대표번호|대표전화|연락처)/u,
+  /(전화번호|번호|대표번호|대표전화|연락처).{0,12}병원/u,
+  /대표전화/u,
+  /대표번호/u,
+  /연락처/u,
+];
+
 const floorGuidePatterns = [
   /\d+\s*번\s*진료실/u,
   /\d+\s*진료실/u,
@@ -1634,6 +1642,16 @@ function createDischargeProcedureResponse() {
       title: '홈페이지-입퇴원 안내',
       url: 'local://docs/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-%EC%9E%85%ED%87%B4%EC%9B%90%20%EC%95%88%EB%82%B4.txt',
     }],
+  };
+}
+
+function createHospitalPhoneResponse() {
+  return {
+    type: 'hospital_phone',
+    answer: '하나이비인후과병원 대표전화는 02-6925-1111입니다.',
+    followUp: [
+      '전화 예약이나 예약 변경은 대표전화 연결 후 안내받을 수 있습니다.',
+    ],
   };
 }
 
@@ -3339,6 +3357,10 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   if (matchesAnyPattern(effectiveMessage, dischargeProcedurePatterns)) {
     return enrichResponsePayload(createDischargeProcedureResponse(), message);
+  }
+
+  if (matchesAnyPattern(effectiveMessage, hospitalPhonePatterns)) {
+    return enrichResponsePayload(createHospitalPhoneResponse(), message);
   }
 
   if (matchesAnyPattern(effectiveMessage, rhinitisPostOpVisitPatterns)) {
