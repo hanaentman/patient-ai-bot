@@ -10,6 +10,9 @@ const PORT = process.env.PORT || 3000;
 const IS_RENDER = Boolean(process.env.RENDER || process.env.RENDER_SERVICE_ID);
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-5-mini';
+const PERSISTENT_DATA_DIR = process.env.PERSISTENT_DATA_DIR
+  ? path.resolve(process.env.PERSISTENT_DATA_DIR)
+  : path.join(__dirname, 'data');
 const ADMIN_LOGIN_USERNAME = 'hanaent';
 const ADMIN_LOGIN_PASSWORD = 'hana1120@@';
 const ADMIN_SESSION_COOKIE = 'admin_session';
@@ -19,9 +22,9 @@ const FAQ_PATH = path.join(__dirname, 'data', 'faq.json');
 const FAQ_EXTENDED_PATH = path.join(__dirname, 'data', 'faq-extended.json');
 const SITE_SOURCES_PATH = path.join(__dirname, 'data', 'site-sources.json');
 const IMAGE_GUIDES_PATH = path.join(__dirname, 'data', 'image-guides.json');
-const POPULAR_QUESTIONS_PATH = path.join(__dirname, 'data', 'popular-question-stats.json');
-const CHAT_LOGS_PATH = path.join(__dirname, 'data', 'chat-logs.json');
-const CHAT_LOGS_DB_PATH = path.join(__dirname, 'data', 'chat-logs.db');
+const POPULAR_QUESTIONS_PATH = path.join(PERSISTENT_DATA_DIR, 'popular-question-stats.json');
+const CHAT_LOGS_PATH = path.join(PERSISTENT_DATA_DIR, 'chat-logs.json');
+const CHAT_LOGS_DB_PATH = path.join(PERSISTENT_DATA_DIR, 'chat-logs.db');
 const DOCS_DIR = path.join(__dirname, 'docs');
 const DOCTOR_LIST_DOC_FILENAME = '외래-의료진 명단.txt';
 const DOCTOR_INFO_DOC_FILENAME = '홈페이지-의료진 정보.txt';
@@ -239,6 +242,8 @@ const sessionMinuteRateWindow = new Map();
 const sessionDailyRateWindow = new Map();
 let warmupStarted = false;
 const MAX_CHAT_LOG_ENTRIES = 5000;
+ensurePersistentDataDir();
+warnIfRenderPersistenceIsMisconfigured();
 const chatLogDb = createChatLogDatabase();
 let docsWatchDebounceTimer = null;
 let pendingDoctorDocsUpdate = false;
@@ -254,6 +259,18 @@ function readJsonArray(filePath) {
 
   const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   return Array.isArray(parsed) ? parsed : [];
+}
+
+function ensurePersistentDataDir() {
+  fs.mkdirSync(PERSISTENT_DATA_DIR, { recursive: true });
+}
+
+function warnIfRenderPersistenceIsMisconfigured() {
+  if (!IS_RENDER || process.env.PERSISTENT_DATA_DIR) {
+    return;
+  }
+
+  console.warn('[persistence] PERSISTENT_DATA_DIR is not set. Chat logs will be lost when the Render service restarts.');
 }
 
 function loadFaqEntries() {
@@ -3344,6 +3361,7 @@ server.on('error', (error) => {
 server.listen(PORT, () => {
   console.log(`Patient AI bot server running at http://localhost:${PORT}`);
   console.log(`AI enabled: ${OPENAI_API_KEY ? 'yes' : 'no'} (${OPENAI_MODEL})`);
+  console.log(`Persistent data directory: ${PERSISTENT_DATA_DIR}`);
   watchDocsDirectory();
   warmupKnowledgeDocuments();
 });

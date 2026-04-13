@@ -59,6 +59,15 @@ $env:OPENAI_MODEL="gpt-5-mini"
 
 - `render.yaml`: Render용 배포 설정
 
+### Render에서 로그 유지하기
+
+Render 웹서비스의 기본 파일시스템은 임시 저장소라서 서버가 재시작되면 런타임에 생성한 로그 파일이 사라집니다.
+이 프로젝트는 `PERSISTENT_DATA_DIR` 경로에 로그와 인기 질문 통계를 저장하도록 구성되어 있습니다.
+
+- `render.yaml`은 `starter` 플랜과 persistent disk를 사용하도록 설정되어 있습니다.
+- 관리자 로그는 `${PERSISTENT_DATA_DIR}/chat-logs.db`에 저장됩니다.
+- `PERSISTENT_DATA_DIR`가 없거나 persistent disk가 연결되지 않으면 재시작 후 로그가 유지되지 않습니다.
+
 ## 파일 구조
 
 - `server.js`: 홈페이지 검색, OpenAI 호출, 챗 응답 API

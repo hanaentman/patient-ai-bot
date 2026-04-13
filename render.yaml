@@ -2,13 +2,19 @@ services:
   - type: web
     name: hanaent-patient-ai-bot
     runtime: node
-    plan: free
+    plan: starter
     rootDir: .
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /api/health
+    disk:
+      name: patient-ai-bot-data
+      mountPath: /opt/render/project/src/var/persist
+      sizeGB: 1
     envVars:
       - key: OPENAI_MODEL
         value: gpt-5-mini
       - key: OPENAI_API_KEY
         sync: false
+      - key: PERSISTENT_DATA_DIR
+        value: /opt/render/project/src/var/persist
