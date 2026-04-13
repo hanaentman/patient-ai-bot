@@ -3010,6 +3010,69 @@ function buildDoctorContextualUserMessage(message, history) {
   return `${doctorName} ${current}`;
 }
 
+function isEnglishDominantText(text) {
+  const value = String(text || '');
+  const latinMatches = value.match(/[A-Za-z]/g) || [];
+  const koreanMatches = value.match(/[\uAC00-\uD7A3]/g) || [];
+
+  return latinMatches.length >= 6 && latinMatches.length > koreanMatches.length * 2;
+}
+
+async function buildKoreanRetrievalQuery(question, history = []) {
+  const value = String(question || '').trim();
+  if (!value || !OPENAI_API_KEY || !isEnglishDominantText(value)) {
+    return value;
+  }
+
+  const recentHistory = Array.isArray(history) ? history.slice(-4) : [];
+  const historyText = recentHistory
+    .map((item) => `${item.role === 'assistant' ? 'Assistant' : 'User'}: ${String(item.content || '').trim()}`)
+    .filter(Boolean)
+    .join('\n');
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/responses', {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: OPENAI_MODEL,
+        instructions: [
+          'Convert the user question into a short Korean retrieval query for matching Korean hospital FAQ and documents.',
+          'Return only one concise Korean query.',
+          'Keep doctor names, symptoms, departments, admission, surgery, schedule, shuttle, parking, documents, and fees explicit when present.',
+          'Do not answer the user.',
+        ].join(' '),
+        input: [{
+          role: 'user',
+          content: [
+            historyText ? `Recent conversation:\n${historyText}` : '',
+            `English question: ${value}`,
+          ].filter(Boolean).join('\n\n'),
+        }],
+      }),
+    });
+
+    if (!response.ok) {
+      return value;
+    }
+
+    const payload = await response.json();
+    const outputText = extractOutputText(payload).trim();
+    return outputText || value;
+  } catch (error) {
+    return value;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function callOpenAI(question, history, contextDocs) {
   const contextText = contextDocs.map((doc, index) => (
     `[문서 ${index + 1}] ${doc.title}\n출처 유형: ${doc.sourceType}\n출처: ${doc.url}\n내용: ${doc.text}`
@@ -3375,77 +3438,78 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   effectiveMessage = buildContextualUserMessage(effectiveMessage, history);
   effectiveMessage = buildDoctorContextualUserMessage(effectiveMessage, history);
+  const retrievalMessage = await buildKoreanRetrievalQuery(effectiveMessage, history);
 
   if (matchesAnyPattern(lowerMessage, emergencyPatterns)) {
     return enrichResponsePayload(createEmergencyResponse(), message);
   }
 
-  const certificateFeeResponse = findCertificateFeeResponse(effectiveMessage);
+  const certificateFeeResponse = findCertificateFeeResponse(retrievalMessage);
   if (certificateFeeResponse) {
     return enrichResponsePayload(certificateFeeResponse, message);
   }
 
-  const floorGuideResponse = findFloorGuideResponse(effectiveMessage);
+  const floorGuideResponse = findFloorGuideResponse(retrievalMessage);
   if (floorGuideResponse) {
     return enrichResponsePayload(floorGuideResponse, message);
   }
 
   if (
-    matchesAnyPattern(String(effectiveMessage || '').toLowerCase(), medicalRestrictionPatterns)
-    && !matchesAnyPattern(effectiveMessage, certificateDocumentQuestionPatterns)
+    matchesAnyPattern(String(retrievalMessage || '').toLowerCase(), medicalRestrictionPatterns)
+    && !matchesAnyPattern(retrievalMessage, certificateDocumentQuestionPatterns)
   ) {
     return enrichResponsePayload(createRestrictedMedicalResponse(), message);
   }
 
-  if (matchesAnyPattern(effectiveMessage, hospitalPhonePatterns)) {
+  if (matchesAnyPattern(retrievalMessage, hospitalPhonePatterns)) {
     return enrichResponsePayload(createHospitalPhoneResponse(), message);
   }
 
-  if (matchesAnyPattern(effectiveMessage, personalInfoPatterns)) {
+  if (matchesAnyPattern(retrievalMessage, personalInfoPatterns)) {
     return enrichResponsePayload(createPersonalInfoWarningResponse(), message);
   }
 
-  if (matchesAnyPattern(effectiveMessage, lateArrivalPatterns)) {
+  if (matchesAnyPattern(retrievalMessage, lateArrivalPatterns)) {
     return enrichResponsePayload(createLateArrivalResponse(), message);
   }
 
-  if (matchesAnyPattern(effectiveMessage, inpatientMealPolicyPatterns)) {
+  if (matchesAnyPattern(retrievalMessage, inpatientMealPolicyPatterns)) {
     return enrichResponsePayload(createInpatientMealPolicyResponse(), message);
   }
 
-  if (matchesAnyPattern(effectiveMessage, inpatientOutingPatterns)) {
+  if (matchesAnyPattern(retrievalMessage, inpatientOutingPatterns)) {
     return enrichResponsePayload(createInpatientOutingResponse(), message);
   }
 
-  if (matchesAnyPattern(effectiveMessage, shuttleBusPatterns)) {
+  if (matchesAnyPattern(retrievalMessage, shuttleBusPatterns)) {
     return enrichResponsePayload(createShuttleBusResponse(), message);
   }
 
-  if (matchesAnyPattern(effectiveMessage, dischargeProcedurePatterns)) {
+  if (matchesAnyPattern(retrievalMessage, dischargeProcedurePatterns)) {
     return enrichResponsePayload(createDischargeProcedureResponse(), message);
   }
 
-  if (matchesAnyPattern(effectiveMessage, rhinitisPostOpVisitPatterns)) {
+  if (matchesAnyPattern(retrievalMessage, rhinitisPostOpVisitPatterns)) {
     return enrichResponsePayload(createRhinitisPostOpVisitResponse(), message);
   }
 
-  const smallTalkIntent = getSmallTalkIntent(effectiveMessage);
+  const smallTalkIntent = getSmallTalkIntent(retrievalMessage);
   if (smallTalkIntent) {
     return enrichResponsePayload(createSmallTalkResponse(smallTalkIntent), message);
   }
 
-  const cachedResponse = getCachedResponse(effectiveMessage);
+  const cachedResponse = getCachedResponse(retrievalMessage);
   if (cachedResponse) {
     return cachedResponse;
   }
 
-  const matchedDiseaseTerms = getMatchedHomepageDiseaseTerms(effectiveMessage);
+  const matchedDiseaseTerms = getMatchedHomepageDiseaseTerms(retrievalMessage);
   const shouldPrioritizeDiseaseDocs = matchedDiseaseTerms.length > 0;
-  const shouldPrioritizeNasalIrrigationDocs = isNasalIrrigationQuestion(effectiveMessage);
+  const shouldPrioritizeNasalIrrigationDocs = isNasalIrrigationQuestion(retrievalMessage);
 
   const directFaqResponse = shouldPrioritizeDiseaseDocs || shouldPrioritizeNasalIrrigationDocs
     ? null
-    : findDirectFaqMatch(effectiveMessage);
+    : findDirectFaqMatch(retrievalMessage);
   if (directFaqResponse) {
     const simplifiedFaqResponse = {
       ...directFaqResponse,
@@ -3453,7 +3517,7 @@ async function buildChatResponse(rawMessage, sessionId) {
       followUp: (directFaqResponse.followUp || []).map((item) => applyPatientFriendlyTemplate(item, message)),
       images: findRelevantImages(message),
     };
-    setCachedResponse(effectiveMessage, simplifiedFaqResponse);
+    setCachedResponse(retrievalMessage, simplifiedFaqResponse);
     return simplifiedFaqResponse;
   }
 
@@ -3462,7 +3526,7 @@ async function buildChatResponse(rawMessage, sessionId) {
   }
 
   const docs = await getDocumentsForRequest();
-  const contextDocs = rankDocuments(effectiveMessage, docs);
+  const contextDocs = rankDocuments(retrievalMessage, docs);
 
   if (contextDocs.length === 0) {
     return enrichResponsePayload(createFallbackResponse([]), message);
@@ -3481,7 +3545,7 @@ async function buildChatResponse(rawMessage, sessionId) {
     images: findRelevantImages(message, contextDocs),
   };
 
-  setCachedResponse(effectiveMessage, responsePayload);
+  setCachedResponse(retrievalMessage, responsePayload);
   return responsePayload;
 }
 
