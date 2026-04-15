@@ -279,6 +279,14 @@ const complaintPatterns = [
   /제안/u,
 ];
 
+const guardianShiftPatterns = [
+  /상주\s*보호자\s*교대/u,
+  /보호자\s*교대/u,
+  /교대\s*가능/u,
+  /보호자.{0,8}바꿔/u,
+  /보호자.{0,8}교체/u,
+];
+
 const personalInfoPatterns = [
   /\b\d{6}[- ]?\d{7}\b/,
   /\b01[016789][- ]?\d{3,4}[- ]?\d{4}\b/,
@@ -1361,10 +1369,14 @@ function enrichResponsePayload(payload, question) {
   }
 
   const localizedPayload = localizeFixedResponsePayload(payload, question);
+  const images = Array.isArray(localizedPayload.images) && localizedPayload.images.length > 0
+    ? localizedPayload.images
+    : findRelevantImages(question);
 
   return {
     ...localizedPayload,
     answer: appendSupportLinks(localizedPayload.answer, question),
+    images,
   };
 }
 
@@ -1860,6 +1872,21 @@ function createComplaintGuideResponse() {
       '고객 의견함은 1층, 2층, 4층, 5층에 있습니다.',
       '퇴원 시 설문을 통해서도 의견을 남기실 수 있습니다.',
       '병원 홈페이지 고객소리함 또는 전화 3002로 알려 주세요.',
+    ],
+    sources: [{
+      title: '입원-입원생활안내문',
+      url: 'local://docs/%EC%9E%85%EC%9B%90-%EC%9E%85%EC%9B%90%EC%83%9D%ED%99%9C%EC%95%88%EB%82%B4%EB%AC%B8.txt',
+    }],
+  };
+}
+
+function createGuardianShiftResponse() {
+  return {
+    type: 'guardian_shift',
+    answer: '상주 보호자 교대는 가능합니다. 다만 간호간병통합서비스 병동 특성상 보호자 상주는 원칙적으로 제한되며, 불가피하게 상주가 허용된 경우에도 치료와 감염 예방을 위해 꼭 필요한 경우에만 교대해 주셔야 합니다.',
+    followUp: [
+      '보호자 상주가 필요한 경우에는 의료진 판단에 따라 한시적으로 허용됩니다.',
+      '교대가 필요한 상황이면 병동에서 현재 안내 기준을 함께 확인해 주세요.',
     ],
     sources: [{
       title: '입원-입원생활안내문',
@@ -3712,6 +3739,10 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   if (matchesAnyPattern(retrievalMessage, rhinitisPostOpVisitPatterns)) {
     return enrichResponsePayload(createRhinitisPostOpVisitResponse(), message);
+  }
+
+  if (matchesAnyPattern(retrievalMessage, guardianShiftPatterns)) {
+    return enrichResponsePayload(createGuardianShiftResponse(), message);
   }
 
   if (matchesAnyPattern(retrievalMessage, complaintPatterns)) {
