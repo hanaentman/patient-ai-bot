@@ -251,6 +251,34 @@ const rhinitisPostOpVisitPatterns = [
   /하비갑개.{0,12}(통원|내원)/u,
 ];
 
+const surgeryDurationPatterns = [
+  /수술\s*소요\s*시간/u,
+  /수술\s*시간/u,
+  /수술.{0,8}(얼마나|몇\s*시간|얼마)/u,
+  /수술.{0,8}(걸리|걸려|걸립)/u,
+  /수술실.{0,10}(얼마나|몇\s*시간|걸리)/u,
+];
+
+const surgerySchedulePatterns = [
+  /수술.{0,8}(언제|몇\s*시)/u,
+  /수술\s*(일정|날짜)/u,
+  /수술\s*시간.{0,8}(언제|몇\s*시|알)/u,
+  /몇\s*시.{0,8}수술/u,
+];
+
+const complaintPatterns = [
+  /불만/u,
+  /고충/u,
+  /컴플레인/u,
+  /민원/u,
+  /고객\s*의견함/u,
+  /의견함/u,
+  /고객\s*소리함/u,
+  /불편\s*사항/u,
+  /건의/u,
+  /제안/u,
+];
+
 const personalInfoPatterns = [
   /\b\d{6}[- ]?\d{7}\b/,
   /\b01[016789][- ]?\d{3,4}[- ]?\d{4}\b/,
@@ -1732,6 +1760,22 @@ function createInpatientOutingResponse() {
   };
 }
 
+function createInpatientMealPolicyResponseFixed() {
+  return {
+    type: 'inpatient_meal_policy',
+    answer: '입원생활 안내문 기준으로 원내 전자레인지는 비치되어 있지 않으며 취사는 금지입니다. 배달음식은 가능하지만 외부 음식 섭취 시 소화 불편이나 합병증 가능성을 고려해 주문해 주시기 바랍니다.',
+    followUp: [
+      '식사시간은 조식 8시, 중식 12시, 석식 오후 5시 30분으로 안내되어 있습니다.',
+      '배달음식 가능시간은 오전 7시부터 오후 9시까지이며 지하 1층에서 수령합니다.',
+      '추가 안내는 병동 간호사실이나 대표전화 02-6925-1111로 확인해 주세요.',
+    ],
+    sources: [{
+      title: '입원-입원생활안내문',
+      url: 'local://docs/%EC%9E%85%EC%9B%90-%EC%9E%85%EC%9B%90%EC%83%9D%ED%99%9C%EC%95%88%EB%82%B4%EB%AC%B8.txt',
+    }],
+  };
+}
+
 function createShuttleBusResponse() {
   return {
     type: 'shuttle_bus',
@@ -1766,6 +1810,60 @@ function createDischargeProcedureResponse() {
     sources: [{
       title: '홈페이지-입퇴원 안내',
       url: 'local://docs/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-%EC%9E%85%ED%87%B4%EC%9B%90%20%EC%95%88%EB%82%B4.txt',
+    }],
+  };
+}
+
+function createSurgeryDurationResponse() {
+  return {
+    type: 'surgery_duration',
+    answer: '수술 소요시간은 수술 종류와 환자 상태에 따라 다릅니다. 문서 기준으로는 수술실 입실 후 대기시간이 생길 수 있고, 특히 코 수술은 국소마취 후 효과를 기다리는 시간이 있어 실제 설명받은 수술시간보다 더 길어질 수 있습니다.',
+    followUp: [
+      '목이나 귀 수술은 대기시간이 비교적 길지 않지만 코 수술은 30분에서 1시간 정도 대기 후 시작될 수 있습니다.',
+      '수술 종료 후에도 회복실에서 30분에서 1시간 정도 회복한 뒤 퇴실합니다.',
+      '정확한 예상 시간은 수술 설명 시 의료진 안내를 다시 확인해 주세요.',
+    ],
+    sources: [
+      {
+        title: '병동-FAQ',
+        url: 'local://docs/%EB%B3%91%EB%8F%99-FAQ.txt',
+      },
+      {
+        title: '입원-입원생활안내문',
+        url: 'local://docs/%EC%9E%85%EC%9B%90-%EC%9E%85%EC%9B%90%EC%83%9D%ED%99%9C%EC%95%88%EB%82%B4%EB%AC%B8.txt',
+      },
+    ],
+  };
+}
+
+function createSurgeryScheduleResponse() {
+  return {
+    type: 'surgery_schedule',
+    answer: '수술 시작 시간은 수술 동의서 설명 때 안내되지만, 당일 상황이나 환자 상태에 따라 변경될 수 있습니다.',
+    followUp: [
+      '정확한 시간은 입원 후 병동 또는 수술 안내 과정에서 다시 확인해 주세요.',
+      '변경 가능성이 있어 고정된 시간으로 미리 확정해서 안내되지는 않을 수 있습니다.',
+      '추가 확인이 필요하면 대표전화 02-6925-1111로 문의해 주세요.',
+    ],
+    sources: [{
+      title: '병동-FAQ',
+      url: 'local://docs/%EB%B3%91%EB%8F%99-FAQ.txt',
+    }],
+  };
+}
+
+function createComplaintGuideResponse() {
+  return {
+    type: 'complaint_guide',
+    answer: '불만, 고충, 컴플레인 관련 의견은 고객 의견함, 퇴원 시 설문, 병원 홈페이지 고객소리함, 전화로 접수하실 수 있습니다.',
+    followUp: [
+      '고객 의견함은 1층, 2층, 4층, 5층에 있습니다.',
+      '퇴원 시 설문을 통해서도 의견을 남기실 수 있습니다.',
+      '병원 홈페이지 고객소리함 또는 전화 3002로 알려 주세요.',
+    ],
+    sources: [{
+      title: '입원-입원생활안내문',
+      url: 'local://docs/%EC%9E%85%EC%9B%90-%EC%9E%85%EC%9B%90%EC%83%9D%ED%99%9C%EC%95%88%EB%82%B4%EB%AC%B8.txt',
     }],
   };
 }
@@ -3597,7 +3695,7 @@ async function buildChatResponse(rawMessage, sessionId) {
   }
 
   if (matchesAnyPattern(retrievalMessage, inpatientMealPolicyPatterns)) {
-    return enrichResponsePayload(createInpatientMealPolicyResponse(), message);
+    return enrichResponsePayload(createInpatientMealPolicyResponseFixed(), message);
   }
 
   if (matchesAnyPattern(retrievalMessage, inpatientOutingPatterns)) {
@@ -3614,6 +3712,21 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   if (matchesAnyPattern(retrievalMessage, rhinitisPostOpVisitPatterns)) {
     return enrichResponsePayload(createRhinitisPostOpVisitResponse(), message);
+  }
+
+  if (matchesAnyPattern(retrievalMessage, complaintPatterns)) {
+    return enrichResponsePayload(createComplaintGuideResponse(), message);
+  }
+
+  if (matchesAnyPattern(retrievalMessage, surgerySchedulePatterns)) {
+    return enrichResponsePayload(createSurgeryScheduleResponse(), message);
+  }
+
+  if (
+    matchesAnyPattern(retrievalMessage, surgeryDurationPatterns)
+    && !matchesAnyPattern(retrievalMessage, surgerySchedulePatterns)
+  ) {
+    return enrichResponsePayload(createSurgeryDurationResponse(), message);
   }
 
   const smallTalkIntent = getSmallTalkIntent(retrievalMessage);
@@ -3675,6 +3788,7 @@ async function buildChatResponse(rawMessage, sessionId) {
 function dedupeSources(docs) {
   const seen = new Set();
   const sources = [];
+  const normalizedFaqUrl = String(LOCAL_FAQ_URL || '').trim().toLowerCase();
 
   for (const doc of docs) {
     if (doc.hiddenSource) {
@@ -3696,7 +3810,25 @@ function dedupeSources(docs) {
     sources.push(resolvedSource);
   }
 
-  return sources;
+  if (sources.length <= 1 || !normalizedFaqUrl) {
+    return sources;
+  }
+
+  const faqSources = [];
+  const nonFaqSources = [];
+
+  sources.forEach((source) => {
+    if (String(source.url || '').trim().toLowerCase() === normalizedFaqUrl) {
+      faqSources.push(source);
+      return;
+    }
+
+    nonFaqSources.push(source);
+  });
+
+  // FAQ overview is a useful fallback, but it should not dominate source citations
+  // when a more specific hospital page is already available for the answer.
+  return nonFaqSources.length > 0 ? nonFaqSources : faqSources.slice(0, 1);
 }
 
 function handleApiChat(req, res) {
