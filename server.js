@@ -314,6 +314,7 @@ const RESPONSE_CACHE_TTL_MS = 10 * 60 * 1000;
 const RESPONSE_CACHE_MAX_ENTRIES = 200;
 const popularQuestionStats = loadPopularQuestionStats();
 const POPULAR_QUESTION_LIMIT = 6;
+const POPULAR_QUESTION_ACTIVE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 const DEFAULT_POPULAR_QUESTIONS = [
   { label: '진료시간', question: '진료시간 알려줘' },
   { label: '셔틀버스', question: '셔틀버스시간 알려줘' },
@@ -1012,9 +1013,16 @@ function buildPopularQuestionLabel(question) {
 }
 
 function getPopularQuestions(limit = POPULAR_QUESTION_LIMIT) {
+  const now = Date.now();
   const dynamicItems = [...popularQuestionStats.values()]
+    .filter((item) => (
+      item
+      && String(item.question || '').trim()
+      && Number(item.updatedAt) > 0
+      && now - Number(item.updatedAt) <= POPULAR_QUESTION_ACTIVE_WINDOW_MS
+    ))
     .sort((a, b) => (
-      b.count - a.count || b.updatedAt - a.updatedAt
+      b.updatedAt - a.updatedAt || b.count - a.count
     ))
     .slice(0, limit)
     .map((item) => ({
