@@ -287,6 +287,15 @@ const guardianShiftPatterns = [
   /보호자.{0,8}교체/u,
 ];
 
+const wifiPatterns = [
+  /와이파이/u,
+  /wifi/i,
+  /wi-?fi/i,
+  /무선\s*인터넷/u,
+  /인터넷.{0,8}비밀번호/u,
+  /비밀번호.{0,8}(와이파이|wifi|wi-?fi|인터넷)/iu,
+];
+
 const personalInfoPatterns = [
   /\b\d{6}[- ]?\d{7}\b/,
   /\b01[016789][- ]?\d{3,4}[- ]?\d{4}\b/,
@@ -1892,6 +1901,17 @@ function createGuardianShiftResponse() {
       title: '입원-입원생활안내문',
       url: 'local://docs/%EC%9E%85%EC%9B%90-%EC%9E%85%EC%9B%90%EC%83%9D%ED%99%9C%EC%95%88%EB%82%B4%EB%AC%B8.txt',
     }],
+  };
+}
+
+function createWifiResponse() {
+  return {
+    type: 'wifi_info',
+    answer: '와이파이 비밀번호는 HANA로 시작하는 0269251111입니다.',
+    followUp: [
+      '모든 층에서 동일하게 안내됩니다.',
+    ],
+    sources: [],
   };
 }
 
@@ -3743,6 +3763,10 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   if (matchesAnyPattern(retrievalMessage, guardianShiftPatterns)) {
     return enrichResponsePayload(createGuardianShiftResponse(), message);
+  }
+
+  if (matchesAnyPattern(retrievalMessage, wifiPatterns)) {
+    return enrichResponsePayload(createWifiResponse(), message);
   }
 
   if (matchesAnyPattern(retrievalMessage, complaintPatterns)) {
