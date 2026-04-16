@@ -400,6 +400,7 @@ function createRuntimeData() {
     faqDocuments: buildFaqDocuments(faqEntries),
     localDocuments,
     certificateFeeEntries: buildCertificateFeeEntries(),
+    nonpayItemEntries: buildNonpayItemEntries(),
     floorGuideIndex: buildFloorGuideIndex(),
     homepageDiseaseTerms: buildHomepageDiseaseTerms(localDocuments),
     youtubeLinks: loadYoutubeLinks(),
@@ -2354,6 +2355,54 @@ function buildCertificateFeeEntries() {
   }).filter((entry) => entry && entry.price);
 }
 
+function buildNonpayItemEntries() {
+  if (!CERTIFICATE_FEES_DOC_PATH || !fs.existsSync(CERTIFICATE_FEES_DOC_PATH)) {
+    return [];
+  }
+
+  const rawLines = fs.readFileSync(CERTIFICATE_FEES_DOC_PATH, 'utf8')
+    .split(/\r?\n/)
+    .map((line) => String(line || '').replace(/\r/g, '').trim())
+    .filter(Boolean);
+
+  const configs = [
+    {
+      key: 'oxygen_therapy',
+      title: '산소치료',
+      aliases: ['산소치료', '고압산소', '고압산소치료'],
+      matcher: (line) => compactSearchTextSafe(line).includes(compactSearchTextSafe('산소치료')),
+    },
+    {
+      key: 'flu_shot',
+      title: '독감주사',
+      aliases: ['독감주사', '독감 예방접종', '독감예방접종', '독감백신', '플루아릭스테트라'],
+      matcher: (line) => {
+        const normalized = compactSearchTextSafe(line);
+        return (
+          normalized.includes(compactSearchTextSafe('독감 예방접종'))
+          || normalized.includes(compactSearchTextSafe('독감예방접종'))
+          || normalized.includes(compactSearchTextSafe('플루아릭스테트라'))
+        );
+      },
+    },
+  ];
+
+  return configs.map((config) => {
+    const matchedLine = rawLines.find((line) => config.matcher(line));
+    if (!matchedLine) {
+      return null;
+    }
+
+    return {
+      key: config.key,
+      title: config.title,
+      aliases: config.aliases,
+      price: extractPriceText(matchedLine),
+      line: matchedLine,
+    };
+  }).filter((entry) => entry && entry.price);
+}
+
 function buildFloorGuideIndex() {
   const index = {
     byRoomNumber: new Map(),
@@ -2467,6 +2516,141 @@ function findFloorGuideResponse(message) {
   };
 }
 
+const HOMEPAGE_SURGERY_DOC_CONFIGS = [
+  { disease: '비염', aliases: ['비염', '만성비염', '알레르기비염'], filename: '홈페이지-만성비염.txt' },
+  { disease: '축농증', aliases: ['축농증', '부비동염'], filename: '홈페이지-축농증.txt' },
+  { disease: '편도', aliases: ['편도', '편도수술', '편도절제술'], filename: '홈페이지-편도.txt' },
+  { disease: '비중격만곡증', aliases: ['비중격만곡증', '비중격'], filename: '홈페이지-비중격만곡증.txt' },
+  { disease: '코물혹', aliases: ['코물혹', '비용종', '비강용종'], filename: '홈페이지-코물혹.txt' },
+  { disease: '중이염', aliases: ['중이염', '만성중이염'], filename: '홈페이지-만성중이염.txt' },
+  { disease: '갑상선', aliases: ['갑상선'], filename: '홈페이지-갑상선.txt' },
+  { disease: '침샘', aliases: ['침샘', '이하선', '악하선'], filename: '홈페이지-침샘.txt' },
+];
+
+function normalizeDocLine(line) {
+  return String(line || '')
+    .replace(/\t+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function extractHomepageSurgerySectionLines(text, labels, stopLabels) {
+  const normalizedLabels = labels.map((label) => normalizeSearchTextSafe(label));
+  const normalizedStopLabels = stopLabels.map((label) => normalizeSearchTextSafe(label));
+  const lines = String(text || '')
+    .split(/\r?\n/)
+    .map((line) => normalizeDocLine(line))
+    .filter(Boolean);
+  const startIndex = lines.findIndex((line) => {
+    const normalizedLine = normalizeSearchTextSafe(line);
+    return normalizedLabels.some((label) => normalizedLine === label || normalizedLine.includes(label));
+  });
+
+  if (startIndex === -1) {
+    return [];
+  }
+
+  const collected = [];
+  for (let index = startIndex + 1; index < lines.length; index += 1) {
+    const line = lines[index];
+    const normalizedLine = normalizeSearchTextSafe(line);
+    if (
+      normalizedStopLabels.some((label) => normalizedLine === label || normalizedLine.includes(label))
+      || normalizedLine.includes('장점')
+    ) {
+      break;
+    }
+    collected.push(line);
+    if (collected.length >= 3) {
+      break;
+    }
+  }
+
+  return collected;
+}
+
+function findHomepageSurgeryCostResponse(message) {
+  if (!/(수술|절제술)/u.test(String(message || '')) || !/(비용|금액|가격|얼마)/u.test(String(message || ''))) {
+    return null;
+  }
+
+  const normalizedMessage = normalizeSearchTextSafe(message);
+  const compactMessage = compactSearchTextSafe(message);
+  const matchedConfig = HOMEPAGE_SURGERY_DOC_CONFIGS.find((config) => (
+    config.aliases.some((alias) => {
+      const normalizedAlias = normalizeSearchTextSafe(alias);
+      const compactAlias = compactSearchTextSafe(alias);
+      return normalizedMessage.includes(normalizedAlias) || compactMessage.includes(compactAlias);
+    })
+  ));
+
+  if (!matchedConfig) {
+    return null;
+  }
+
+  const docPath = path.join(DOCS_DIR, matchedConfig.filename);
+  if (!fs.existsSync(docPath)) {
+    return null;
+  }
+
+  const text = fs.readFileSync(docPath, 'utf8');
+  const stopLabels = ['수술비용', '수술시간', '마취방법', '입원기간', '내원치료', '회복기간', '치료 장점'];
+  const costLines = extractHomepageSurgerySectionLines(text, ['수술비용'], stopLabels);
+  const timeLines = extractHomepageSurgerySectionLines(text, ['수술시간'], stopLabels);
+  const anesthesiaLines = extractHomepageSurgerySectionLines(text, ['마취방법'], stopLabels);
+  const admissionLines = extractHomepageSurgerySectionLines(text, ['입원기간'], stopLabels);
+  const followupLines = extractHomepageSurgerySectionLines(text, ['내원치료'], stopLabels);
+  const recoveryLines = extractHomepageSurgerySectionLines(text, ['회복기간'], stopLabels);
+
+  if (costLines.length === 0) {
+    return null;
+  }
+
+  const [costValue, ...costExtras] = costLines;
+  const cleanedCostExtras = costExtras
+    .map((line) => String(line || '').replace(/^\(+/, '').replace(/\)+$/, '').trim())
+    .filter(Boolean);
+  const sentences = [
+    `${matchedConfig.disease} 수술 안내드립니다.`,
+    `하나이비인후과병원 기준으로 수술비용은 ${costValue}${cleanedCostExtras.length > 0 ? `(${cleanedCostExtras.join(', ')})` : ''}입니다.`,
+  ];
+
+  if (timeLines.length > 0) {
+    sentences.push(`수술시간은 ${timeLines.join(' ')}입니다.`);
+  }
+
+  if (anesthesiaLines.length > 0) {
+    sentences.push(`마취는 ${anesthesiaLines.join(' ')}입니다.`);
+  }
+
+  if (admissionLines.length > 0) {
+    sentences.push(`입원기간은 ${admissionLines.join(' ')}입니다.`);
+  }
+
+  if (followupLines.length > 0) {
+    sentences.push(`수술 후 내원치료는 ${followupLines.join(' ')}입니다.`);
+  }
+
+  if (recoveryLines.length > 0) {
+    sentences.push(`회복기간은 ${recoveryLines.join(' ')}입니다.`);
+  }
+
+  sentences.push('정확한 수술 적응증과 비용 방법은 진찰과 검사 후 결정되니 자세한 상담이나 예약은 대표전화 02-6925-1111로 문의해 주세요.');
+
+  return {
+    type: 'homepage_surgery_cost',
+    answer: sentences.join(' '),
+    followUp: [
+      '보험 적용 여부와 실제 비용은 질환 상태와 검사 결과에 따라 달라질 수 있습니다.',
+      '다른 수술도 질환명을 알려주시면 해당 문서 기준으로 다시 안내해 드릴 수 있습니다.',
+    ],
+    sources: [{
+      title: path.parse(matchedConfig.filename).name,
+      url: `local://docs/${encodeURIComponent(matchedConfig.filename)}`,
+    }],
+  };
+}
+
 function findCertificateFeeResponse(message) {
   const normalizedMessage = normalizeSearchTextSafe(message);
   if (!normalizedMessage) {
@@ -2522,6 +2706,50 @@ function findCertificateFeeResponse(message) {
       title: '기타-비급여비용',
       url: `local://docs/${encodeURIComponent(path.basename(CERTIFICATE_FEES_DOC_PATH || '기타-비급여비용.txt'))}`,
     }],
+  };
+}
+
+function findNonpayItemResponse(message) {
+  const normalizedMessage = normalizeSearchTextSafe(message);
+  const compactMessage = compactSearchTextSafe(message);
+  if (!normalizedMessage) {
+    return null;
+  }
+
+  if (!/(비용|금액|가격|얼마)/u.test(message)) {
+    return null;
+  }
+
+  const matchedEntry = (runtimeData.nonpayItemEntries || []).find((entry) => (
+    (entry.aliases || []).some((alias) => {
+      const normalizedAlias = normalizeSearchTextSafe(alias);
+      const compactAlias = compactSearchTextSafe(alias);
+      return normalizedMessage.includes(normalizedAlias) || compactMessage.includes(compactAlias);
+    })
+  ));
+
+  if (!matchedEntry) {
+    return null;
+  }
+
+  return {
+    type: 'nonpay_item_fee',
+    answer: `${matchedEntry.title} 비용은 ${matchedEntry.price}원입니다.`,
+    followUp: [
+      '기준 문서: 기타-비급여비용.txt',
+      '세부 적용 기준이나 변경 여부는 대표전화 02-6925-1111로 다시 확인해 주세요.',
+      `비급여 안내 페이지: ${NONPAY_PAGE_URL}`,
+    ],
+    sources: [
+      {
+        title: '기타-비급여비용',
+        url: `local://docs/${encodeURIComponent(path.basename(CERTIFICATE_FEES_DOC_PATH || '기타-비급여비용.txt'))}`,
+      },
+      {
+        title: '비급여 안내 페이지',
+        url: NONPAY_PAGE_URL,
+      },
+    ],
   };
 }
 
@@ -3819,6 +4047,16 @@ async function buildChatResponse(rawMessage, sessionId) {
   const certificateFeeResponse = findCertificateFeeResponse(retrievalMessage);
   if (certificateFeeResponse) {
     return enrichResponsePayload(certificateFeeResponse, message);
+  }
+
+  const nonpayItemResponse = findNonpayItemResponse(retrievalMessage);
+  if (nonpayItemResponse) {
+    return enrichResponsePayload(nonpayItemResponse, message);
+  }
+
+  const homepageSurgeryCostResponse = findHomepageSurgeryCostResponse(retrievalMessage);
+  if (homepageSurgeryCostResponse) {
+    return enrichResponsePayload(homepageSurgeryCostResponse, message);
   }
 
   const floorGuideResponse = findFloorGuideResponse(retrievalMessage);
