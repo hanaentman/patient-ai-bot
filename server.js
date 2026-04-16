@@ -269,6 +269,14 @@ const surgerySchedulePatterns = [
   /몇\s*시.{0,8}수술/u,
 ];
 
+const postOpBleedingPatterns = [
+  /수술\s*후.{0,12}(출혈|피)/u,
+  /(출혈|피).{0,12}수술\s*후/u,
+  /코수술\s*후.{0,12}(출혈|피)/u,
+  /목수술\s*후.{0,12}(출혈|피)/u,
+  /편도.{0,12}수술\s*후.{0,12}(출혈|피)/u,
+];
+
 const complaintPatterns = [
   /불만/u,
   /고충/u,
@@ -1893,6 +1901,28 @@ function createSurgeryScheduleResponse() {
       title: '병동-FAQ',
       url: 'local://docs/%EB%B3%91%EB%8F%99-FAQ.txt',
     }],
+  };
+}
+
+function createPostOpBleedingResponse() {
+  return {
+    type: 'postop_bleeding',
+    answer: '문서 기준으로 수술 후 출혈이 있으면 먼저 출혈 양과 지속 여부를 보셔야 합니다. 침에 피가 조금 섞이는 정도라면 시원한 얼음물로 20~30분 정도 가글해 볼 수 있지만, 출혈이 계속되거나 양이 많으면 대표전화 02-6925-1111로 바로 연락해 주세요.',
+    followUp: [
+      '즉시 내원이 어렵거나 원거리인 경우에는 이비인후과 의사가 있는 가까운 응급실 내원을 권고합니다.',
+      '코수술 후에는 출혈양이 많고 계속되면 바로 연락하거나 가까운 응급실로 안내되어 있습니다.',
+      '퇴원 시 받은 주치의 연락처가 있으면 그 번호로 먼저 연락하셔도 됩니다.',
+    ],
+    sources: [
+      {
+        title: '?낆썝-?섏닠 ??二쇱쓽?ы빆',
+        url: 'local://docs/%EC%9E%85%EC%9B%90-%EC%88%98%EC%88%A0%20%ED%9B%84%20%EC%A3%BC%EC%9D%98%EC%82%AC%ED%95%AD.txt',
+      },
+      {
+        title: '?낆썝-?낆썝?앺솢?덈궡臾?',
+        url: 'local://docs/%EC%9E%85%EC%9B%90-%EC%9E%85%EC%9B%90%EC%83%9D%ED%99%9C%EC%95%88%EB%82%B4%EB%AC%B8.txt',
+      },
+    ],
   };
 }
 
@@ -3816,6 +3846,10 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   if (matchesAnyPattern(retrievalMessage, complaintPatterns)) {
     return enrichResponsePayload(createComplaintGuideResponse(), message);
+  }
+
+  if (matchesAnyPattern(retrievalMessage, postOpBleedingPatterns)) {
+    return enrichResponsePayload(createPostOpBleedingResponse(), message);
   }
 
   if (matchesAnyPattern(retrievalMessage, surgerySchedulePatterns)) {
