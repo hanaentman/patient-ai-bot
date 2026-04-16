@@ -277,6 +277,13 @@ const postOpBleedingPatterns = [
   /편도.{0,12}수술\s*후.{0,12}(출혈|피)/u,
 ];
 
+const surgeryCostPatterns = [
+  /수술.{0,10}(비용|금액|가격|얼마)/u,
+  /(비용|금액|가격|얼마).{0,10}수술/u,
+  /수술비/u,
+  /수술\s*비/u,
+];
+
 const complaintPatterns = [
   /불만/u,
   /고충/u,
@@ -1921,6 +1928,28 @@ function createPostOpBleedingResponse() {
       {
         title: '?낆썝-?낆썝?앺솢?덈궡臾?',
         url: 'local://docs/%EC%9E%85%EC%9B%90-%EC%9E%85%EC%9B%90%EC%83%9D%ED%99%9C%EC%95%88%EB%82%B4%EB%AC%B8.txt',
+      },
+    ],
+  };
+}
+
+function createSurgeryCostResponse() {
+  return {
+    type: 'surgery_cost',
+    answer: `수술 금액은 수술 종류, 질환명, 보험 적용 여부에 따라 달라서 한 가지 금액으로 안내하기 어렵습니다. 문서 기준으로는 질환별 홈페이지에 수술비용 범위가 안내되어 있고, 자세한 기준은 비급여 안내 페이지에서 다시 확인하실 수 있습니다.\n\n비급여 안내 페이지: ${NONPAY_PAGE_URL}`,
+    followUp: [
+      '어떤 수술인지 알려주시면 비염, 비중격만곡증, 편도, 축농증처럼 해당 질환 기준 문서로 다시 안내해 드릴 수 있습니다.',
+      '대표전화 02-6925-1111로 문의하면 보험 적용 여부와 함께 더 정확한 안내를 받을 수 있습니다.',
+      '질환별 안내 금액은 환자 상태와 적용 기준에 따라 실제 진료 시 달라질 수 있습니다.',
+    ],
+    sources: [
+      {
+        title: '기타-비급여비용',
+        url: `local://docs/${encodeURIComponent(path.basename(CERTIFICATE_FEES_DOC_PATH || '기타-비급여비용.txt'))}`,
+      },
+      {
+        title: '비급여 안내 페이지',
+        url: NONPAY_PAGE_URL,
       },
     ],
   };
@@ -3850,6 +3879,10 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   if (matchesAnyPattern(retrievalMessage, postOpBleedingPatterns)) {
     return enrichResponsePayload(createPostOpBleedingResponse(), message);
+  }
+
+  if (matchesAnyPattern(retrievalMessage, surgeryCostPatterns)) {
+    return enrichResponsePayload(createSurgeryCostResponse(), message);
   }
 
   if (matchesAnyPattern(retrievalMessage, surgerySchedulePatterns)) {
