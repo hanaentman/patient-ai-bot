@@ -103,7 +103,10 @@ const MEDICATION_STOP_DIRECT_QUERY_PATTERNS = [
   /복용\s*중단/u,
   /중단\s*약물/u,
   /금지\s*약물/u,
+  /중단해야\s*되는\s*약/u,
+  /중단해야\s*하는\s*약/u,
   /끊어야\s*하는\s*약/u,
+  /복용하면\s*안\s*되는\s*약/u,
   /먹으면\s*안\s*되는\s*약/u,
   /먹지\s*말아야\s*하는\s*약/u,
   /아스피린/u,
@@ -1065,7 +1068,19 @@ function getCachedResponse(message) {
     return null;
   }
 
-  return cached.payload;
+  const payload = cached.payload;
+  if (!payload || typeof payload !== 'object') {
+    return payload;
+  }
+
+  const images = Array.isArray(payload.images) && payload.images.length > 0
+    ? payload.images
+    : findRelevantImages(message);
+
+  return {
+    ...payload,
+    images,
+  };
 }
 
 function setCachedResponse(message, payload) {
