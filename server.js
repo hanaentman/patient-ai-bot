@@ -3253,7 +3253,6 @@ function extractDoctorName(text) {
     '이영미',
     '강매화',
     '문보은',
-    '김태영',
     '이용배',
   ];
 

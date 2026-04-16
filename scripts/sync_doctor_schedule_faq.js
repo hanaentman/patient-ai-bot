@@ -240,7 +240,6 @@ function slugifyName(name) {
     이영미: 'leeyoungmi',
     강매화: 'kangmaehwa',
     문보은: 'moonboeun',
-    김태영: 'kimtaeyoung',
   };
 
   return slugMap[name] || `doctor-${Buffer.from(name).toString('hex')}`;
