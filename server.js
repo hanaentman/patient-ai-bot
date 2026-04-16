@@ -2919,6 +2919,8 @@ function isMedicationStopImageGuide(guide) {
 
 function isMedicationStopQuestion(question) {
   const value = String(question || '').trim();
+  const normalizedValue = normalizeSearchTextSafe(value);
+  const compactValue = compactSearchTextSafe(value);
 
   if (!value) {
     return false;
@@ -2931,6 +2933,27 @@ function isMedicationStopQuestion(question) {
   const hasPrepContext = MEDICATION_STOP_PREP_QUERY_PATTERNS.some((pattern) => pattern.test(value));
   const hasMedicationTerm = MEDICATION_STOP_MEDICATION_QUERY_PATTERNS.some((pattern) => pattern.test(value));
   const hasStopAction = MEDICATION_STOP_ACTION_QUERY_PATTERNS.some((pattern) => pattern.test(value));
+
+  if (
+    normalizedValue.includes('입원전 복용중단 약물 리스트')
+    || normalizedValue.includes('입원 전 복용중단 약물 리스트')
+    || compactValue.includes('입원전복용중단약물리스트')
+  ) {
+    return true;
+  }
+
+  if (
+    hasPrepContext
+    && hasMedicationTerm
+    && (
+      normalizedValue.includes('하면 안되는')
+      || normalizedValue.includes('먹으면 안되는')
+      || normalizedValue.includes('복용 하면 안되는')
+      || normalizedValue.includes('복용하면 안되는')
+    )
+  ) {
+    return true;
+  }
 
   return hasPrepContext && hasMedicationTerm && hasStopAction;
 }
