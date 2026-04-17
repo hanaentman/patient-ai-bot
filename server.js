@@ -3994,6 +3994,197 @@ function shouldResetGuidedFlowForNewTopic(message) {
   return /(오늘|내일|모레|이번주|토요일|일요일|월요일|화요일|수요일|목요일|금요일|진료|예약|접수|의사|원장|의료진|셔틀|주차|입원|퇴원|수술|서류|영수증|비용|금액|검사|코세척|약물|진단서)/u.test(current);
 }
 
+function classifyUserIntent(message) {
+  const text = String(message || '').trim();
+
+  if (!text) {
+    return { type: 'welcome' };
+  }
+
+  const normalized = normalizeSearchTextSafe(text);
+  const lowered = text.toLowerCase();
+
+  if (matchesAnyPattern(lowered, emergencyPatterns)) {
+    return { type: 'emergency' };
+  }
+
+  if (
+    matchesAnyPattern(lowered, medicalRestrictionPatterns)
+    && !matchesAnyPattern(text, certificateDocumentQuestionPatterns)
+  ) {
+    return { type: 'restricted' };
+  }
+
+  if (matchesAnyPattern(text, personalInfoPatterns)) {
+    return { type: 'personal_info' };
+  }
+
+  if (matchesAnyPattern(text, receiptIssuancePatterns)) {
+    return { type: 'receipt_issuance' };
+  }
+
+  if (matchesAnyPattern(text, sameDayExamAvailabilityPatterns)) {
+    return { type: 'same_day_exam_availability' };
+  }
+
+  if (isMedicationStopQuestion(text)) {
+    return { type: 'medication_stop' };
+  }
+
+  if (matchesAnyPattern(text, postOpBleedingPatterns)) {
+    return { type: 'postop_bleeding' };
+  }
+
+  if (matchesAnyPattern(text, postOpCarePatterns)) {
+    return { type: 'postop_care' };
+  }
+
+  if (findHomepageSurgeryCostResponse(text)) {
+    return { type: 'homepage_surgery_cost' };
+  }
+
+  if (findHomepageSurgeryInfoResponse(text)) {
+    return { type: 'homepage_surgery_info' };
+  }
+
+  if (matchesAnyPattern(text, surgeryCostPatterns)) {
+    return { type: 'surgery_cost' };
+  }
+
+  if (matchesAnyPattern(text, surgerySchedulePatterns)) {
+    return { type: 'surgery_schedule' };
+  }
+
+  if (matchesAnyPattern(text, surgeryDurationPatterns)) {
+    return { type: 'surgery_duration' };
+  }
+
+  if (findCertificateFeeResponse(text)) {
+    return { type: 'certificate_fee' };
+  }
+
+  if (findSingleRoomFeeResponse(text)) {
+    return { type: 'single_room_fee' };
+  }
+
+  if (findNonpayItemResponse(text)) {
+    return { type: 'nonpay_item_fee' };
+  }
+
+  if (matchesAnyPattern(text, hospitalPhonePatterns)) {
+    return { type: 'hospital_phone' };
+  }
+
+  if (matchesAnyPattern(text, lateArrivalPatterns)) {
+    return { type: 'late_arrival' };
+  }
+
+  if (matchesAnyPattern(text, inpatientMealPolicyPatterns)) {
+    return { type: 'inpatient_meal_policy' };
+  }
+
+  if (matchesAnyPattern(text, inpatientOutingPatterns)) {
+    return { type: 'inpatient_outing' };
+  }
+
+  if (matchesAnyPattern(text, shuttleBusPatterns)) {
+    return { type: 'shuttle_bus' };
+  }
+
+  if (matchesAnyPattern(text, dischargeProcedurePatterns)) {
+    return { type: 'discharge_procedure' };
+  }
+
+  if (matchesAnyPattern(text, rhinitisPostOpVisitPatterns)) {
+    return { type: 'rhinitis_postop_visit' };
+  }
+
+  if (matchesAnyPattern(text, guardianShiftPatterns)) {
+    return { type: 'guardian_shift' };
+  }
+
+  if (matchesAnyPattern(text, wifiPatterns)) {
+    return { type: 'wifi_info' };
+  }
+
+  if (matchesAnyPattern(text, complaintPatterns)) {
+    return { type: 'complaint_guide' };
+  }
+
+  if (findFloorGuideResponse(text)) {
+    return { type: 'floor_guide' };
+  }
+
+  if (normalized.includes('예약') || normalized.includes('접수')) {
+    return { type: 'reservation_or_reception' };
+  }
+
+  return { type: 'unknown' };
+}
+
+function resolveIntentResponse(intentType, message) {
+  switch (intentType) {
+    case 'welcome':
+      return createWelcomeResponse();
+    case 'emergency':
+      return createEmergencyResponse();
+    case 'restricted':
+      return createRestrictedMedicalResponse();
+    case 'personal_info':
+      return createPersonalInfoWarningResponse();
+    case 'receipt_issuance':
+      return createReceiptIssuanceResponse();
+    case 'same_day_exam_availability':
+      return createSameDayExamAvailabilityResponse();
+    case 'medication_stop':
+      return createMedicationStopResponse();
+    case 'postop_bleeding':
+      return createPostOpBleedingResponse();
+    case 'postop_care':
+      return findPostOpCareResponse(message);
+    case 'homepage_surgery_cost':
+      return findHomepageSurgeryCostResponse(message);
+    case 'homepage_surgery_info':
+      return findHomepageSurgeryInfoResponse(message);
+    case 'surgery_cost':
+      return createSurgeryCostResponse();
+    case 'surgery_schedule':
+      return createSurgeryScheduleResponse();
+    case 'surgery_duration':
+      return createSurgeryDurationResponse();
+    case 'certificate_fee':
+      return findCertificateFeeResponse(message);
+    case 'single_room_fee':
+      return findSingleRoomFeeResponse(message);
+    case 'nonpay_item_fee':
+      return findNonpayItemResponse(message);
+    case 'hospital_phone':
+      return createHospitalPhoneResponse();
+    case 'late_arrival':
+      return createLateArrivalResponse();
+    case 'inpatient_meal_policy':
+      return createInpatientMealPolicyResponseFixed();
+    case 'inpatient_outing':
+      return createInpatientOutingResponse();
+    case 'shuttle_bus':
+      return createShuttleBusResponse();
+    case 'discharge_procedure':
+      return createDischargeProcedureResponse();
+    case 'rhinitis_postop_visit':
+      return createRhinitisPostOpVisitResponse();
+    case 'guardian_shift':
+      return createGuardianShiftResponse();
+    case 'wifi_info':
+      return createWifiResponse();
+    case 'complaint_guide':
+      return createComplaintGuideResponse();
+    case 'floor_guide':
+      return findFloorGuideResponse(message);
+    default:
+      return null;
+  }
+}
+
 function getSessionHistory(sessionId) {
   if (!sessionId) {
     return [];
@@ -4610,17 +4801,17 @@ async function validateAIAnswer(question, answer, contextDocs) {
 
 async function buildChatResponse(rawMessage, sessionId) {
   const message = String(rawMessage || '').trim();
-  const lowerMessage = message.toLowerCase();
   const conversationState = getConversationState(sessionId);
   const history = getSessionHistory(sessionId);
   let effectiveMessage = message;
+  const rawIntent = classifyUserIntent(message);
 
   if (!message) {
     return enrichResponsePayload(createWelcomeResponse(), message);
   }
 
   if (conversationState) {
-    if (shouldResetGuidedFlowForNewTopic(message)) {
+    if (shouldResetGuidedFlowForNewTopic(message) || rawIntent.type !== 'unknown') {
       clearConversationState(sessionId);
     } else {
       const guidedResolution = resolveGuidedFlowMessage(message, conversationState);
@@ -4635,7 +4826,7 @@ async function buildChatResponse(rawMessage, sessionId) {
       }
     }
   } else {
-    const guidedFlow = detectGuidedFlowStart(message);
+    const guidedFlow = rawIntent.type === 'unknown' ? detectGuidedFlowStart(message) : null;
     if (guidedFlow) {
       setConversationState(sessionId, {
         topic: guidedFlow.topic,
@@ -4648,126 +4839,11 @@ async function buildChatResponse(rawMessage, sessionId) {
   effectiveMessage = buildContextualUserMessage(effectiveMessage, history);
   effectiveMessage = buildDoctorContextualUserMessage(effectiveMessage, history);
   const retrievalMessage = await buildKoreanRetrievalQuery(effectiveMessage, history);
+  const intent = classifyUserIntent(retrievalMessage);
 
-  if (matchesAnyPattern(lowerMessage, emergencyPatterns)) {
-    return enrichResponsePayload(createEmergencyResponse(), message);
-  }
-
-  const certificateFeeResponse = findCertificateFeeResponse(retrievalMessage);
-  if (certificateFeeResponse) {
-    return enrichResponsePayload(certificateFeeResponse, message);
-  }
-
-  const singleRoomFeeResponse = findSingleRoomFeeResponse(retrievalMessage);
-  if (singleRoomFeeResponse) {
-    return enrichResponsePayload(singleRoomFeeResponse, message);
-  }
-
-  const nonpayItemResponse = findNonpayItemResponse(retrievalMessage);
-  if (nonpayItemResponse) {
-    return enrichResponsePayload(nonpayItemResponse, message);
-  }
-
-  const homepageSurgeryCostResponse = findHomepageSurgeryCostResponse(retrievalMessage);
-  if (homepageSurgeryCostResponse) {
-    return enrichResponsePayload(homepageSurgeryCostResponse, message);
-  }
-
-  const homepageSurgeryInfoResponse = findHomepageSurgeryInfoResponse(retrievalMessage);
-  if (homepageSurgeryInfoResponse) {
-    return enrichResponsePayload(homepageSurgeryInfoResponse, message);
-  }
-
-  const postOpCareResponse = findPostOpCareResponse(retrievalMessage);
-  if (postOpCareResponse) {
-    return enrichResponsePayload(postOpCareResponse, message);
-  }
-
-  const floorGuideResponse = findFloorGuideResponse(retrievalMessage);
-  if (floorGuideResponse) {
-    return enrichResponsePayload(floorGuideResponse, message);
-  }
-
-  if (
-    matchesAnyPattern(String(retrievalMessage || '').toLowerCase(), medicalRestrictionPatterns)
-    && !matchesAnyPattern(retrievalMessage, certificateDocumentQuestionPatterns)
-  ) {
-    return enrichResponsePayload(createRestrictedMedicalResponse(), message);
-  }
-
-  if (matchesAnyPattern(retrievalMessage, hospitalPhonePatterns)) {
-    return enrichResponsePayload(createHospitalPhoneResponse(), message);
-  }
-
-  if (matchesAnyPattern(retrievalMessage, personalInfoPatterns)) {
-    return enrichResponsePayload(createPersonalInfoWarningResponse(), message);
-  }
-
-  if (matchesAnyPattern(retrievalMessage, lateArrivalPatterns)) {
-    return enrichResponsePayload(createLateArrivalResponse(), message);
-  }
-
-  if (matchesAnyPattern(retrievalMessage, receiptIssuancePatterns)) {
-    return enrichResponsePayload(createReceiptIssuanceResponse(), message);
-  }
-
-  if (isMedicationStopQuestion(retrievalMessage)) {
-    return enrichResponsePayload(createMedicationStopResponse(), message);
-  }
-
-  if (matchesAnyPattern(retrievalMessage, inpatientMealPolicyPatterns)) {
-    return enrichResponsePayload(createInpatientMealPolicyResponseFixed(), message);
-  }
-
-  if (matchesAnyPattern(retrievalMessage, inpatientOutingPatterns)) {
-    return enrichResponsePayload(createInpatientOutingResponse(), message);
-  }
-
-  if (matchesAnyPattern(retrievalMessage, shuttleBusPatterns)) {
-    return enrichResponsePayload(createShuttleBusResponse(), message);
-  }
-
-  if (matchesAnyPattern(retrievalMessage, dischargeProcedurePatterns)) {
-    return enrichResponsePayload(createDischargeProcedureResponse(), message);
-  }
-
-  if (matchesAnyPattern(retrievalMessage, rhinitisPostOpVisitPatterns)) {
-    return enrichResponsePayload(createRhinitisPostOpVisitResponse(), message);
-  }
-
-  if (matchesAnyPattern(retrievalMessage, guardianShiftPatterns)) {
-    return enrichResponsePayload(createGuardianShiftResponse(), message);
-  }
-
-  if (matchesAnyPattern(retrievalMessage, wifiPatterns)) {
-    return enrichResponsePayload(createWifiResponse(), message);
-  }
-
-  if (matchesAnyPattern(retrievalMessage, complaintPatterns)) {
-    return enrichResponsePayload(createComplaintGuideResponse(), message);
-  }
-
-  if (matchesAnyPattern(retrievalMessage, postOpBleedingPatterns)) {
-    return enrichResponsePayload(createPostOpBleedingResponse(), message);
-  }
-
-  if (matchesAnyPattern(retrievalMessage, sameDayExamAvailabilityPatterns)) {
-    return enrichResponsePayload(createSameDayExamAvailabilityResponse(), message);
-  }
-
-  if (matchesAnyPattern(retrievalMessage, surgeryCostPatterns)) {
-    return enrichResponsePayload(createSurgeryCostResponse(), message);
-  }
-
-  if (matchesAnyPattern(retrievalMessage, surgerySchedulePatterns)) {
-    return enrichResponsePayload(createSurgeryScheduleResponse(), message);
-  }
-
-  if (
-    matchesAnyPattern(retrievalMessage, surgeryDurationPatterns)
-    && !matchesAnyPattern(retrievalMessage, surgerySchedulePatterns)
-  ) {
-    return enrichResponsePayload(createSurgeryDurationResponse(), message);
+  const intentResponse = resolveIntentResponse(intent.type, retrievalMessage);
+  if (intentResponse) {
+    return enrichResponsePayload(intentResponse, message);
   }
 
   const smallTalkIntent = getSmallTalkIntent(retrievalMessage);
