@@ -59,7 +59,7 @@
 
       .filters {
         display: grid;
-        grid-template-columns: 1fr 180px 120px;
+        grid-template-columns: minmax(240px, 1fr) 180px 160px 160px 120px;
         gap: 10px;
         padding: 14px;
         margin-bottom: 16px;
@@ -243,6 +243,8 @@
           <option value="needs_review">수정 필요</option>
           <option value="important">중요</option>
         </select>
+        <input id="start-date" type="date" />
+        <input id="end-date" type="date" />
         <button id="refresh-button" type="button">새로고침</button>
       </section>
 
@@ -253,10 +255,22 @@
     <script>
       const searchInput = document.getElementById('search-input');
       const flagFilter = document.getElementById('flag-filter');
+      const startDateInput = document.getElementById('start-date');
+      const endDateInput = document.getElementById('end-date');
       const refreshButton = document.getElementById('refresh-button');
       const logoutButton = document.getElementById('logout-button');
       const stats = document.getElementById('stats');
       const logList = document.getElementById('log-list');
+
+      function toDateRangeIso(value, isEnd) {
+        if (!value) return '';
+        const base = new Date(`${value}T00:00:00`);
+        if (Number.isNaN(base.getTime())) return '';
+        if (isEnd) {
+          base.setDate(base.getDate() + 1);
+        }
+        return base.toISOString();
+      }
 
       function escapeHtml(value) {
         return String(value || '')
@@ -419,6 +433,8 @@
         params.set('limit', '100');
         if (searchInput.value.trim()) params.set('q', searchInput.value.trim());
         if (flagFilter.value) params.set('flag', flagFilter.value);
+        if (startDateInput.value) params.set('startAt', toDateRangeIso(startDateInput.value, false));
+        if (endDateInput.value) params.set('endAt', toDateRangeIso(endDateInput.value, true));
 
         try {
           const response = await fetch(`/api/admin/logs?${params.toString()}`);
@@ -441,6 +457,8 @@
         }
       });
       flagFilter.addEventListener('change', loadLogs);
+      startDateInput.addEventListener('change', loadLogs);
+      endDateInput.addEventListener('change', loadLogs);
 
       loadLogs();
     </script>

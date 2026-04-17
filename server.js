@@ -824,6 +824,8 @@ function getChatLogsForAdmin(query) {
   const limit = Math.min(Math.max(Number(getQueryValue('limit')) || 100, 1), 300);
   const search = normalizeSearchTextSafe(getQueryValue('q') || '');
   const flag = String(getQueryValue('flag') || '').trim();
+  const startAt = String(getQueryValue('startAt') || '').trim();
+  const endAt = String(getQueryValue('endAt') || '').trim();
 
   let sql = 'SELECT * FROM chat_logs';
   const conditions = [];
@@ -840,6 +842,16 @@ function getChatLogsForAdmin(query) {
     params.push(likeValue, likeValue, likeValue, likeValue, likeValue);
   }
 
+  if (startAt) {
+    conditions.push('timestamp >= ?');
+    params.push(startAt);
+  }
+
+  if (endAt) {
+    conditions.push('timestamp < ?');
+    params.push(endAt);
+  }
+
   if (conditions.length > 0) {
     sql += ` WHERE ${conditions.join(' AND ')}`;
   }
@@ -850,8 +862,43 @@ function getChatLogsForAdmin(query) {
   return chatLogDb.prepare(sql).all(...params).map(mapChatLogRow);
 }
 
-function getChatLogCount() {
-  const row = chatLogDb.prepare('SELECT COUNT(*) AS count FROM chat_logs').get();
+function getChatLogCount(query) {
+  const getQueryValue = (key) => (typeof query?.get === 'function' ? query.get(key) : query?.[key]);
+  const search = normalizeSearchTextSafe(getQueryValue('q') || '');
+  const flag = String(getQueryValue('flag') || '').trim();
+  const startAt = String(getQueryValue('startAt') || '').trim();
+  const endAt = String(getQueryValue('endAt') || '').trim();
+
+  let sql = 'SELECT COUNT(*) AS count FROM chat_logs';
+  const conditions = [];
+  const params = [];
+
+  if (flag) {
+    conditions.push('flag = ?');
+    params.push(flag);
+  }
+
+  if (search) {
+    conditions.push('(question LIKE ? OR answer LIKE ? OR answer_full LIKE ? OR note LIKE ? OR sources LIKE ?)');
+    const likeValue = `%${search}%`;
+    params.push(likeValue, likeValue, likeValue, likeValue, likeValue);
+  }
+
+  if (startAt) {
+    conditions.push('timestamp >= ?');
+    params.push(startAt);
+  }
+
+  if (endAt) {
+    conditions.push('timestamp < ?');
+    params.push(endAt);
+  }
+
+  if (conditions.length > 0) {
+    sql += ` WHERE ${conditions.join(' AND ')}`;
+  }
+
+  const row = chatLogDb.prepare(sql).get(...params);
   return Number(row?.count || 0);
 }
 
@@ -4890,7 +4937,7 @@ const server = http.createServer((req, res) => {
     sendJson(res, 200, {
       ok: true,
       items: getChatLogsForAdmin(requestUrl.searchParams),
-      total: getChatLogCount(),
+      total: getChatLogCount(requestUrl.searchParams),
       timestamp: new Date().toISOString(),
     });
     return;
