@@ -290,6 +290,24 @@ const surgeryCostPatterns = [
   /수술\s*비/u,
 ];
 
+const sameDayExamAvailabilityPatterns = [
+  /진료.{0,8}검사.{0,8}(가능|되나|되나요|할수|할 수)/u,
+  /검사.{0,8}(가능|되나|되나요|할수|할 수).{0,8}진료/u,
+  /당일.{0,8}검사.{0,8}(가능|되나|되나요|할수|할 수)/u,
+  /검사.{0,8}(당일|바로)/u,
+  /진료시\s*검사/u,
+  /진료\s*시\s*검사/u,
+];
+
+const receiptIssuancePatterns = [
+  /영수증.{0,8}(발급|출력|방법|어떻게|어디)/u,
+  /(발급|출력|방법|어떻게|어디).{0,8}영수증/u,
+  /진료상세내역.{0,8}(발급|출력|방법|어떻게|어디)/u,
+  /(발급|출력|방법|어떻게|어디).{0,8}진료상세내역/u,
+  /진료비.{0,8}(상세내역|세부내역|상세내역서|세부내역서)/u,
+  /(상세내역|세부내역|상세내역서|세부내역서).{0,8}(발급|출력|방법)/u,
+];
+
 const complaintPatterns = [
   /불만/u,
   /고충/u,
@@ -1583,7 +1601,7 @@ function localizeFixedResponsePayload(payload, question) {
       followUp: ['The recovery period is usually about 3 to 4 weeks', 'The exact number of visits may vary depending on the procedure and recovery, so it is safest to follow the doctor’s final guidance'],
     },
     fallback: {
-      answer: 'This question is difficult to answer immediately based only on the information confirmed on the website. Please ask in a more specific way or call 02-6925-1111.',
+      answer: 'Based on the information currently confirmed on the website, it is hard to give a precise answer right away. Please ask in a more specific way or call 02-6925-1111.',
       followUp: ['Clinic hours', 'Doctor schedule', 'Document issuance'],
     },
   };
@@ -2026,6 +2044,44 @@ function createSurgeryCostResponse() {
       {
         title: '비급여 안내 페이지',
         url: NONPAY_PAGE_URL,
+      },
+    ],
+  };
+}
+
+function createSameDayExamAvailabilityResponse() {
+  return {
+    type: 'same_day_exam_availability',
+    answer: '문서 기준으로 하나이비인후과병원은 원스톱 시스템을 운영해 대부분의 검사를 진료 당일 1~2시간 이내에 진행하고 결과를 확인할 수 있다고 안내되어 있습니다. 다만 귀 검사는 진행 상황에 따라 예약 검사로 바뀔 수 있고, 코골이·수면무호흡 검사는 1박 2일 입원으로 진행됩니다.',
+    followUp: [
+      '코 검사는 약 20분 정도 소요되고 당일 결과 확인이 가능하다고 안내되어 있습니다.',
+      '귀 검사는 당일 검사와 결과 상담이 원칙이지만 상황에 따라 예약으로 진행될 수 있습니다.',
+      '정확한 검사 가능 여부는 내원 전 대표전화 02-6925-1111로 확인하시면 가장 안전합니다.',
+    ],
+    sources: [{
+      title: 'FAQ',
+      url: LOCAL_FAQ_URL,
+    }],
+  };
+}
+
+function createReceiptIssuanceResponse() {
+  return {
+    type: 'receipt_issuance',
+    answer: '영수증과 진료상세내역 같은 서류는 외래에서는 원무과에서 본인 확인 후 발급받으시면 됩니다. 입원 환자는 퇴원 하루 전 주치의나 병동 간호사에게 미리 신청서를 제출하고, 퇴원 수납 시 원무과에서 서류를 받는 방식으로 안내되어 있습니다.',
+    followUp: [
+      '퇴원 후에는 외래 방문 시 다시 신청할 수 있습니다.',
+      '환자 본인 외 발급은 동의서, 신분증 사본, 관계증명서류 또는 위임장 같은 구비서류가 필요할 수 있습니다.',
+      '정확한 발급 가능 여부는 대표전화 02-6925-1111로 먼저 확인하시면 가장 안전합니다.',
+    ],
+    sources: [
+      {
+        title: 'FAQ',
+        url: LOCAL_FAQ_URL,
+      },
+      {
+        title: '홈페이지-입퇴원 안내',
+        url: 'local://docs/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-%EC%9E%85%ED%87%B4%EC%9B%90%20%EC%95%88%EB%82%B4.txt',
       },
     ],
   };
@@ -3767,6 +3823,7 @@ function createGuidedQuestionResponse(answer, followUp = [], answerEn = '', foll
 function detectGuidedFlowStart(message) {
   if (
     matchesAnyPattern(message, PARKING_QUERY_PATTERNS)
+    && !matchesAnyPattern(message, receiptIssuancePatterns)
     && !matchesAnyPattern(message, PARKING_OUTPATIENT_PATTERNS)
     && !matchesAnyPattern(message, PARKING_INPATIENT_PATTERNS)
   ) {
@@ -3922,6 +3979,19 @@ function resolveGuidedFlowMessage(message, state) {
   }
 
   return { resolved: false };
+}
+
+function shouldResetGuidedFlowForNewTopic(message) {
+  const current = String(message || '').trim();
+  if (!current) {
+    return false;
+  }
+
+  if (/^(외래|입원|네|아니오|아니요|맞아요|맞습니다|수술 후|일반)/u.test(current)) {
+    return false;
+  }
+
+  return /(오늘|내일|모레|이번주|토요일|일요일|월요일|화요일|수요일|목요일|금요일|진료|예약|접수|의사|원장|의료진|셔틀|주차|입원|퇴원|수술|서류|영수증|비용|금액|검사|코세척|약물|진단서)/u.test(current);
 }
 
 function getSessionHistory(sessionId) {
@@ -4550,15 +4620,19 @@ async function buildChatResponse(rawMessage, sessionId) {
   }
 
   if (conversationState) {
-    const guidedResolution = resolveGuidedFlowMessage(message, conversationState);
-
-    if (!guidedResolution.resolved) {
-      if (guidedResolution.prompt) {
-        return enrichResponsePayload(guidedResolution.prompt, message);
-      }
-    } else {
+    if (shouldResetGuidedFlowForNewTopic(message)) {
       clearConversationState(sessionId);
-      effectiveMessage = guidedResolution.message;
+    } else {
+      const guidedResolution = resolveGuidedFlowMessage(message, conversationState);
+
+      if (!guidedResolution.resolved) {
+        if (guidedResolution.prompt) {
+          return enrichResponsePayload(guidedResolution.prompt, message);
+        }
+      } else {
+        clearConversationState(sessionId);
+        effectiveMessage = guidedResolution.message;
+      }
     }
   } else {
     const guidedFlow = detectGuidedFlowStart(message);
@@ -4633,6 +4707,10 @@ async function buildChatResponse(rawMessage, sessionId) {
     return enrichResponsePayload(createLateArrivalResponse(), message);
   }
 
+  if (matchesAnyPattern(retrievalMessage, receiptIssuancePatterns)) {
+    return enrichResponsePayload(createReceiptIssuanceResponse(), message);
+  }
+
   if (isMedicationStopQuestion(retrievalMessage)) {
     return enrichResponsePayload(createMedicationStopResponse(), message);
   }
@@ -4671,6 +4749,10 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   if (matchesAnyPattern(retrievalMessage, postOpBleedingPatterns)) {
     return enrichResponsePayload(createPostOpBleedingResponse(), message);
+  }
+
+  if (matchesAnyPattern(retrievalMessage, sameDayExamAvailabilityPatterns)) {
+    return enrichResponsePayload(createSameDayExamAvailabilityResponse(), message);
   }
 
   if (matchesAnyPattern(retrievalMessage, surgeryCostPatterns)) {
