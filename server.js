@@ -2872,6 +2872,74 @@ function findNonpayItemResponse(message) {
   };
 }
 
+function findSingleRoomFeeResponse(message) {
+  const text = String(message || '');
+  const normalizedMessage = normalizeSearchTextSafe(text);
+  const compactMessage = compactSearchTextSafe(text);
+
+  if (!normalizedMessage) {
+    return null;
+  }
+
+  const asksFee = /(비용|금액|가격|얼마)/u.test(text);
+  const asksSingleRoom = /(1인실|일인실)/u.test(text);
+
+  if (!asksFee || !asksSingleRoom) {
+    return null;
+  }
+
+  if (!CERTIFICATE_FEES_DOC_PATH || !fs.existsSync(CERTIFICATE_FEES_DOC_PATH)) {
+    return null;
+  }
+
+  const rawLines = fs.readFileSync(CERTIFICATE_FEES_DOC_PATH, 'utf8')
+    .split(/\r?\n/)
+    .map((line) => String(line || '').replace(/\r/g, '').trim())
+    .filter(Boolean);
+
+  const oneNightLine = rawLines.find((line) => {
+    const compactLine = compactSearchTextSafe(line);
+    return compactLine.includes(compactSearchTextSafe('1인실')) && compactLine.includes(compactSearchTextSafe('1박'));
+  });
+
+  const sameDayLine = rawLines.find((line) => {
+    const compactLine = compactSearchTextSafe(line);
+    return compactLine.includes(compactSearchTextSafe('1인실')) && compactLine.includes(compactSearchTextSafe('당일퇴원'));
+  });
+
+  const oneNightPrice = extractPriceText(oneNightLine);
+  const sameDayPrice = extractPriceText(sameDayLine);
+
+  if (!oneNightPrice && !sameDayPrice) {
+    return null;
+  }
+
+  const mentionsSameDay = normalizedMessage.includes('당일퇴원') || compactMessage.includes(compactSearchTextSafe('당일퇴원'));
+  const answer = mentionsSameDay && sameDayPrice
+    ? `1인실(당일퇴원) 비용은 ${sameDayPrice}원입니다.`
+    : `1인실 비용은 ${oneNightPrice}원이며, 당일퇴원 1인실 비용은 ${sameDayPrice}원입니다.`;
+
+  return {
+    type: 'single_room_fee',
+    answer,
+    followUp: [
+      '기준 문서: 기타-비급여비용.txt',
+      '입원 형태나 적용 기준에 따라 실제 안내는 달라질 수 있으니 대표전화 02-6925-1111로 다시 확인해 주세요.',
+      `비급여 안내 페이지: ${NONPAY_PAGE_URL}`,
+    ],
+    sources: [
+      {
+        title: '기타-비급여비용',
+        url: `local://docs/${encodeURIComponent(path.basename(CERTIFICATE_FEES_DOC_PATH || '기타-비급여비용.txt'))}`,
+      },
+      {
+        title: '비급여 안내 페이지',
+        url: NONPAY_PAGE_URL,
+      },
+    ],
+  };
+}
+
 function buildFaqDocuments(entries) {
   return entries.map((entry) => {
     const sourceInfo = getFaqSourceInfo(entry);
@@ -4294,6 +4362,11 @@ async function buildChatResponse(rawMessage, sessionId) {
   const certificateFeeResponse = findCertificateFeeResponse(retrievalMessage);
   if (certificateFeeResponse) {
     return enrichResponsePayload(certificateFeeResponse, message);
+  }
+
+  const singleRoomFeeResponse = findSingleRoomFeeResponse(retrievalMessage);
+  if (singleRoomFeeResponse) {
+    return enrichResponsePayload(singleRoomFeeResponse, message);
   }
 
   const nonpayItemResponse = findNonpayItemResponse(retrievalMessage);

@@ -20,6 +20,16 @@
     "updatedAt": 1776383246672
   },
   {
+    "question": "1인실 비용 알려줘",
+    "count": 2,
+    "updatedAt": 1776395206150
+  },
+  {
+    "question": "1인실 비용 얼마야",
+    "count": 2,
+    "updatedAt": 1776395206116
+  },
+  {
     "question": "입원전 복용하면 안되는 약",
     "count": 2,
     "updatedAt": 1776394422303
@@ -28,16 +38,6 @@
     "question": "편도수술 얼마야?",
     "count": 2,
     "updatedAt": 1776382791849
-  },
-  {
-    "question": "1인실 비용 알려줘",
-    "count": 1,
-    "updatedAt": 1776394795273
-  },
-  {
-    "question": "1인실 비용 얼마야",
-    "count": 1,
-    "updatedAt": 1776394795232
   },
   {
     "question": "갑상선 수술 후 주의사항",
