@@ -2245,12 +2245,100 @@ function createRhinitisPostOpVisitResponse() {
   };
 }
 
-function createFallbackResponse(contextTitles) {
+function createFallbackInsufficientEvidenceResponse(contextTitles) {
   return {
-    type: 'fallback',
-    answer: '홈페이지에서 확인한 범위 안에서 바로 답하기 어려운 질문입니다. 더 구체적으로 질문하시거나 대표전화 02-6925-1111로 문의해 주세요.',
+    type: 'fallback_insufficient_evidence',
+    answer: '현재 확인된 홈페이지 내용만으로는 정확한 안내가 어렵습니다. 대표전화 02-6925-1111로 확인해 주세요.',
     followUp: contextTitles.length > 0 ? contextTitles : ['진료시간 안내', '의료진 일정', '서류 발급 안내'],
   };
+}
+
+function createFallbackNeedsClarificationResponse() {
+  return {
+    type: 'fallback_needs_clarification',
+    answer: '질문 범위가 넓어 바로 안내드리기 어렵습니다. 어떤 항목이 궁금하신지 조금만 더 구체적으로 알려주시면 정확히 안내드릴게요.',
+    followUp: ['수술 종류를 알려주세요', '검사 종류를 알려주세요', '외래인지 입원인지 알려주세요'],
+  };
+}
+
+function createFallbackInferenceResponse() {
+  return {
+    type: 'fallback_inference',
+    answer: '문서상 관련 단서는 확인되지만 직접 명시된 안내는 아니라 정확히 단정하기는 어렵습니다. 정확한 운영 방식은 병동 또는 대표전화 02-6925-1111로 확인해 주세요.',
+    followUp: ['문서에 나온 관련 항목을 기준으로 안내드렸습니다', '운영 방식은 시점에 따라 달라질 수 있습니다'],
+  };
+}
+
+function createFallbackRestrictedResponse() {
+  return {
+    type: 'fallback_restricted',
+    answer: '이 부분은 상담봇에서 판단해 드릴 수 없습니다. 의료진 또는 병원으로 직접 확인해 주세요.',
+    followUp: ['대표전화 02-6925-1111', '진료과 또는 의료진 상담 권장'],
+  };
+}
+
+function hasIndirectOperationalEvidence(message) {
+  const normalizedMessage = normalizeSearchTextSafe(message);
+  const compactMessage = compactSearchTextSafe(message);
+  if (!normalizedMessage) {
+    return false;
+  }
+
+  if (normalizedMessage.includes('보호자') && (normalizedMessage.includes('식사') || normalizedMessage.includes('식대') || normalizedMessage.includes('밥'))) {
+    return readNonpayDocLines().some((line) => compactSearchTextSafe(line).includes(compactSearchTextSafe('보호자 식대')));
+  }
+
+  return (runtimeData.nonpayItemEntries || []).some((entry) => (
+    (entry.aliases || []).some((alias) => (
+      normalizedMessage.includes(normalizeSearchTextSafe(alias))
+      || compactMessage.includes(compactSearchTextSafe(alias))
+    ))
+  ));
+}
+
+function getFallbackType(message) {
+  const text = String(message || '').trim();
+  if (!text) {
+    return 'insufficient_evidence';
+  }
+
+  if (
+    matchesAnyPattern(String(text || '').toLowerCase(), medicalRestrictionPatterns)
+    && !matchesAnyPattern(text, certificateDocumentQuestionPatterns)
+  ) {
+    return 'restricted';
+  }
+
+  if (
+    ((/수술|검사|서류|비용|금액/u.test(text)) && text.length <= 14)
+    || /^(수술|검사|서류|비용|금액).{0,4}(알려줘|안내|설명)$/u.test(text)
+  ) {
+    return 'needs_clarification';
+  }
+
+  if (hasIndirectOperationalEvidence(text)) {
+    return 'inference';
+  }
+
+  return 'insufficient_evidence';
+}
+
+function createFallbackResponse(message, contextTitles = []) {
+  const fallbackType = getFallbackType(message);
+
+  if (fallbackType === 'restricted') {
+    return createFallbackRestrictedResponse();
+  }
+
+  if (fallbackType === 'needs_clarification') {
+    return createFallbackNeedsClarificationResponse();
+  }
+
+  if (fallbackType === 'inference') {
+    return createFallbackInferenceResponse();
+  }
+
+  return createFallbackInsufficientEvidenceResponse(contextTitles);
 }
 
 function getSmallTalkIntent(message) {
@@ -4887,7 +4975,7 @@ async function buildChatResponse(rawMessage, sessionId) {
   const contextDocs = rankDocuments(retrievalMessage, docs);
 
   if (contextDocs.length === 0) {
-    return enrichResponsePayload(createFallbackResponse([]), message);
+    return enrichResponsePayload(createFallbackResponse(retrievalMessage, []), message);
   }
 
   const generatedAnswer = appendSupportLinks(
@@ -4898,7 +4986,7 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   if (!validationResult.valid) {
     return enrichResponsePayload(
-      createFallbackResponse(dedupeSources(contextDocs).slice(0, 3).map((source) => source.title)),
+      createFallbackResponse(retrievalMessage, dedupeSources(contextDocs).slice(0, 3).map((source) => source.title)),
       message
     );
   }
