@@ -59,7 +59,7 @@
 
       .filters {
         display: grid;
-        grid-template-columns: minmax(240px, 1fr) 180px 160px 160px 120px;
+        grid-template-columns: minmax(240px, 1fr) 180px 160px 160px 120px 180px;
         gap: 10px;
         padding: 14px;
         margin-bottom: 16px;
@@ -177,6 +177,15 @@
         margin-top: 14px;
       }
 
+      .session-review {
+        display: grid;
+        grid-template-columns: 160px 1fr auto;
+        gap: 10px;
+        margin-top: 12px;
+        margin-bottom: 12px;
+        align-items: start;
+      }
+
       .secondary-button {
         background: #e8f4fd;
         color: var(--primary);
@@ -246,6 +255,7 @@
         <input id="start-date" type="date" />
         <input id="end-date" type="date" />
         <button id="refresh-button" type="button">새로고침</button>
+        <button id="export-button" type="button">수정필요 JSON</button>
       </section>
 
       <section class="stats muted" id="stats">로드 중...</section>
@@ -258,6 +268,7 @@
       const startDateInput = document.getElementById('start-date');
       const endDateInput = document.getElementById('end-date');
       const refreshButton = document.getElementById('refresh-button');
+      const exportButton = document.getElementById('export-button');
       const logoutButton = document.getElementById('logout-button');
       const stats = document.getElementById('stats');
       const logList = document.getElementById('log-list');
@@ -308,6 +319,23 @@
         await loadLogs();
       }
 
+      async function updateSessionNote(sessionId, card) {
+        const flag = card.querySelector('.session-flag-select').value;
+        const note = card.querySelector('.session-note-input').value;
+        const response = await fetch('/api/admin/session-note', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId, flag, note }),
+        });
+
+        if (!response.ok) {
+          alert('세션 메모 저장에 실패했습니다.');
+          return;
+        }
+
+        await loadLogs();
+      }
+
       async function toggleSessionHistory(card, sessionId) {
         const section = card.querySelector('.session-history');
         const content = card.querySelector('.session-history-list');
@@ -337,14 +365,9 @@
           const response = await fetch(`/api/admin/session-history?sessionId=${encodeURIComponent(sessionId)}&limit=16`);
           const data = await response.json();
           const items = data.items || [];
+          const sessionNote = data.sessionNote || {};
 
-          if (!items.length) {
-            content.innerHTML = '<div class="muted">저장된 최근 대화가 없습니다.</div>';
-            section.dataset.loaded = 'true';
-            return;
-          }
-
-          content.innerHTML = items.map((item) => `
+          const historyHtml = items.length ? items.map((item) => `
             <article class="session-message ${escapeHtml(item.role)}">
               <div class="session-message-header">
                 <strong>${escapeHtml(formatRoleLabel(item.role))}</strong>
@@ -352,7 +375,23 @@
               </div>
               <div style="white-space: pre-line; line-height: 1.6;">${escapeHtml(item.content)}</div>
             </article>
-          `).join('');
+          `).join('') : '<div class="muted">저장된 최근 대화가 없습니다.</div>';
+
+          content.innerHTML = `
+            <section class="session-review">
+              <select class="session-flag-select">
+                <option value="normal" ${(sessionNote.flag || 'normal') === 'normal' ? 'selected' : ''}>정상</option>
+                <option value="needs_review" ${(sessionNote.flag || '') === 'needs_review' ? 'selected' : ''}>수정 필요</option>
+                <option value="important" ${(sessionNote.flag || '') === 'important' ? 'selected' : ''}>중요</option>
+              </select>
+              <textarea class="session-note-input" rows="2" placeholder="세션 메모">${escapeHtml(sessionNote.note || '')}</textarea>
+              <button type="button" class="session-save-button">세션 저장</button>
+            </section>
+            ${historyHtml}
+          `;
+          content.querySelector('.session-save-button').addEventListener('click', () => {
+            updateSessionNote(sessionId, card);
+          });
           section.dataset.loaded = 'true';
         } catch (error) {
           content.innerHTML = '<div class="muted">세션 대화를 불러오지 못했습니다.</div>';
@@ -446,7 +485,38 @@
         }
       }
 
+      async function exportNeedsReviewLogs() {
+        const params = new URLSearchParams();
+        params.set('flag', 'needs_review');
+        if (searchInput.value.trim()) params.set('q', searchInput.value.trim());
+        if (startDateInput.value) params.set('startAt', toDateRangeIso(startDateInput.value, false));
+        if (endDateInput.value) params.set('endAt', toDateRangeIso(endDateInput.value, true));
+
+        try {
+          const response = await fetch(`/api/admin/logs/export?${params.toString()}`);
+          if (!response.ok) {
+            alert('JSON 내보내기에 실패했습니다.');
+            return;
+          }
+
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          const disposition = response.headers.get('Content-Disposition') || '';
+          const match = disposition.match(/filename="([^"]+)"/);
+          link.href = url;
+          link.download = match ? match[1] : 'wrong-answer-notes.json';
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          URL.revokeObjectURL(url);
+        } catch (error) {
+          alert('JSON 내보내기에 실패했습니다.');
+        }
+      }
+
       refreshButton.addEventListener('click', loadLogs);
+      exportButton.addEventListener('click', exportNeedsReviewLogs);
       logoutButton.addEventListener('click', async () => {
         await fetch('/api/admin/logout', { method: 'POST' });
         window.location.href = '/admin/login';

@@ -629,6 +629,13 @@ function createChatLogDatabase() {
     );
     CREATE INDEX IF NOT EXISTS idx_chat_messages_session_timestamp
       ON chat_messages(session_id, timestamp DESC);
+    CREATE TABLE IF NOT EXISTS session_notes (
+      session_id TEXT PRIMARY KEY,
+      flag TEXT NOT NULL DEFAULT 'normal',
+      note TEXT NOT NULL DEFAULT '',
+      reviewed_at TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_session_notes_flag ON session_notes(flag);
   `);
 
   migrateChatLogsJsonToSqlite(db);
@@ -837,8 +844,9 @@ function updateChatLogFlag(logId, flag, note = '') {
   );
 }
 
-function getChatLogsForAdmin(query) {
+function getChatLogsForAdmin(query, options = {}) {
   const getQueryValue = (key) => (typeof query.get === 'function' ? query.get(key) : query[key]);
+  const disableLimit = Boolean(options.disableLimit);
   const limit = Math.min(Math.max(Number(getQueryValue('limit')) || 100, 1), 300);
   const search = normalizeSearchTextSafe(getQueryValue('q') || '');
   const flag = String(getQueryValue('flag') || '').trim();
@@ -874,8 +882,11 @@ function getChatLogsForAdmin(query) {
     sql += ` WHERE ${conditions.join(' AND ')}`;
   }
 
-  sql += ' ORDER BY datetime(timestamp) DESC LIMIT ?';
-  params.push(limit);
+  sql += ' ORDER BY datetime(timestamp) DESC';
+  if (!disableLimit) {
+    sql += ' LIMIT ?';
+    params.push(limit);
+  }
 
   return chatLogDb.prepare(sql).all(...params).map(mapChatLogRow);
 }
@@ -918,6 +929,97 @@ function getChatLogCount(query) {
 
   const row = chatLogDb.prepare(sql).get(...params);
   return Number(row?.count || 0);
+}
+
+function getSessionNoteForAdmin(sessionId) {
+  const normalizedSessionId = String(sessionId || '').trim();
+  if (!normalizedSessionId) {
+    return {
+      sessionId: '',
+      flag: 'normal',
+      note: '',
+      reviewedAt: '',
+    };
+  }
+
+  const row = chatLogDb.prepare(`
+    SELECT session_id, flag, note, reviewed_at
+    FROM session_notes
+    WHERE session_id = ?
+  `).get(normalizedSessionId);
+
+  return {
+    sessionId: normalizedSessionId,
+    flag: String(row?.flag || 'normal'),
+    note: String(row?.note || ''),
+    reviewedAt: String(row?.reviewed_at || ''),
+  };
+}
+
+function updateSessionNoteForAdmin(sessionId, flag, note = '') {
+  const normalizedSessionId = String(sessionId || '').trim();
+  if (!normalizedSessionId) {
+    return null;
+  }
+
+  chatLogDb.prepare(`
+    INSERT INTO session_notes (session_id, flag, note, reviewed_at)
+    VALUES (?, ?, ?, ?)
+    ON CONFLICT(session_id) DO UPDATE SET
+      flag = excluded.flag,
+      note = excluded.note,
+      reviewed_at = excluded.reviewed_at
+  `).run(
+    normalizedSessionId,
+    String(flag || 'normal'),
+    String(note || '').trim(),
+    new Date().toISOString()
+  );
+
+  return getSessionNoteForAdmin(normalizedSessionId);
+}
+
+function buildWrongAnswerExportRows(query) {
+  const exportQuery = new URLSearchParams();
+  const getQueryValue = (key) => (typeof query?.get === 'function' ? query.get(key) : query?.[key]);
+  const search = String(getQueryValue('q') || '').trim();
+  const startAt = String(getQueryValue('startAt') || '').trim();
+  const endAt = String(getQueryValue('endAt') || '').trim();
+
+  exportQuery.set('flag', 'needs_review');
+  if (search) {
+    exportQuery.set('q', search);
+  }
+  if (startAt) {
+    exportQuery.set('startAt', startAt);
+  }
+  if (endAt) {
+    exportQuery.set('endAt', endAt);
+  }
+
+  return getChatLogsForAdmin(exportQuery, { disableLimit: true }).map((item) => {
+    const sessionNote = getSessionNoteForAdmin(item.sessionId);
+    return {
+    timestamp: item.timestamp || '',
+    session_id: item.sessionId || '',
+    question: item.question || '',
+    actual_answer: item.answerFull || item.answer || '',
+    status: '수정필요',
+    flag: item.flag || 'needs_review',
+    type: item.type || 'unknown',
+    question_note: item.note || '',
+    session_flag: sessionNote.flag || 'normal',
+    session_note: sessionNote.note || '',
+    reviewed_at: item.reviewedAt || '',
+    session_reviewed_at: sessionNote.reviewedAt || '',
+    sources: Array.isArray(item.sources)
+      ? item.sources.map((source) => ({
+          title: source?.title || '',
+          url: source?.url || '',
+        }))
+      : [],
+    };
+  });
 }
 
 function getSessionMessagesForAdmin(sessionId, limit = MAX_SESSION_MESSAGE_ENTRIES) {
@@ -5150,6 +5252,53 @@ function handleApiAdminLogFlag(req, res) {
   });
 }
 
+function handleApiAdminLogsExport(req, res, requestUrl) {
+  const items = buildWrongAnswerExportRows(requestUrl.searchParams);
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const fileName = `wrong-answer-notes-${timestamp}.json`;
+  const payload = JSON.stringify(items, null, 2);
+
+  res.writeHead(200, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Content-Disposition': `attachment; filename="${fileName}"`,
+    'Cache-Control': 'no-store',
+  });
+  res.end(payload);
+}
+
+function handleApiAdminSessionNote(req, res) {
+  let body = '';
+
+  req.on('data', (chunk) => {
+    body += chunk;
+  });
+
+  req.on('end', () => {
+    try {
+      const parsed = JSON.parse(body || '{}');
+      const updated = updateSessionNoteForAdmin(parsed.sessionId, parsed.flag, parsed.note);
+      if (!updated) {
+        sendJson(res, 400, {
+          ok: false,
+          error: 'sessionId is required',
+        });
+        return;
+      }
+
+      sendJson(res, 200, {
+        ok: true,
+        item: updated,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      sendJson(res, 400, {
+        ok: false,
+        error: 'Invalid payload',
+      });
+    }
+  });
+}
+
 function handleApiAdminSessionHistory(req, res, requestUrl) {
   const sessionId = String(requestUrl.searchParams.get('sessionId') || '').trim();
   if (!sessionId) {
@@ -5164,6 +5313,7 @@ function handleApiAdminSessionHistory(req, res, requestUrl) {
     ok: true,
     sessionId,
     items: getSessionMessagesForAdmin(sessionId, requestUrl.searchParams.get('limit')),
+    sessionNote: getSessionNoteForAdmin(sessionId),
     timestamp: new Date().toISOString(),
   });
 }
@@ -5250,6 +5400,16 @@ const server = http.createServer((req, res) => {
 
   if (req.method === 'POST' && pathname === '/api/admin/logs/flag') {
     handleApiAdminLogFlag(req, res);
+    return;
+  }
+
+  if (req.method === 'GET' && pathname === '/api/admin/logs/export') {
+    handleApiAdminLogsExport(req, res, requestUrl);
+    return;
+  }
+
+  if (req.method === 'POST' && pathname === '/api/admin/session-note') {
+    handleApiAdminSessionNote(req, res);
     return;
   }
 
