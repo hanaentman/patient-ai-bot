@@ -10,9 +10,19 @@
     "updatedAt": 1776381340893
   },
   {
+    "question": "수술전 복용 금지약",
+    "count": 3,
+    "updatedAt": 1776394451791
+  },
+  {
     "question": "수술 후 주의사항 알려줘",
     "count": 3,
     "updatedAt": 1776383246672
+  },
+  {
+    "question": "입원전 복용하면 안되는 약",
+    "count": 2,
+    "updatedAt": 1776394422303
   },
   {
     "question": "편도수술 얼마야?",

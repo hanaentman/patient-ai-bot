@@ -1795,6 +1795,28 @@ function createLateArrivalResponse() {
   };
 }
 
+function createMedicationStopResponse() {
+  return {
+    type: 'medication_stop',
+    answer: '입원 전이나 수술 전에 복용하면 안 되는 약은 병동 안내 기준으로 별도 리스트를 먼저 확인하시는 것이 가장 정확합니다. 아래에 입원 전 복용 중단 약물 리스트 이미지를 함께 안내드리니, 복용 중인 약이 있으면 해당 목록을 먼저 확인해 주세요.',
+    followUp: [
+      '이미지에 없는 약이거나 복용 지속 여부가 애매하면 대표전화 02-6925-1111로 꼭 확인해 주세요.',
+      '아스피린, 항응고제처럼 출혈과 관련된 약은 특히 임의로 계속 복용하거나 중단하지 말고 병원 안내를 따르는 것이 안전합니다.',
+      '질문을 더 구체적으로 주시면 입원 준비나 수술 전 검사 안내와 함께 이어서 도와드릴 수 있습니다.',
+    ],
+    sources: [{
+      title: '蹂묐룞-FAQ',
+      url: 'local://docs/%EB%B3%91%EB%8F%99-FAQ.txt',
+    }],
+    images: [{
+      title: '입원 전 복용 중단 약물 리스트',
+      description: '입원 전 중단해야 하는 약물 질문에 함께 보여주는 이미지',
+      display: 'document',
+      url: resolvePublicImagePath('/images/%EC%9E%85%EC%9B%90%EC%A0%84%20%EB%B3%B5%EC%9A%A9%EC%A4%91%EB%8B%A8%20%EC%95%BD%EB%AC%BC%20%EB%A6%AC%EC%8A%A4%ED%8A%B8.jpg'),
+    }],
+  };
+}
+
 function createInpatientMealPolicyResponse() {
   return {
     type: 'inpatient_meal_policy',
@@ -4311,6 +4333,10 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   if (matchesAnyPattern(retrievalMessage, lateArrivalPatterns)) {
     return enrichResponsePayload(createLateArrivalResponse(), message);
+  }
+
+  if (isMedicationStopQuestion(retrievalMessage)) {
+    return enrichResponsePayload(createMedicationStopResponse(), message);
   }
 
   if (matchesAnyPattern(retrievalMessage, inpatientMealPolicyPatterns)) {
