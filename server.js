@@ -2683,15 +2683,32 @@ function findFloorGuideResponse(message) {
 }
 
 const HOMEPAGE_SURGERY_DOC_CONFIGS = [
-  { disease: '비염', aliases: ['비염', '만성비염', '알레르기비염'], filename: '홈페이지-만성비염.txt' },
-  { disease: '축농증', aliases: ['축농증', '부비동염'], filename: '홈페이지-축농증.txt' },
+  { disease: '비염', aliases: ['비염', '비염수술', '만성비염', '만성비염수술', '알레르기비염', '알레르기비염수술'], filename: '홈페이지-만성비염.txt' },
+  { disease: '축농증', aliases: ['축농증', '축농증수술', '부비동염', '부비동염수술', '부비동수술'], filename: '홈페이지-축농증.txt' },
   { disease: '편도', aliases: ['편도', '편도수술', '편도절제술'], filename: '홈페이지-편도.txt' },
-  { disease: '비중격만곡증', aliases: ['비중격만곡증', '비중격'], filename: '홈페이지-비중격만곡증.txt' },
+  { disease: '비중격만곡증', aliases: ['비중격만곡증', '비중격만곡증수술', '비중격', '비중격수술'], filename: '홈페이지-비중격만곡증.txt' },
   { disease: '코물혹', aliases: ['코물혹', '비용종', '비강용종'], filename: '홈페이지-코물혹.txt' },
   { disease: '중이염', aliases: ['중이염', '만성중이염'], filename: '홈페이지-만성중이염.txt' },
   { disease: '갑상선', aliases: ['갑상선'], filename: '홈페이지-갑상선.txt' },
   { disease: '침샘', aliases: ['침샘', '이하선', '악하선'], filename: '홈페이지-침샘.txt' },
 ];
+
+function findMatchedHomepageSurgeryDocConfig(message) {
+  const normalizedMessage = normalizeSearchTextSafe(message);
+  const compactMessage = compactSearchTextSafe(message);
+
+  if (!normalizedMessage) {
+    return null;
+  }
+
+  return HOMEPAGE_SURGERY_DOC_CONFIGS.find((config) => (
+    config.aliases.some((alias) => {
+      const normalizedAlias = normalizeSearchTextSafe(alias);
+      const compactAlias = compactSearchTextSafe(alias);
+      return normalizedMessage.includes(normalizedAlias) || compactMessage.includes(compactAlias);
+    })
+  )) || null;
+}
 
 function normalizeDocLine(line) {
   return String(line || '')
@@ -2740,15 +2757,7 @@ function findHomepageSurgeryCostResponse(message) {
     return null;
   }
 
-  const normalizedMessage = normalizeSearchTextSafe(message);
-  const compactMessage = compactSearchTextSafe(message);
-  const matchedConfig = HOMEPAGE_SURGERY_DOC_CONFIGS.find((config) => (
-    config.aliases.some((alias) => {
-      const normalizedAlias = normalizeSearchTextSafe(alias);
-      const compactAlias = compactSearchTextSafe(alias);
-      return normalizedMessage.includes(normalizedAlias) || compactMessage.includes(compactAlias);
-    })
-  ));
+  const matchedConfig = findMatchedHomepageSurgeryDocConfig(message);
 
   if (!matchedConfig) {
     return null;
@@ -2809,6 +2818,90 @@ function findHomepageSurgeryCostResponse(message) {
     followUp: [
       '보험 적용 여부와 실제 비용은 질환 상태와 검사 결과에 따라 달라질 수 있습니다.',
       '다른 수술도 질환명을 알려주시면 해당 문서 기준으로 다시 안내해 드릴 수 있습니다.',
+    ],
+    sources: [{
+      title: path.parse(matchedConfig.filename).name,
+      url: `local://docs/${encodeURIComponent(matchedConfig.filename)}`,
+    }],
+  };
+}
+
+function findHomepageSurgeryInfoResponse(message) {
+  const text = String(message || '');
+  if (!/(수술|절제술)/u.test(text)) {
+    return null;
+  }
+
+  if (/(비용|금액|가격|얼마)/u.test(text)) {
+    return null;
+  }
+
+  const matchedConfig = findMatchedHomepageSurgeryDocConfig(text);
+  if (!matchedConfig) {
+    return null;
+  }
+
+  const docPath = path.join(DOCS_DIR, matchedConfig.filename);
+  if (!fs.existsSync(docPath)) {
+    return null;
+  }
+
+  const docText = fs.readFileSync(docPath, 'utf8');
+  const stopLabels = ['수술비용', '수술시간', '마취방법', '입원기간', '내원치료', '회복기간', '치료 장점'];
+  const costLines = extractHomepageSurgerySectionLines(docText, ['수술비용'], stopLabels);
+  const timeLines = extractHomepageSurgerySectionLines(docText, ['수술시간'], stopLabels);
+  const anesthesiaLines = extractHomepageSurgerySectionLines(docText, ['마취방법'], stopLabels);
+  const admissionLines = extractHomepageSurgerySectionLines(docText, ['입원기간'], stopLabels);
+  const followupLines = extractHomepageSurgerySectionLines(docText, ['내원치료'], stopLabels);
+  const recoveryLines = extractHomepageSurgerySectionLines(docText, ['회복기간'], stopLabels);
+
+  if (
+    costLines.length === 0
+    && timeLines.length === 0
+    && anesthesiaLines.length === 0
+    && admissionLines.length === 0
+  ) {
+    return null;
+  }
+
+  const sentences = [`${matchedConfig.disease} 수술 안내드립니다.`];
+
+  if (costLines.length > 0) {
+    const [costValue, ...costExtras] = costLines;
+    const cleanedCostExtras = costExtras
+      .map((line) => String(line || '').replace(/^\(+/, '').replace(/\)+$/, '').trim())
+      .filter(Boolean);
+    sentences.push(`수술비용은 ${costValue}${cleanedCostExtras.length > 0 ? `(${cleanedCostExtras.join(', ')})` : ''}입니다.`);
+  }
+
+  if (timeLines.length > 0) {
+    sentences.push(`수술시간은 ${timeLines.join(' ')}입니다.`);
+  }
+
+  if (anesthesiaLines.length > 0) {
+    sentences.push(`마취방법은 ${anesthesiaLines.join(' ')}입니다.`);
+  }
+
+  if (admissionLines.length > 0) {
+    sentences.push(`입원기간은 ${admissionLines.join(' ')}입니다.`);
+  }
+
+  if (followupLines.length > 0) {
+    sentences.push(`수술 후 내원치료는 ${followupLines.join(' ')}입니다.`);
+  }
+
+  if (recoveryLines.length > 0) {
+    sentences.push(`회복기간은 ${recoveryLines.join(' ')}입니다.`);
+  }
+
+  sentences.push('정확한 수술 적응증과 방법은 진찰과 검사 후 결정되니 자세한 상담이나 예약은 대표전화 02-6925-1111로 문의해 주세요.');
+
+  return {
+    type: 'homepage_surgery_info',
+    answer: sentences.join(' '),
+    followUp: [
+      '궁금한 수술을 더 구체적으로 말씀해 주시면 비용, 입원기간, 회복기간 기준으로 다시 안내해 드릴 수 있습니다.',
+      '보험 적용 여부와 실제 비용은 질환 상태와 검사 결과에 따라 달라질 수 있습니다.',
     ],
     sources: [{
       title: path.parse(matchedConfig.filename).name,
@@ -4504,6 +4597,11 @@ async function buildChatResponse(rawMessage, sessionId) {
   const homepageSurgeryCostResponse = findHomepageSurgeryCostResponse(retrievalMessage);
   if (homepageSurgeryCostResponse) {
     return enrichResponsePayload(homepageSurgeryCostResponse, message);
+  }
+
+  const homepageSurgeryInfoResponse = findHomepageSurgeryInfoResponse(retrievalMessage);
+  if (homepageSurgeryInfoResponse) {
+    return enrichResponsePayload(homepageSurgeryInfoResponse, message);
   }
 
   const postOpCareResponse = findPostOpCareResponse(retrievalMessage);

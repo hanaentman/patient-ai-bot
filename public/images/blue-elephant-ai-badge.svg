@@ -1,0 +1,56 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="28" y1="18" x2="224" y2="236" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#87DBFF"/>
+      <stop offset="0.52" stop-color="#3196F6"/>
+      <stop offset="1" stop-color="#174CB8"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="128" y1="18" x2="128" y2="238" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.2"/>
+    </linearGradient>
+    <linearGradient id="elephant" x1="73" y1="76" x2="178" y2="192" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E8F9FF"/>
+      <stop offset="1" stop-color="#94DCFF"/>
+    </linearGradient>
+    <filter id="shadow" x="8" y="10" width="240" height="240" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="10"/>
+      <feGaussianBlur stdDeviation="12"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.03 0 0 0 0 0.23 0 0 0 0 0.54 0 0 0 0.32 0"/>
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1_1"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1_1" result="shape"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#shadow)">
+    <circle cx="128" cy="118" r="98" fill="url(#bg)"/>
+    <circle cx="128" cy="118" r="88" stroke="url(#ring)" stroke-width="4"/>
+  </g>
+
+  <rect x="60" y="42" width="136" height="42" rx="21" fill="white" fill-opacity="0.96"/>
+  <text x="128" y="69" text-anchor="middle" fill="#2469DC" font-size="24" font-weight="800" font-family="Segoe UI, Arial, sans-serif" letter-spacing="1.2">AI CHAT</text>
+
+  <ellipse cx="86" cy="125" rx="31" ry="38" fill="url(#elephant)" fill-opacity="0.96"/>
+  <ellipse cx="170" cy="125" rx="31" ry="38" fill="url(#elephant)" fill-opacity="0.96"/>
+  <ellipse cx="128" cy="126" rx="47" ry="43" fill="url(#elephant)"/>
+
+  <path d="M116 134C116 127.37 121.37 122 128 122C134.63 122 140 127.37 140 134V163C140 174.05 131.05 183 120 183H117C109.27 183 103 176.73 103 169C103 161.27 109.27 155 117 155H124V134H116Z" fill="#52BFFF"/>
+  <path d="M125 132H131C134.87 132 138 135.13 138 139V160C138 165.52 133.52 170 128 170C122.48 170 118 165.52 118 160V139C118 135.13 121.13 132 125 132Z" fill="#E8F9FF"/>
+
+  <circle cx="110" cy="123" r="6.5" fill="#173E93"/>
+  <circle cx="146" cy="123" r="6.5" fill="#173E93"/>
+  <circle cx="112.2" cy="120.7" r="1.7" fill="white"/>
+  <circle cx="148.2" cy="120.7" r="1.7" fill="white"/>
+
+  <path d="M112 109C115.46 105.21 120.13 103 126 103" stroke="#55B9F7" stroke-width="5" stroke-linecap="round"/>
+  <path d="M144 109C140.54 105.21 135.87 103 130 103" stroke="#55B9F7" stroke-width="5" stroke-linecap="round"/>
+  <path d="M116 177C119.61 181.21 124.31 183.32 130.1 183.32C135.49 183.32 140.02 181.49 143.7 177.82" stroke="#2677E6" stroke-width="5" stroke-linecap="round"/>
+
+  <path d="M57 183C74.3 164.44 99.3 154 126 154H130C156.7 154 181.7 164.44 199 183C182.65 205.92 157.56 218 128 218C98.44 218 73.35 205.92 57 183Z" fill="#1B59CC" fill-opacity="0.96"/>
+  <path d="M83 188C95.32 177.93 111.14 172.5 127.5 172.5C143.86 172.5 159.68 177.93 172 188" stroke="#89D9FF" stroke-width="6" stroke-linecap="round"/>
+
+  <circle cx="67" cy="80" r="6" fill="#DFF6FF"/>
+  <circle cx="188" cy="153" r="4.5" fill="#DFF6FF"/>
+</svg>
