@@ -277,6 +277,12 @@ const postOpBleedingPatterns = [
   /편도.{0,12}수술\s*후.{0,12}(출혈|피)/u,
 ];
 
+const postOpCarePatterns = [
+  /수술\s*후.{0,12}(주의사항|주의 사항|관리|조심|주의)/u,
+  /(주의사항|주의 사항|관리|조심|주의).{0,12}수술\s*후/u,
+  /퇴원\s*후.{0,12}(주의사항|관리)/u,
+];
+
 const surgeryCostPatterns = [
   /수술.{0,10}(비용|금액|가격|얼마)/u,
   /(비용|금액|가격|얼마).{0,10}수술/u,
@@ -1956,6 +1962,97 @@ function createSurgeryCostResponse() {
   };
 }
 
+function createTypedPostOpCareResponse(kind) {
+  const source = {
+    title: '?낆썝-?섏닠 ??二쇱쓽?ы빆',
+    url: 'local://docs/%EC%9E%85%EC%9B%90-%EC%88%98%EC%88%A0%20%ED%9B%84%20%EC%A3%BC%EC%9D%98%EC%82%AC%ED%95%AD.txt',
+  };
+
+  const responses = {
+    nose: {
+      type: 'postop_care_nose',
+      answer: '코 수술 후 주의사항 안내드립니다. 문서 기준으로 수술 후 1~3개월 정도 외래 통원치료가 필요할 수 있고, 처음 1~2주 정도는 코를 세게 풀거나 코를 건드리는 행동을 피하는 것이 좋습니다. 코세척 후에도 코를 무리하게 자극하지 말고, 출혈이 있거나 응급치료가 필요하면 02-6925-1111로 바로 연락해 주세요.',
+      followUp: [
+        '최소 2주간은 사우나, 심한 운동, 무리한 야외활동을 피하는 쪽으로 안내되어 있습니다.',
+        '수영은 최소 4주 정도 피하고, 금연·금주는 최소 2개월 정도 권고됩니다.',
+        '비행기 탑승은 수술 후 약 1개월간 피하는 쪽으로 안내되어 있습니다.',
+      ],
+      sources: [source],
+    },
+    throat: {
+      type: 'postop_care_throat',
+      answer: '목 수술 후 주의사항 안내드립니다. 문서 기준으로 상처가 안정될 때까지 2~3주 정도는 너무 뜨겁거나 자극적인 음식, 딱딱한 음식보다 부드러운 음식 위주로 드시는 것이 좋습니다. 출혈 예방을 위해 빨대 사용은 피하고, 피가 계속 섞여 나오거나 양이 많으면 병원에 연락 후 진료를 받으셔야 합니다.',
+      followUp: [
+        '수술 후 5~10일 정도까지 출혈 가능성이 있어 침에 피가 계속 섞이거나 선홍색 출혈이 많으면 바로 확인이 필요합니다.',
+        '수술 후 1~2주 정도는 심한 운동이나 무리한 야외활동을 피하고 충분히 쉬는 것이 좋습니다.',
+        '통증이나 출혈감이 있을 때는 시원한 얼음물로 잠깐 가글하는 방법이 안내되어 있습니다.',
+      ],
+      sources: [source],
+    },
+    ear: {
+      type: 'postop_care_ear',
+      answer: '귀 수술 후 주의사항 안내드립니다. 문서 기준으로 수술 부위를 부딪치지 않도록 조심하고, 코를 세게 풀거나 무거운 물건을 드는 행동은 피하는 것이 좋습니다. 재채기나 기침을 할 때는 입을 벌리고 하고, 머리를 감을 때도 수술 부위가 자극되지 않게 주의해 주세요.',
+      followUp: [
+        '누런 고름 같은 분비물이 나오거나 어지럼이 계속되면 내원 확인이 필요합니다.',
+        '갑자기 입이 돌아가는 느낌 같은 안면마비 증상이 있으면 바로 병원에 연락하셔야 합니다.',
+        '기타 출혈이나 응급치료가 필요하면 02-6925-1111로 연락하도록 안내되어 있습니다.',
+      ],
+      sources: [source],
+    },
+    thyroid: {
+      type: 'postop_care_thyroid',
+      answer: '갑상선 수술 후 주의사항 안내드립니다. 문서 기준으로 수술 후 2~3일 정도는 목과 어깨 움직임을 조심하고, 무리한 목 운동이나 강한 활동은 피하는 것이 좋습니다. 일상생활은 가능하지만 강도가 높은 운동이나 무거운 물건을 드는 행동은 약 4주 정도 피하도록 안내되어 있습니다.',
+      followUp: [
+        '샤워는 보통 수술 후 3~5일 뒤부터 가능하다고 안내되어 있습니다.',
+        '목의 당김감, 삼킴 불편감, 수술 부위 감각 이상은 일시적으로 느껴질 수 있습니다.',
+        '상처 회복 기간에는 금연·금주가 권고됩니다.',
+      ],
+      sources: [source],
+    },
+    salivary: {
+      type: 'postop_care_salivary',
+      answer: '침샘 수술 후 주의사항 안내드립니다. 문서 기준으로 수술 부위와 귀 주변을 긁거나 자극하지 말고, 처음 2주 정도는 부드럽고 자극이 적은 음식 위주로 드시는 것이 좋습니다. 수술 부위 붓기는 있을 수 있지만 심해지거나 열이 나면 병원 확인이 필요합니다.',
+      followUp: [
+        '비행기 탑승은 보통 수술 후 3~4주 뒤부터 가능하다고 안내되어 있습니다.',
+        '실밥 제거 전후 상처 관리와 샤워 시점은 문서 기준에 맞춰 조심해서 진행해야 합니다.',
+        '무거운 물건을 들거나 강한 운동은 약 4주 정도 피하고, 가벼운 걷기 정도부터 시작하는 것이 좋습니다.',
+      ],
+      sources: [source],
+    },
+  };
+
+  return responses[kind] || null;
+}
+
+function findPostOpCareResponse(message) {
+  const text = String(message || '');
+  if (!matchesAnyPattern(text, postOpCarePatterns)) {
+    return null;
+  }
+
+  if (/(코|비염|축농증|비중격|코물혹)/u.test(text)) {
+    return createTypedPostOpCareResponse('nose');
+  }
+
+  if (/(목|편도)/u.test(text)) {
+    return createTypedPostOpCareResponse('throat');
+  }
+
+  if (/귀/u.test(text)) {
+    return createTypedPostOpCareResponse('ear');
+  }
+
+  if (/갑상선/u.test(text)) {
+    return createTypedPostOpCareResponse('thyroid');
+  }
+
+  if (/(침샘|이하선|악하선)/u.test(text)) {
+    return createTypedPostOpCareResponse('salivary');
+  }
+
+  return null;
+}
+
 function createComplaintGuideResponse() {
   return {
     type: 'complaint_guide',
@@ -3397,6 +3494,19 @@ function detectGuidedFlowStart(message) {
     };
   }
 
+  if (
+    matchesAnyPattern(message, postOpCarePatterns)
+    && !/(코|비염|축농증|비중격|코물혹|목|편도|귀|갑상선|침샘)/u.test(String(message || ''))
+  ) {
+    return {
+      topic: 'postop_care',
+      prompt: createGuidedQuestionResponse(
+        '수술 후 주의사항은 수술 종류에 따라 달라집니다. 어떤 수술 후 주의사항이 필요한지 알려주세요.',
+        ['코 수술 후 주의사항', '목 수술 후 주의사항', '귀 수술 후 주의사항', '갑상선 수술 후 주의사항', '침샘 수술 후 주의사항']
+      ),
+    };
+  }
+
   return null;
 }
 
@@ -3467,6 +3577,36 @@ function resolveGuidedFlowMessage(message, state) {
       prompt: createGuidedQuestionResponse(
         '원하시는 준비 항목을 한 가지만 먼저 알려주세요. 준비물, 주차, 보호자, 수술 전 검사, 복용 중단 약 중에서 선택해 주세요.',
         ['준비물', '주차', '보호자', '수술 전 검사', '복용 중단 약']
+      ),
+    };
+  }
+
+  if (state.topic === 'postop_care') {
+    if (/(코|비염|축농증|비중격|코물혹)/u.test(message)) {
+      return { resolved: true, message: '코 수술 후 주의사항' };
+    }
+
+    if (/(목|편도)/u.test(message)) {
+      return { resolved: true, message: '목 수술 후 주의사항' };
+    }
+
+    if (/귀/u.test(message)) {
+      return { resolved: true, message: '귀 수술 후 주의사항' };
+    }
+
+    if (/갑상선/u.test(message)) {
+      return { resolved: true, message: '갑상선 수술 후 주의사항' };
+    }
+
+    if (/(침샘|이하선|악하선)/u.test(message)) {
+      return { resolved: true, message: '침샘 수술 후 주의사항' };
+    }
+
+    return {
+      resolved: false,
+      prompt: createGuidedQuestionResponse(
+        '수술 후 주의사항을 정확히 안내하려면 수술 종류를 먼저 알아야 합니다. 아래 중에서 골라 주세요.',
+        ['코 수술 후 주의사항', '목 수술 후 주의사항', '귀 수술 후 주의사항', '갑상선 수술 후 주의사항', '침샘 수술 후 주의사항']
       ),
     };
   }
@@ -4057,6 +4197,11 @@ async function buildChatResponse(rawMessage, sessionId) {
   const homepageSurgeryCostResponse = findHomepageSurgeryCostResponse(retrievalMessage);
   if (homepageSurgeryCostResponse) {
     return enrichResponsePayload(homepageSurgeryCostResponse, message);
+  }
+
+  const postOpCareResponse = findPostOpCareResponse(retrievalMessage);
+  if (postOpCareResponse) {
+    return enrichResponsePayload(postOpCareResponse, message);
   }
 
   const floorGuideResponse = findFloorGuideResponse(retrievalMessage);

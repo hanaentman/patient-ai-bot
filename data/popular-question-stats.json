@@ -10,9 +10,34 @@
     "updatedAt": 1776381340893
   },
   {
+    "question": "수술 후 주의사항 알려줘",
+    "count": 3,
+    "updatedAt": 1776383246672
+  },
+  {
     "question": "편도수술 얼마야?",
     "count": 2,
     "updatedAt": 1776382791849
+  },
+  {
+    "question": "갑상선 수술 후 주의사항",
+    "count": 1,
+    "updatedAt": 1776383442558
+  },
+  {
+    "question": "편도 수술 후 주의사항 알려줘",
+    "count": 1,
+    "updatedAt": 1776383442416
+  },
+  {
+    "question": "코 수술 후 주의사항 알려줘",
+    "count": 1,
+    "updatedAt": 1776383442137
+  },
+  {
+    "question": "코 수술이요",
+    "count": 1,
+    "updatedAt": 1776383246755
   },
   {
     "question": "비급여 독감주사 얼마야?",
