@@ -4143,6 +4143,91 @@ async function callOpenAI(question, history, contextDocs) {
   return outputText.trim();
 }
 
+function parseValidationResult(text) {
+  const value = String(text || '').trim();
+  if (!value) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(value);
+  } catch (error) {
+    const match = value.match(/\{[\s\S]*\}/);
+    if (!match) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(match[0]);
+    } catch (innerError) {
+      return null;
+    }
+  }
+}
+
+async function validateAIAnswer(question, answer, contextDocs) {
+  if (!OPENAI_API_KEY) {
+    return { valid: true, reason: 'api_key_missing_skip_validation' };
+  }
+
+  const docSummaries = (contextDocs || []).slice(0, 3).map((doc, index) => (
+    `[문서 ${index + 1}] ${doc.title}\n출처: ${doc.url}\n내용 요약: ${String(doc.text || '').slice(0, 700)}`
+  )).join('\n\n');
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20000);
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/responses', {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: OPENAI_MODEL,
+        instructions: [
+          'You are validating a hospital chatbot answer.',
+          'Check only two things: whether the answer matches the user intent, and whether the answer is supported by the provided documents.',
+          'Return JSON only.',
+          'Schema: {"valid": boolean, "reason": string}.',
+          'Mark valid=false if the answer shifts to a different topic, answers the wrong question, or cites details not supported by the documents.',
+          'Be strict about topic mismatch.',
+        ].join(' '),
+        input: [{
+          role: 'user',
+          content: [
+            `질문: ${question}`,
+            `답변: ${answer}`,
+            '',
+            docSummaries,
+          ].join('\n'),
+        }],
+      }),
+    });
+
+    if (!response.ok) {
+      return { valid: true, reason: `validation_skipped_${response.status}` };
+    }
+
+    const payload = await response.json();
+    const parsed = parseValidationResult(extractOutputText(payload));
+    if (!parsed || typeof parsed.valid !== 'boolean') {
+      return { valid: true, reason: 'validation_parse_failed' };
+    }
+
+    return {
+      valid: parsed.valid,
+      reason: String(parsed.reason || '').trim() || (parsed.valid ? 'ok' : 'validator_rejected'),
+    };
+  } catch (error) {
+    return { valid: true, reason: 'validation_fetch_failed' };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function buildChatResponse(rawMessage, sessionId) {
   const message = String(rawMessage || '').trim();
   const lowerMessage = message.toLowerCase();
@@ -4318,14 +4403,22 @@ async function buildChatResponse(rawMessage, sessionId) {
     return enrichResponsePayload(createFallbackResponse([]), message);
   }
 
-  const answer = appendSupportLinks(
+  const generatedAnswer = appendSupportLinks(
     applyPatientFriendlyTemplate(await callOpenAI(effectiveMessage, history, contextDocs), effectiveMessage),
     message
   );
+  const validationResult = await validateAIAnswer(effectiveMessage, generatedAnswer, contextDocs);
+
+  if (!validationResult.valid) {
+    return enrichResponsePayload(
+      createFallbackResponse(dedupeSources(contextDocs).slice(0, 3).map((source) => source.title)),
+      message
+    );
+  }
 
   const responsePayload = {
     type: 'ai',
-    answer,
+    answer: generatedAnswer,
     followUp: [],
     sources: dedupeSources(contextDocs).slice(0, 3),
     images: findRelevantImages(message, contextDocs),
