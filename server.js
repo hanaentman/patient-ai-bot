@@ -1044,6 +1044,24 @@ function getSessionMessagesForAdmin(sessionId, limit = MAX_SESSION_MESSAGE_ENTRI
   })).filter((row) => row.role && row.content);
 }
 
+function getSessionLogsForAdmin(sessionId, limit = MAX_SESSION_MESSAGE_ENTRIES) {
+  const normalizedSessionId = String(sessionId || '').trim();
+  if (!normalizedSessionId) {
+    return [];
+  }
+
+  const normalizedLimit = Math.min(Math.max(Number(limit) || MAX_SESSION_MESSAGE_ENTRIES, 1), 40);
+  const rows = chatLogDb.prepare(`
+    SELECT *
+    FROM chat_logs
+    WHERE session_id = ?
+    ORDER BY datetime(timestamp) ASC, id ASC
+    LIMIT ?
+  `).all(normalizedSessionId, normalizedLimit);
+
+  return rows.map(mapChatLogRow).filter((row) => row && (row.question || row.answer || row.answerFull));
+}
+
 function findDocPathByKeyword(keyword) {
   if (!fs.existsSync(DOCS_DIR)) {
     return '';
@@ -5312,7 +5330,7 @@ function handleApiAdminSessionHistory(req, res, requestUrl) {
   sendJson(res, 200, {
     ok: true,
     sessionId,
-    items: getSessionMessagesForAdmin(sessionId, requestUrl.searchParams.get('limit')),
+    items: getSessionLogsForAdmin(sessionId, requestUrl.searchParams.get('limit')),
     sessionNote: getSessionNoteForAdmin(sessionId),
     timestamp: new Date().toISOString(),
   });

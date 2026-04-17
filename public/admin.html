@@ -154,6 +154,21 @@
         border: 1px solid var(--line);
       }
 
+      .session-log-entry {
+        padding: 12px;
+        border-radius: 14px;
+        background: #f8fbfe;
+        border: 1px solid var(--line);
+      }
+
+      .session-log-review {
+        display: grid;
+        grid-template-columns: 160px 1fr auto;
+        gap: 10px;
+        margin-top: 10px;
+        align-items: start;
+      }
+
       .session-message.user {
         background: #eef7ff;
       }
@@ -302,6 +317,39 @@
         return role === 'user' ? '사용자' : '챗봇';
       }
 
+      function formatSessionLogEntries(items) {
+        if (!items.length) {
+          return '<div class="muted">저장된 최근 질문/답변 로그가 없습니다.</div>';
+        }
+
+        return items.map((item) => `
+          <article class="session-log-entry" data-log-id="${escapeHtml(item.id)}">
+            <div class="row">
+              <span>${escapeHtml(item.timestamp || '')}</span>
+              <span>유형: ${escapeHtml(item.type || '-')}</span>
+              <span class="badge ${escapeHtml(item.flag || 'normal')}">${escapeHtml(formatFlagLabel(item.flag))}</span>
+            </div>
+            <section class="question">
+              <strong>질문</strong>
+              <div>${escapeHtml(item.question || '')}</div>
+            </section>
+            <section class="answer" style="margin-top: 10px;">
+              <strong>답변</strong>
+              <div>${escapeHtml(item.answerFull || item.answer || '')}</div>
+            </section>
+            <section class="session-log-review">
+              <select class="flag-select">
+                <option value="normal" ${item.flag === 'normal' ? 'selected' : ''}>정상</option>
+                <option value="needs_review" ${item.flag === 'needs_review' ? 'selected' : ''}>수정 필요</option>
+                <option value="important" ${item.flag === 'important' ? 'selected' : ''}>중요</option>
+              </select>
+              <textarea class="note-input" rows="2" placeholder="질문 메모">${escapeHtml(item.note || '')}</textarea>
+              <button type="button" class="session-log-save-button">질문 저장</button>
+            </section>
+          </article>
+        `).join('');
+      }
+
       async function updateFlag(id, card) {
         const flag = card.querySelector('.flag-select').value;
         const note = card.querySelector('.note-input').value;
@@ -366,16 +414,7 @@
           const data = await response.json();
           const items = data.items || [];
           const sessionNote = data.sessionNote || {};
-
-          const historyHtml = items.length ? items.map((item) => `
-            <article class="session-message ${escapeHtml(item.role)}">
-              <div class="session-message-header">
-                <strong>${escapeHtml(formatRoleLabel(item.role))}</strong>
-                <span>${escapeHtml(item.timestamp || '')}</span>
-              </div>
-              <div style="white-space: pre-line; line-height: 1.6;">${escapeHtml(item.content)}</div>
-            </article>
-          `).join('') : '<div class="muted">저장된 최근 대화가 없습니다.</div>';
+          const historyHtml = formatSessionLogEntries(items);
 
           content.innerHTML = `
             <section class="session-review">
@@ -391,6 +430,13 @@
           `;
           content.querySelector('.session-save-button').addEventListener('click', () => {
             updateSessionNote(sessionId, card);
+          });
+          content.querySelectorAll('.session-log-entry').forEach((entry) => {
+            const logId = entry.dataset.logId;
+            const saveButton = entry.querySelector('.session-log-save-button');
+            saveButton.addEventListener('click', () => {
+              updateFlag(logId, entry);
+            });
           });
           section.dataset.loaded = 'true';
         } catch (error) {
