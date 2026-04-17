@@ -2940,6 +2940,86 @@ function findSingleRoomFeeResponse(message) {
   };
 }
 
+function readNonpayDocLines() {
+  if (!CERTIFICATE_FEES_DOC_PATH || !fs.existsSync(CERTIFICATE_FEES_DOC_PATH)) {
+    return [];
+  }
+
+  return fs.readFileSync(CERTIFICATE_FEES_DOC_PATH, 'utf8')
+    .split(/\r?\n/)
+    .map((line) => String(line || '').replace(/\r/g, '').trim())
+    .filter(Boolean);
+}
+
+function findOperationalInferenceResponse(message) {
+  const text = String(message || '').trim();
+  const normalizedMessage = normalizeSearchTextSafe(text);
+  const compactMessage = compactSearchTextSafe(text);
+
+  if (!normalizedMessage) {
+    return null;
+  }
+
+  const asksAvailability = /(가능|되나|되나요|있나|있나요|할 수|먹을 수|신청|되는지)/u.test(text);
+  if (!asksAvailability) {
+    return null;
+  }
+
+  if (/(보호자).{0,8}(식사|식대|밥)/u.test(text)) {
+    const matchedLine = readNonpayDocLines().find((line) => (
+      compactSearchTextSafe(line).includes(compactSearchTextSafe('보호자 식대'))
+    ));
+
+    if (!matchedLine) {
+      return null;
+    }
+
+    const price = extractPriceText(matchedLine);
+
+    return {
+      type: 'operational_inference',
+      answer: price
+        ? `비급여비용 문서에 보호자 식대 ${price}원 항목이 있어 보호자 식사가 제공되거나 신청 가능한 운영일 가능성이 높습니다. 다만 문서에 신청 방법이나 제공 기준이 직접 적혀 있지는 않아 정확한 운영 방식은 병동 또는 대표전화 02-6925-1111로 확인해 주세요.`
+        : '비급여비용 문서에 보호자 식대 항목이 있어 보호자 식사가 제공되거나 신청 가능한 운영일 가능성이 높습니다. 다만 문서에 신청 방법이나 제공 기준이 직접 적혀 있지는 않아 정확한 운영 방식은 병동 또는 대표전화 02-6925-1111로 확인해 주세요.',
+      followUp: [
+        `문서 근거: ${matchedLine}`,
+        '이 답변은 문서의 간접 근거를 바탕으로 한 추정입니다.',
+        '정확한 신청 방법이나 제공 기준은 병동 또는 대표전화 02-6925-1111로 확인해 주세요.',
+      ],
+      sources: [{
+        title: '기타-비급여비용',
+        url: `local://docs/${encodeURIComponent(path.basename(CERTIFICATE_FEES_DOC_PATH || '기타-비급여비용.txt'))}`,
+      }],
+    };
+  }
+
+  const matchedEntry = (runtimeData.nonpayItemEntries || []).find((entry) => (
+    (entry.aliases || []).some((alias) => {
+      const normalizedAlias = normalizeSearchTextSafe(alias);
+      const compactAlias = compactSearchTextSafe(alias);
+      return normalizedMessage.includes(normalizedAlias) || compactMessage.includes(compactAlias);
+    })
+  ));
+
+  if (!matchedEntry) {
+    return null;
+  }
+
+  return {
+    type: 'operational_inference',
+    answer: `비급여비용 문서에 ${matchedEntry.title} 비용 항목이 있어 해당 서비스는 운영 중일 가능성이 높습니다. 다만 이용 기준이나 적용 대상은 문서에 직접 정리돼 있지 않을 수 있어 정확한 운영 방식은 대표전화 02-6925-1111로 확인해 주세요.`,
+    followUp: [
+      `문서 근거: ${matchedEntry.line}`,
+      '이 답변은 문서의 간접 근거를 바탕으로 한 추정입니다.',
+      `비급여 안내 페이지: ${NONPAY_PAGE_URL}`,
+    ],
+    sources: [{
+      title: '기타-비급여비용',
+      url: `local://docs/${encodeURIComponent(path.basename(CERTIFICATE_FEES_DOC_PATH || '기타-비급여비용.txt'))}`,
+    }],
+  };
+}
+
 function buildFaqDocuments(entries) {
   return entries.map((entry) => {
     const sourceInfo = getFaqSourceInfo(entry);
@@ -4489,6 +4569,11 @@ async function buildChatResponse(rawMessage, sessionId) {
     };
     setCachedResponse(retrievalMessage, simplifiedFaqResponse);
     return simplifiedFaqResponse;
+  }
+
+  const operationalInferenceResponse = findOperationalInferenceResponse(retrievalMessage);
+  if (operationalInferenceResponse) {
+    return enrichResponsePayload(operationalInferenceResponse, message);
   }
 
   if (!OPENAI_API_KEY) {
