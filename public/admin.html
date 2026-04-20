@@ -317,6 +317,109 @@
         return role === 'user' ? '사용자' : '챗봇';
       }
 
+      function normalizeUiSearchText(value) {
+        return String(value || '')
+          .normalize('NFKC')
+          .toLowerCase()
+          .replace(/[^\p{L}\p{N}]+/gu, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+      }
+
+      function compactUiSearchText(value) {
+        return normalizeUiSearchText(value).replace(/\s+/g, '');
+      }
+
+      function isLikelyFollowUpQuestion(question) {
+        const current = String(question || '').trim();
+        if (!current) return false;
+
+        const normalized = normalizeUiSearchText(current);
+        const compact = compactUiSearchText(current);
+        const tokenCount = normalized ? normalized.split(' ').filter(Boolean).length : 0;
+        const explicitFollowUp = /^(그럼|그러면|그건|그거|그거는|그건요|그럼요|그 다음|그다음|그 후|그후|그리고|또는요|그럼 검사는|그럼 비용은)/u.test(current);
+        const carryOverCue = /^(입원 전은?|입원전은?|수술 후는?|수술후는?|퇴원 후는?|퇴원후는?|일반은요?|방법은요?|비용은요?|시간은요?|검사는요?|준비물은요?|서류는요?|언제부터|언제부터요|어떻게 해|어떻게해|어케|몇 번|몇번)/u.test(current);
+        const shortSuffixCue = current.length <= 14 && /(은요|는요|도요)\??$/u.test(current);
+        const compactCue = ['입원전', '수술후', '퇴원후', '일반은', '검사는', '비용은', '시간은', '방법은'].some((term) => compact === compactUiSearchText(term) || compact.startsWith(compactUiSearchText(term)));
+        const standaloneTopic = /(진료|예약|접수|의사|원장|의료진|주차|입원|퇴원|수술|서류|비용|금액|검사|코세척|약물|진단서)/u.test(current);
+
+        return explicitFollowUp
+          || carryOverCue
+          || shortSuffixCue
+          || compactCue
+          || ((current.length <= 24 || tokenCount <= 5) && !standaloneTopic && /(언제|어떻게|몇번|몇 번|뭐|무엇|종류|방법|가능|되나|되나요|있나요|얼마)$/u.test(current));
+      }
+
+      function getFlagPriority(flag) {
+        if (flag === 'important') return 2;
+        if (flag === 'needs_review') return 1;
+        return 0;
+      }
+
+      function groupSessionLogItems(items) {
+        const sorted = [...(items || [])].sort((a, b) => {
+          const timeDiff = new Date(a.timestamp || 0).getTime() - new Date(b.timestamp || 0).getTime();
+          if (timeDiff !== 0) return timeDiff;
+          return String(a.id || '').localeCompare(String(b.id || ''));
+        });
+
+        const groups = [];
+        let currentGroup = null;
+        let previousTimestamp = 0;
+
+        sorted.forEach((item) => {
+          const currentTimestamp = new Date(item.timestamp || 0).getTime();
+          const hasLargeGap = previousTimestamp && currentTimestamp && (currentTimestamp - previousTimestamp > 30 * 60 * 1000);
+          const shouldStartNewGroup = !currentGroup || hasLargeGap || !isLikelyFollowUpQuestion(item.question);
+
+          if (shouldStartNewGroup) {
+            currentGroup = {
+              id: item.id,
+              sessionId: item.sessionId || '',
+              head: item,
+              items: [item],
+            };
+            groups.push(currentGroup);
+          } else {
+            currentGroup.items.push(item);
+          }
+
+          previousTimestamp = currentTimestamp || previousTimestamp;
+        });
+
+        return groups.map((group) => {
+          const strongestFlagItem = [...group.items].sort((a, b) => getFlagPriority(b.flag) - getFlagPriority(a.flag))[0] || group.head;
+          const latestItem = group.items[group.items.length - 1] || group.head;
+          return {
+            id: group.head.id,
+            sessionId: group.sessionId,
+            head: group.head,
+            items: group.items,
+            latestTimestamp: latestItem.timestamp || group.head.timestamp,
+            followUpCount: Math.max(group.items.length - 1, 0),
+            displayFlag: strongestFlagItem.flag || group.head.flag || 'normal',
+          };
+        }).sort((a, b) => {
+          const timeDiff = new Date(b.latestTimestamp || 0).getTime() - new Date(a.latestTimestamp || 0).getTime();
+          if (timeDiff !== 0) return timeDiff;
+          return String(b.id || '').localeCompare(String(a.id || ''));
+        });
+      }
+
+      function groupLogsForDisplay(items) {
+        const bySession = new Map();
+        (items || []).forEach((item) => {
+          const sessionId = String(item.sessionId || '');
+          const key = sessionId || `single:${item.id}`;
+          if (!bySession.has(key)) {
+            bySession.set(key, []);
+          }
+          bySession.get(key).push(item);
+        });
+
+        return [...bySession.values()].flatMap((sessionItems) => groupSessionLogItems(sessionItems));
+      }
+
       function formatSessionLogEntries(items) {
         if (!items.length) {
           return '<div class="muted">저장된 최근 질문/답변 로그가 없습니다.</div>';
@@ -388,6 +491,7 @@
         const section = card.querySelector('.session-history');
         const content = card.querySelector('.session-history-list');
         const button = card.querySelector('.history-button');
+        const representativeId = card.dataset.groupId;
 
         if (!sessionId) {
           alert('세션 정보가 없습니다.');
@@ -414,7 +518,9 @@
           const data = await response.json();
           const items = data.items || [];
           const sessionNote = data.sessionNote || {};
-          const historyHtml = formatSessionLogEntries(items);
+          const groups = groupSessionLogItems(items);
+          const targetGroup = groups.find((group) => String(group.id) === String(representativeId)) || groups[0];
+          const historyHtml = formatSessionLogEntries(targetGroup ? targetGroup.items : []);
 
           content.innerHTML = `
             <section class="session-review">
@@ -445,20 +551,24 @@
       }
 
       function renderLogs(items, total) {
-        stats.textContent = `전체 로그 ${total}건 중 최근 ${items.length}건 표시`;
+        const groupedItems = groupLogsForDisplay(items);
+        stats.textContent = `전체 로그 ${total}건 중 대표 질문 ${groupedItems.length}건 표시`;
 
-        if (!items.length) {
+        if (!groupedItems.length) {
           logList.innerHTML = '<section class="card">조건에 맞는 로그가 없습니다.</section>';
           return;
         }
 
-        logList.innerHTML = items.map((item) => `
-          <article class="card" data-id="${escapeHtml(item.id)}">
+        logList.innerHTML = groupedItems.map((group) => {
+          const item = group.head;
+          return `
+          <article class="card" data-id="${escapeHtml(item.id)}" data-group-id="${escapeHtml(group.id)}">
             <div class="row">
-              <span>${escapeHtml(item.timestamp)}</span>
+              <span>${escapeHtml(group.latestTimestamp || item.timestamp)}</span>
               <span>세션: ${escapeHtml(item.sessionId || '-')}</span>
               <span>유형: ${escapeHtml(item.type || '-')}</span>
-              <span class="badge ${escapeHtml(item.flag || 'normal')}">${escapeHtml(formatFlagLabel(item.flag))}</span>
+              <span class="badge ${escapeHtml(group.displayFlag || 'normal')}">${escapeHtml(formatFlagLabel(group.displayFlag))}</span>
+              <span>후속 ${escapeHtml(group.followUpCount)}건</span>
             </div>
 
             <section class="question">
@@ -497,13 +607,14 @@
               <button type="button" class="save-button">저장</button>
             </section>
           </article>
-        `).join('');
+        `;
+        }).join('');
 
         document.querySelectorAll('.card').forEach((card) => {
           const id = card.dataset.id;
           const saveButton = card.querySelector('.save-button');
           const historyButton = card.querySelector('.history-button');
-          const sessionId = items.find((item) => item.id === id)?.sessionId || '';
+          const sessionId = groupedItems.find((group) => group.id === id)?.sessionId || '';
           saveButton.addEventListener('click', () => {
             updateFlag(id, card);
           });
