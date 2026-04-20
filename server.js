@@ -29,10 +29,16 @@ const CHAT_LOGS_DB_PATH = path.join(PERSISTENT_DATA_DIR, 'chat-logs.db');
 const DOCS_DIR = path.join(__dirname, 'docs');
 const DOCTOR_LIST_DOC_FILENAME = '외래-의료진 명단.txt';
 const DOCTOR_INFO_DOC_FILENAME = '홈페이지-의료진 정보.txt';
+const DOCTOR_SPECIALTY_DOC_PATH = path.join(DOCS_DIR, DOCTOR_INFO_DOC_FILENAME);
 const DOCTOR_SYNC_SCRIPT_PATH = path.join(__dirname, 'scripts', 'sync_doctor_schedule_faq.js');
 const FLOOR_GUIDE_DOC_PATH = path.join(DOCS_DIR, '기타-층별안내도.txt');
 const CERTIFICATE_FEES_DOC_PATH = findDocPathByKeyword('비급여비용');
 const YOUTUBE_LINKS_PATH = path.join(DOCS_DIR, '유튜브-링크.txt');
+const DOCTOR_NAME_FALLBACK_LIST = [
+  '동헌종', '이상덕', '정도광', '문순범', '주형로', '강선우', '강정우',
+  '김태현', '정지은', '김종세', '최홍익', '김병국', '이영미', '강매영',
+  '문보경', '이용배',
+];
 
 const siteSources = JSON.parse(fs.readFileSync(SITE_SOURCES_PATH, 'utf8'));
 const imageGuides = fs.existsSync(IMAGE_GUIDES_PATH)
@@ -427,6 +433,8 @@ function createRuntimeData() {
     nonpayItemEntries: buildNonpayItemEntries(),
     floorGuideIndex: buildFloorGuideIndex(),
     homepageDiseaseTerms: buildHomepageDiseaseTerms(localDocuments),
+    doctorSpecialtyEntries: buildDoctorSpecialtyEntries(),
+    doctorNames: extractDoctorNamesFromText(fs.existsSync(DOCTOR_SPECIALTY_DOC_PATH) ? fs.readFileSync(DOCTOR_SPECIALTY_DOC_PATH, 'utf8') : ''),
     youtubeLinks: loadYoutubeLinks(),
   };
 }
@@ -2800,6 +2808,107 @@ function buildExpandedSearchState(text) {
   };
 }
 
+function buildDoctorSpecialtyKeywordConfigs() {
+  return [
+    ...HOMEPAGE_SURGERY_DOC_CONFIGS.map((config) => ({
+      label: config.disease,
+      aliases: config.aliases,
+    })),
+    { label: '난청', aliases: ['난청', '청력저하', '청력', '보청기'] },
+    { label: '이명', aliases: ['이명'] },
+    { label: '어지러움', aliases: ['어지러움', '어지럼증', '현훈'] },
+    { label: '중이염', aliases: ['중이염', '소아중이염', '만성중이염'] },
+    { label: '목의 혹', aliases: ['목의 혹', '목혹', '목 멍울', '경부종물'] },
+    { label: '후각장애', aliases: ['후각장애', '냄새', '후각'] },
+    { label: '코골이/수면무호흡', aliases: ['코골이', '수면무호흡', '수면무호흡증'] },
+    { label: '갑상선', aliases: ['갑상선'] },
+    { label: '침샘', aliases: ['침샘', '이하선', '악하선'] },
+  ];
+}
+
+function extractDoctorNamesFromText(text) {
+  const value = String(text || '');
+  if (!value) {
+    return [...DOCTOR_NAME_FALLBACK_LIST];
+  }
+
+  const names = new Set();
+  const lines = value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  const titlePattern = /(대표원장|원장|부원장|과장|부장|센터장|전문의)/u;
+  const inlineNamePattern = /([가-힣]{2,4})\s*(대표원장|원장|부원장|과장|부장|센터장|전문의)/gu;
+
+  lines.forEach((line, index) => {
+    for (const match of line.matchAll(inlineNamePattern)) {
+      if (match[1]) {
+        names.add(match[1]);
+      }
+    }
+
+    if (/^[가-힣]{2,4}$/u.test(line)) {
+      const nextLines = lines.slice(index + 1, index + 3).join(' ');
+      if (titlePattern.test(nextLines)) {
+        names.add(line);
+      }
+    }
+  });
+
+  DOCTOR_NAME_FALLBACK_LIST.forEach((name) => {
+    if (value.includes(name)) {
+      names.add(name);
+    }
+  });
+
+  return [...names];
+}
+
+function buildDoctorSpecialtyEntries() {
+  if (!fs.existsSync(DOCTOR_SPECIALTY_DOC_PATH)) {
+    return [];
+  }
+
+  const text = fs.readFileSync(DOCTOR_SPECIALTY_DOC_PATH, 'utf8');
+  const specialtyConfigs = buildDoctorSpecialtyKeywordConfigs();
+  const doctorNames = extractDoctorNamesFromText(text);
+  const entries = [];
+
+  doctorNames.forEach((doctorName, index) => {
+    const startIndex = text.indexOf(doctorName);
+    if (startIndex < 0) {
+      return;
+    }
+
+    const nextDoctorIndex = doctorNames
+      .slice(index + 1)
+      .map((name) => text.indexOf(name, startIndex + doctorName.length))
+      .filter((value) => value > startIndex)
+      .sort((a, b) => a - b)[0] || text.length;
+
+    const block = text.slice(startIndex, nextDoctorIndex);
+    const specialtyLine = block
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .find((line) => line.includes('전문분야'));
+
+    const specialtyText = specialtyLine
+      ? specialtyLine.replace(/^.*전문분야\s*/u, '').trim()
+      : '';
+    const normalizedSpecialty = normalizeSearchTextSafe(specialtyText);
+
+    const matchedLabels = specialtyConfigs
+      .filter((config) => config.aliases.some((alias) => normalizedSpecialty.includes(normalizeSearchTextSafe(alias))))
+      .map((config) => config.label);
+
+    entries.push({
+      doctorName,
+      specialtyText,
+      labels: [...new Set(matchedLabels)],
+      normalizedSpecialty,
+    });
+  });
+
+  return entries.filter((entry) => entry.specialtyText);
+}
+
 function extractPriceText(line) {
   const amountMatches = String(line || '').match(/\d{1,3}(?:,\d{3})+/g) || [];
   return amountMatches[0] || '';
@@ -4165,6 +4274,52 @@ function detectGuidedFlowStart(message) {
   return null;
 }
 
+function isDoctorSpecialtyQuestion(message) {
+  const text = String(message || '').trim();
+  if (!text) {
+    return false;
+  }
+
+  return /(의사|의료진|원장|전문의)/u.test(text)
+    && /(누구|누가|알려|어디|진료|보는|봐주는|전문|잘 봐|잘봐)/u.test(text);
+}
+
+function findDoctorSpecialtyResponse(message) {
+  if (!isDoctorSpecialtyQuestion(message)) {
+    return null;
+  }
+
+  const expandedState = buildExpandedSearchState(message);
+  const matchedEntries = (runtimeData.doctorSpecialtyEntries || []).filter((entry) => (
+    (entry.labels || []).some((label) => expandedState.normalizedVariants.some((variant) => (
+      variant.includes(normalizeSearchTextSafe(label)) || normalizeSearchTextSafe(label).includes(variant)
+    )))
+  ));
+
+  if (!matchedEntries.length) {
+    return null;
+  }
+
+  const doctorNames = matchedEntries.map((entry) => entry.doctorName);
+  const uniqueDoctors = [...new Set(doctorNames)];
+  const summary = matchedEntries
+    .map((entry) => `${entry.doctorName}: ${entry.specialtyText}`)
+    .join('\n');
+
+  return {
+    type: 'doctor_specialty',
+    answer: `관련 전문분야 기준으로 안내드리면 ${uniqueDoctors.join(', ')} 의료진이 있습니다.`,
+    followUp: [
+      '진료 일정은 의료진별 외래 스케줄에 따라 달라질 수 있습니다.',
+      `전문분야 참고: ${summary}`,
+    ],
+    sources: [{
+      title: '홈페이지-의료진 정보',
+      url: 'local://docs/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-%EC%9D%98%EB%A3%8C%EC%A7%84%20%EC%A0%95%EB%B3%B4.txt',
+    }],
+  };
+}
+
 function resolveGuidedFlowMessage(message, state) {
   if (!state || !state.topic) {
     return { resolved: false };
@@ -4411,6 +4566,10 @@ function classifyUserIntent(message) {
     return { type: 'floor_guide' };
   }
 
+  if (findDoctorSpecialtyResponse(text)) {
+    return { type: 'doctor_specialty' };
+  }
+
   if (normalized.includes('예약') || normalized.includes('접수')) {
     return { type: 'reservation_or_reception' };
   }
@@ -4480,6 +4639,8 @@ function resolveIntentResponse(intentType, message) {
       return createComplaintGuideResponse();
     case 'floor_guide':
       return findFloorGuideResponse(message);
+    case 'doctor_specialty':
+      return findDoctorSpecialtyResponse(message);
     default:
       return null;
   }
@@ -4571,6 +4732,14 @@ function extractDoctorName(text) {
   const value = String(text || '');
   if (!value) {
     return '';
+  }
+
+  const parsedDoctorNames = Array.isArray(runtimeData?.doctorNames) && runtimeData.doctorNames.length > 0
+    ? runtimeData.doctorNames
+    : DOCTOR_NAME_FALLBACK_LIST;
+  const matchedParsedDoctorName = parsedDoctorNames.find((name) => value.includes(name));
+  if (matchedParsedDoctorName) {
+    return matchedParsedDoctorName;
   }
 
   const doctorNames = [
