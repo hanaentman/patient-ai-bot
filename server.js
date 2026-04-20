@@ -2690,6 +2690,67 @@ function compactSearchTextSafe(text) {
   return normalizeSearchTextSafe(text).replace(/\s+/g, '');
 }
 
+function buildIntentProbeMessage(text) {
+  const value = String(text || '').trim();
+  if (!value) {
+    return '';
+  }
+
+  const compact = compactSearchTextSafe(value);
+  const hints = new Set();
+
+  if (/(비용|금액|가격|얼마|얼만가|얼만지|얼마나와|얼마예요|얼마인가요)/u.test(value)) {
+    hints.add('비용');
+    hints.add('금액');
+  }
+
+  if (
+    /(뭐있|뭐가있|뭐있나|뭐있어|무슨검사|어떤검사|종류|항목)/u.test(value)
+    || /(검사뭐|검사종류|서류종류|수술종류)/u.test(compact)
+  ) {
+    hints.add('종류');
+    hints.add('안내');
+  }
+
+  if (/수술후|퇴원후/u.test(compact)) {
+    hints.add('수술 후');
+  }
+
+  if (/입원전/u.test(compact)) {
+    hints.add('입원 전');
+  }
+
+  if (/진료시/u.test(compact)) {
+    hints.add('진료 시');
+  }
+
+  if (/서류어떻게|영수증어떻게|발급어떻게|발급방법|어케받|어떻게받/u.test(compact)) {
+    hints.add('발급 방법');
+  }
+
+  if (compact.includes('코세척')) {
+    hints.add('코세척');
+  }
+
+  if (compact.includes('수술후코세척') || compact.includes('수술후는') || compact.includes('퇴원후코세척')) {
+    hints.add('수술 후 코세척');
+  }
+
+  if (compact.includes('일반코세척') || compact === '일반은' || compact === '일반은요') {
+    hints.add('일반 코세척');
+  }
+
+  if (compact.includes('검사뭐') || compact.includes('검사종류')) {
+    hints.add('검사 종류');
+  }
+
+  if (hints.size === 0) {
+    return value;
+  }
+
+  return `${value}\n검색 보강: ${[...hints].join(', ')}`;
+}
+
 function tokenizeSafe(text) {
   return normalizeSearchTextSafe(text)
     .split(' ')
@@ -4560,6 +4621,47 @@ function buildDoctorContextualUserMessage(message, history) {
   return `${doctorName} ${current}`;
 }
 
+function buildFollowUpBridgeMessage(message, history) {
+  const current = String(message || '').trim();
+  if (!current || !Array.isArray(history) || history.length === 0) {
+    return current;
+  }
+
+  const normalized = normalizeSearchTextSafe(current);
+  const compact = compactSearchTextSafe(current);
+  const tokenCount = tokenizeSafe(normalized).length;
+  const hasStandaloneTopic = /(진료|예약|접수|의사|원장|의료진|주차|입원|퇴원|수술|서류|비용|금액|검사|코세척|약물|진단서)/u.test(current);
+  const hasFollowUpCue = (
+    /^(그럼|그러면|그건|그거|그거는|그건요|그럼요|그 다음|그다음|그 후|그후|입원 전은?|입원전은?|수술 후는?|수술후는?|퇴원 후는?|퇴원후는?|일반은요?|방법은요?|비용은요?|시간은요?|검사는요?|준비물은요?|서류는요?|언제부터|언제부터요|어떻게 해|어떻게해|어케|몇 번|몇번)/u.test(current)
+    || (current.length <= 14 && /(은요|는요|도요)\??$/u.test(current))
+    || ['입원전', '수술후', '퇴원후', '일반은', '검사는', '비용은', '시간은', '방법은'].some((term) => compact === compactSearchTextSafe(term) || compact.startsWith(compactSearchTextSafe(term)))
+  );
+  const needsBridge = hasFollowUpCue || (
+    (current.length <= 24 || tokenCount <= 5)
+    && !hasStandaloneTopic
+    && /(언제|어떻게|몇번|몇 번|뭐|무엇|종류|방법|가능|되나|되나요|있나요|얼마)$/u.test(current)
+  );
+
+  if (!needsBridge) {
+    return current;
+  }
+
+  const anchor = [...history]
+    .reverse()
+    .map((item) => item?.role === 'user' && item.content ? String(item.content).trim() : '')
+    .find((content) => (
+      content
+      && normalizeSearchTextSafe(content) !== normalized
+      && (content.length > 8 || tokenizeSafe(content).length >= 3)
+    ));
+
+  if (!anchor) {
+    return current;
+  }
+
+  return `${anchor}\n후속 질문: ${current}`;
+}
+
 function isEnglishDominantText(text) {
   const value = String(text || '');
   const latinMatches = value.match(/[A-Za-z]/g) || [];
@@ -5043,7 +5145,7 @@ async function buildChatResponse(rawMessage, sessionId) {
   const conversationState = getConversationState(sessionId);
   const history = getSessionHistory(sessionId);
   let effectiveMessage = message;
-  const rawIntent = classifyUserIntent(message);
+  const rawIntent = classifyUserIntent(buildIntentProbeMessage(message));
 
   if (!message) {
     return enrichResponsePayload(createWelcomeResponse(), message);
@@ -5077,7 +5179,9 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   effectiveMessage = buildContextualUserMessage(effectiveMessage, history);
   effectiveMessage = buildDoctorContextualUserMessage(effectiveMessage, history);
-  const retrievalMessage = await buildKoreanRetrievalQuery(effectiveMessage, history);
+  effectiveMessage = buildFollowUpBridgeMessage(effectiveMessage, history);
+  const intentProbeMessage = buildIntentProbeMessage(effectiveMessage);
+  const retrievalMessage = await buildKoreanRetrievalQuery(intentProbeMessage, history);
   const intent = classifyUserIntent(retrievalMessage);
 
   const intentResponse = resolveIntentResponse(intent.type, retrievalMessage);
