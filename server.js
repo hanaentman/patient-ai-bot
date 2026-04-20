@@ -2298,6 +2298,25 @@ function findPostOpCareResponse(message) {
   return null;
 }
 
+function createNasalIrrigationResponse(mode = 'general') {
+  const isSurgery = mode === 'surgery';
+
+  return {
+    type: isSurgery ? 'nasal_irrigation_surgery' : 'nasal_irrigation_general',
+    answer: isSurgery
+      ? '수술 후 코세척 안내드립니다. 문서 기준으로 세척기구와 생리식염수 분말은 일반 약국에서 처방전 없이 구매할 수 있습니다. 미지근한 물에 세척분말을 섞어 사용하고, 코 입구에 노즐을 댄 뒤 아 소리를 내면서 천천히 세척해 주세요. 수술 후에는 코로 나오는 물을 절대 세게 풀지 말고 닦아주는 정도로만 하시는 것이 좋습니다. 코를 세게 건드리거나 무리하게 풀면 출혈이나 상처 자극이 생길 수 있습니다. 세척 시작 시기는 빠르면 퇴원 당일 저녁부터, 보통은 수술 후 3일부터 안내되며 의료진 지시가 있으면 그 일정에 맞춰 주세요.'
+      : '일반 코세척 안내드립니다. 문서 기준으로 세척기구와 생리식염수 분말은 일반 약국에서 처방전 없이 구매할 수 있습니다. 미지근한 물에 세척분말을 섞어 사용하고, 코 입구에 노즐을 댄 뒤 아 소리를 내면서 천천히 세척해 주세요. 코로 나오는 물은 풀고 입으로 나오는 물은 뱉어도 됩니다. 세척기를 너무 세게 누르면 귀 통증이나 두통이 생길 수 있어 천천히 하는 것이 좋고, 불편하면 더 천천히 진행해 주세요. 보통 하루 2회 정도 규칙적으로 하는 방식으로 안내됩니다.',
+    followUp: isSurgery
+      ? ['출혈이 있거나 통증이 심하면 02-6925-1111로 바로 문의해 주세요.']
+      : ['불편감이 심하거나 방법이 헷갈리면 진료실이나 대표전화 02-6925-1111로 문의해 주세요.'],
+    sources: [{
+      title: '외래-코세척 방법',
+      url: 'local://docs/%EC%99%B8%EB%9E%98-%EC%BD%94%EC%84%B8%EC%B2%99%20%EB%B0%A9%EB%B2%95.txt',
+    }],
+    images: findRelevantImages(isSurgery ? '수술 후 코세척' : '일반 코세척'),
+  };
+}
+
 function createComplaintGuideResponse() {
   return {
     type: 'complaint_guide',
@@ -4243,6 +4262,14 @@ function classifyUserIntent(message) {
     return { type: 'postop_bleeding' };
   }
 
+  if (isNasalIrrigationQuestion(text) && matchesAnyPattern(text, NASAL_IRRIGATION_SURGERY_PATTERNS)) {
+    return { type: 'nasal_irrigation_surgery' };
+  }
+
+  if (isNasalIrrigationQuestion(text) && matchesAnyPattern(text, NASAL_IRRIGATION_GENERAL_PATTERNS)) {
+    return { type: 'nasal_irrigation_general' };
+  }
+
   if (matchesAnyPattern(text, postOpCarePatterns)) {
     return { type: 'postop_care' };
   }
@@ -4348,6 +4375,10 @@ function resolveIntentResponse(intentType, message) {
       return createMedicationStopResponse();
     case 'postop_bleeding':
       return createPostOpBleedingResponse();
+    case 'nasal_irrigation_surgery':
+      return createNasalIrrigationResponse('surgery');
+    case 'nasal_irrigation_general':
+      return createNasalIrrigationResponse('general');
     case 'postop_care':
       return findPostOpCareResponse(message);
     case 'homepage_surgery_cost':
