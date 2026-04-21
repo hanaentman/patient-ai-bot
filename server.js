@@ -4664,6 +4664,19 @@ function resolveIntentResponse(intentType, message) {
   }
 }
 
+function isDoctorSpecialtyQuestion(message) {
+  const text = String(message || '').trim();
+  if (!text) {
+    return false;
+  }
+
+  const hasDoctorCue = /(의사|의료진|원장|부원장|과장|부장|전문의)/u.test(text) || Boolean(extractDoctorName(text));
+  const hasSpecialtyCue = /(전문분야|전문 분야|전문|분야|무슨 진료|어떤 진료|뭐 봐|뭐봐|뭐야|알려줘|알려주세요|궁금)/u.test(text);
+  const hasDiseaseDoctorCue = /(진료 보는 의사|진료보는 의사|보는 의사|누가 있어|누구 있어|누가 있나요|누구 있나요|잘 보는 의사|잘봐주는 의사)/u.test(text);
+
+  return (hasDoctorCue && hasSpecialtyCue) || hasDiseaseDoctorCue;
+}
+
 function getSessionHistory(sessionId) {
   if (!sessionId) {
     return [];
