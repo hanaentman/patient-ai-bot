@@ -4289,6 +4289,24 @@ function findDoctorSpecialtyResponse(message) {
     return null;
   }
 
+  const doctorName = extractDoctorName(message);
+  if (doctorName) {
+    const doctorEntry = (runtimeData.doctorSpecialtyEntries || []).find((entry) => entry.doctorName === doctorName);
+    if (doctorEntry) {
+      return {
+        type: 'doctor_specialty',
+        answer: `${doctorName} 의료진의 전문분야는 ${doctorEntry.specialtyText} 입니다.`,
+        followUp: [
+          '진료 일정은 의료진별 외래 스케줄에 따라 달라질 수 있습니다.',
+        ],
+        sources: [{
+          title: '홈페이지-의료진 정보',
+          url: 'local://docs/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-%EC%9D%98%EB%A3%8C%EC%A7%84%20%EC%A0%95%EB%B3%B4.txt',
+        }],
+      };
+    }
+  }
+
   const expandedState = buildExpandedSearchState(message);
   const matchedEntries = (runtimeData.doctorSpecialtyEntries || []).filter((entry) => (
     (entry.labels || []).some((label) => expandedState.normalizedVariants.some((variant) => (
