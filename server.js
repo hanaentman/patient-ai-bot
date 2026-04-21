@@ -1917,6 +1917,42 @@ function findDirectFaqMatch(message) {
   };
 }
 
+function getFaqResponseByCategory(category) {
+  const entry = (runtimeData?.faqEntries || []).find((item) => item.category === category);
+  if (!entry) {
+    return null;
+  }
+
+  const sourceInfo = getFaqSourceInfo(entry);
+  return {
+    type: 'faq',
+    answer: entry.answer,
+    followUp: entry.followUp || [],
+    sources: [{
+      title: sourceInfo.title,
+      url: sourceInfo.url,
+    }],
+  };
+}
+
+function findDoctorOverviewResponse(message) {
+  const text = String(message || '').trim();
+  if (!text) {
+    return null;
+  }
+
+  const isDoctorOverviewQuestion = (
+    /(의사|의료진|원장)/u.test(text)
+    && /(소개|알려|누가 있어|누구 있어|전체|목록)/u.test(text)
+  );
+
+  if (!isDoctorOverviewQuestion) {
+    return null;
+  }
+
+  return getFaqResponseByCategory('doctors_overview');
+}
+
 function createRestrictedMedicalResponse() {
   return {
     type: 'restricted',
@@ -5387,6 +5423,11 @@ async function buildChatResponse(rawMessage, sessionId) {
   const intentResponse = resolveIntentResponse(intent.type, retrievalMessage);
   if (intentResponse) {
     return enrichResponsePayload(intentResponse, message);
+  }
+
+  const doctorOverviewResponse = findDoctorOverviewResponse(retrievalMessage);
+  if (doctorOverviewResponse) {
+    return enrichResponsePayload(doctorOverviewResponse, message);
   }
 
   const smallTalkIntent = getSmallTalkIntent(retrievalMessage);
