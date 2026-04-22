@@ -20,6 +20,21 @@
     "updatedAt": 1776383246672
   },
   {
+    "question": "홈페이지에서 예약할 수 있어?",
+    "count": 2,
+    "updatedAt": 1776832443974
+  },
+  {
+    "question": "의사 소개해줘",
+    "count": 2,
+    "updatedAt": 1776832443958
+  },
+  {
+    "question": "이상덕 전문분야 뭐야",
+    "count": 2,
+    "updatedAt": 1776832443897
+  },
+  {
     "question": "1인실 비용 알려줘",
     "count": 2,
     "updatedAt": 1776395206150
@@ -38,6 +53,16 @@
     "question": "편도수술 얼마야?",
     "count": 2,
     "updatedAt": 1776382791849
+  },
+  {
+    "question": "비염 진료 보는 의사 알려줘",
+    "count": 1,
+    "updatedAt": 1776832443942
+  },
+  {
+    "question": "정도광 원장 전문분야는?",
+    "count": 1,
+    "updatedAt": 1776832443926
   },
   {
     "question": "갑상선 수술 후 주의사항",

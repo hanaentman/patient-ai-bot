@@ -2891,21 +2891,25 @@ function extractDoctorNamesFromText(text) {
   }
 
   const names = new Set();
-  const lines = value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
   const titlePattern = /(대표원장|원장|부원장|과장|부장|센터장|전문의)/u;
   const inlineNamePattern = /([가-힣]{2,4})\s*(대표원장|원장|부원장|과장|부장|센터장|전문의)/gu;
+  const blocks = value
+    .split(/\r?\n\s*\r?\n+/)
+    .map((block) => block.split(/\r?\n/).map((line) => line.trim()).filter(Boolean))
+    .filter((lines) => lines.length > 0);
 
-  lines.forEach((line, index) => {
-    for (const match of line.matchAll(inlineNamePattern)) {
-      if (match[1]) {
-        names.add(match[1]);
-      }
+  blocks.forEach((lines) => {
+    const [firstLine = '', secondLine = ''] = lines;
+
+    if (/^[가-힣]{2,4}$/u.test(firstLine) && titlePattern.test(secondLine)) {
+      names.add(firstLine);
+      return;
     }
 
-    if (/^[가-힣]{2,4}$/u.test(line)) {
-      const nextLines = lines.slice(index + 1, index + 3).join(' ');
-      if (titlePattern.test(nextLines)) {
-        names.add(line);
+    const header = lines.slice(0, 2).join(' ');
+    for (const match of header.matchAll(inlineNamePattern)) {
+      if (match[1]) {
+        names.add(match[1]);
       }
     }
   });
@@ -4382,7 +4386,10 @@ function findDoctorSpecialtyResponse(message) {
 
   const doctorName = extractDoctorName(message);
   if (doctorName) {
-    const doctorEntry = (runtimeData.doctorSpecialtyEntries || []).find((entry) => entry.doctorName === doctorName);
+    const doctorEntries = (runtimeData.doctorSpecialtyEntries || []).length > 0
+      ? runtimeData.doctorSpecialtyEntries
+      : buildDoctorSpecialtyEntries();
+    const doctorEntry = doctorEntries.find((entry) => entry.doctorName === doctorName);
     if (doctorEntry) {
       return {
         type: 'doctor_specialty',
@@ -4399,7 +4406,10 @@ function findDoctorSpecialtyResponse(message) {
   }
 
   const expandedState = buildExpandedSearchState(message);
-  const matchedEntries = (runtimeData.doctorSpecialtyEntries || []).filter((entry) => (
+  const doctorEntries = (runtimeData.doctorSpecialtyEntries || []).length > 0
+    ? runtimeData.doctorSpecialtyEntries
+    : buildDoctorSpecialtyEntries();
+  const matchedEntries = doctorEntries.filter((entry) => (
     (entry.labels || []).some((label) => expandedState.normalizedVariants.some((variant) => (
       variant.includes(normalizeSearchTextSafe(label)) || normalizeSearchTextSafe(label).includes(variant)
     )))
@@ -5444,6 +5454,20 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   if (!message) {
     return enrichResponsePayload(createWelcomeResponse(), message);
+  }
+
+  const directDoctorSpecialtyResponse = findDoctorSpecialtyResponse(message);
+  if (directDoctorSpecialtyResponse) {
+    return enrichResponsePayload(directDoctorSpecialtyResponse, message);
+  }
+
+  const directDoctorOverviewResponse = findDoctorOverviewResponse(message);
+  if (directDoctorOverviewResponse) {
+    return enrichResponsePayload(directDoctorOverviewResponse, message);
+  }
+
+  if (/(예약|접수)/u.test(message) && rawIntent.type === 'reservation_or_reception') {
+    return enrichResponsePayload(createReservationOrReceptionResponse(), message);
   }
 
   if (conversationState) {
