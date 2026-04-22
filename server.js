@@ -2012,6 +2012,28 @@ function createApiKeyMissingResponse() {
   };
 }
 
+function createReservationOrReceptionResponse() {
+  return {
+    type: 'reservation_or_reception',
+    answer: '문서 기준으로 예약은 방문 예약, 온라인 예약, 전화 예약이 가능합니다. 온라인 예약은 병원 홈페이지에서 신청하시면 상담원이 예약 상황을 확인한 뒤 전화로 예약을 확정하고, 전화 예약이나 예약 변경은 대표전화 02-6925-1111 연결 후 상담원을 통해 진행하실 수 있습니다. 처음 내원하시는 경우에는 신분증을 지참하고 1층 접수 데스크에서 접수하신 뒤 해당 진료실에서 진료를 받으시면 됩니다.',
+    followUp: [
+      '당일 예약이나 접수 가능 여부는 외래 대기 상황에 따라 달라질 수 있습니다.',
+      '대표전화 02-6925-1111',
+      '온라인 예약은 병원 홈페이지에서 진행 가능합니다.',
+    ],
+    sources: [
+      {
+        title: '홈페이지-FAQ',
+        url: 'local://docs/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-FAQ.txt',
+      },
+      {
+        title: '홈페이지-외래진료안내',
+        url: 'local://docs/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-%EC%99%B8%EB%9E%98%EC%A7%84%EB%A3%8C%EC%95%88%EB%82%B4.txt',
+      },
+    ],
+  };
+}
+
 function createLateArrivalResponse() {
   return {
     type: 'late_arrival',
@@ -4728,6 +4750,10 @@ function resolveIntentResponse(intentType, message) {
       return findFloorGuideResponse(message);
     case 'doctor_specialty':
       return findDoctorSpecialtyResponse(message);
+    case 'doctor_overview':
+      return findDoctorOverviewResponse(message);
+    case 'reservation_or_reception':
+      return createReservationOrReceptionResponse();
     default:
       return null;
   }
@@ -5455,6 +5481,11 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   if (preRetrievalIntentResponse) {
     return enrichResponsePayload(preRetrievalIntentResponse, message);
+  }
+
+  const preRetrievalDoctorOverviewResponse = findDoctorOverviewResponse(intentProbeMessage);
+  if (preRetrievalDoctorOverviewResponse) {
+    return enrichResponsePayload(preRetrievalDoctorOverviewResponse, message);
   }
 
   const retrievalMessage = await buildKoreanRetrievalQuery(intentProbeMessage, history);
