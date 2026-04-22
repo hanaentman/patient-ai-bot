@@ -4095,6 +4095,23 @@ function isNasalIrrigationDoc(doc) {
   });
 }
 
+function isHomepageFaqDoc(doc) {
+  const normalizedTitle = normalizeSearchTextSafe(`${doc?.title || ''} ${doc?.sourceTitle || ''}`);
+  const compactTitle = compactSearchTextSafe(`${doc?.title || ''} ${doc?.sourceTitle || ''}`);
+  const normalizedUrl = normalizeSearchTextSafe(String(doc?.url || ''));
+  const compactUrl = compactSearchTextSafe(String(doc?.url || ''));
+  const candidates = ['홈페이지-FAQ', '홈페이지 FAQ', 'homepage-faq'];
+
+  return candidates.some((name) => {
+    const normalizedName = normalizeSearchTextSafe(name);
+    const compactName = compactSearchTextSafe(name);
+    return normalizedTitle.includes(normalizedName)
+      || compactTitle.includes(compactName)
+      || normalizedUrl.includes(normalizedName)
+      || compactUrl.includes(compactName);
+  });
+}
+
 function isMedicationStopImageGuide(guide) {
   const pathValue = String(guide?.path || '');
   return pathValue.includes(MEDICATION_STOP_IMAGE_PATH_FRAGMENT);
@@ -4201,9 +4218,25 @@ function rankDocuments(question, docs, limit = 7) {
         variant && (compactTitle.includes(variant) || compactText.includes(variant))
       )) ? 8 : 0;
       const localDocBonus = doc.sourceType === 'local' && (titleScore > 0 || phraseScore > 0 || compactScore > 0) ? 3 : 0;
+      const homepageFaqDocBonus = isHomepageFaqDoc(doc) && (
+        titleScore > 0
+        || titlePhraseScore > 0
+        || phraseScore > 0
+        || compactScore > 0
+        || tokenScore >= 2
+      ) ? 18 : 0;
       const nasalIrrigationDocBonus = shouldPrioritizeNasalIrrigation && isNasalIrrigationDoc(doc) ? 120 : 0;
       const sourceWeight = sourceTypeWeights[doc.sourceType] ?? 0.1;
-      const rawScore = keywordScore * 4 + titleScore + tokenScore + phraseScore + titlePhraseScore + compactScore + localDocBonus + diseaseDocBonus + nasalIrrigationDocBonus;
+      const rawScore = keywordScore * 4
+        + titleScore
+        + tokenScore
+        + phraseScore
+        + titlePhraseScore
+        + compactScore
+        + localDocBonus
+        + homepageFaqDocBonus
+        + diseaseDocBonus
+        + nasalIrrigationDocBonus;
 
       return {
         ...doc,
