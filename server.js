@@ -305,6 +305,11 @@ const sameDayExamAvailabilityPatterns = [
   /진료\s*시\s*검사/u,
 ];
 
+const examPreparationPatterns = [
+  /검사.{0,8}(준비|준비물|준비해야|챙겨|챙길)/u,
+  /(준비|준비물|준비해야|챙겨|챙길).{0,8}검사/u,
+];
+
 const receiptIssuancePatterns = [
   /영수증.{0,8}(발급|출력|방법|어떻게|어디)/u,
   /(발급|출력|방법|어떻게|어디).{0,8}영수증/u,
@@ -2249,6 +2254,60 @@ function createSameDayExamAvailabilityResponse() {
       url: LOCAL_FAQ_URL,
     }],
   };
+}
+
+function findExamPreparationResponse(message) {
+  const text = String(message || '').trim();
+  if (!text || !matchesAnyPattern(text, examPreparationPatterns)) {
+    return null;
+  }
+
+  if (/(수면|코골이|수면무호흡|수면다원|수면내시경)/u.test(text)) {
+    return {
+      type: 'exam_preparation',
+      answer: '수면검사 안내드립니다. 문서 기준으로 수면다원검사와 수면내시경검사는 1박 2일 입원으로 진행되며 기본 세면도구는 병실에 준비되어 있고, 그 외 필요한 개인 물품은 가져오시면 됩니다. 수면내시경검사는 마취 후 진행되므로 사전에 마취 가능 여부를 확인하기 위한 검사가 필요하고, 금식이 필요할 수 있어 검사 전 병원으로 확인하시는 것이 좋습니다.',
+      followUp: [
+        '수면검사는 1박 2일 입원으로 진행됩니다.',
+        '금식 여부와 사전 검사 필요 여부는 대표전화 02-6925-1111로 확인해 주세요.',
+      ],
+      sources: [{
+        title: '홈페이지-FAQ',
+        url: 'local://docs/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-FAQ.txt',
+      }],
+    };
+  }
+
+  if (/(귀|청력|어지럼|전정)/u.test(text)) {
+    return {
+      type: 'exam_preparation',
+      answer: '귀 검사 시 준비해야 할 사항은 특별히 없으나, 문서 기준으로 검사 시간이 오래 걸릴 수 있어 가능한 한 일찍 내원하시는 것이 좋습니다. 청력검사와 전정기능 검사는 원칙적으로 당일 검사와 결과 상담을 진행하지만, 검사 진행 상황에 따라 예약 후 시행될 수 있고 약물을 복용 중이거나 급성의 심한 어지러움이 있으면 일정 시간이 지난 뒤 검사를 진행하는 경우도 있습니다.',
+      followUp: [
+        '검사 시간이 길어질 수 있어 일찍 내원하는 편이 좋습니다.',
+        '약 복용 중이거나 심한 어지러움이 있으면 내원 전 대표전화 02-6925-1111로 먼저 문의해 주세요.',
+      ],
+      sources: [{
+        title: '홈페이지-FAQ',
+        url: 'local://docs/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-FAQ.txt',
+      }],
+    };
+  }
+
+  if (/(코|비염|축농증|부비동|비중격)/u.test(text)) {
+    return {
+      type: 'exam_preparation',
+      answer: '코 검사 시에는 특별히 준비해야 할 사항은 없으며, 문서 기준으로 대부분 당일 검사가 가능합니다.',
+      followUp: [
+        '당일 검사 가능 여부는 진료실 상황에 따라 달라질 수 있습니다.',
+        '대표전화 02-6925-1111',
+      ],
+      sources: [{
+        title: '홈페이지-FAQ',
+        url: 'local://docs/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-FAQ.txt',
+      }],
+    };
+  }
+
+  return null;
 }
 
 function createReceiptIssuanceResponse() {
@@ -4589,6 +4648,10 @@ function classifyUserIntent(message) {
     return { type: 'same_day_exam_availability' };
   }
 
+  if (findExamPreparationResponse(text)) {
+    return { type: 'exam_preparation' };
+  }
+
   if (isMedicationStopQuestion(text)) {
     return { type: 'medication_stop' };
   }
@@ -4710,6 +4773,8 @@ function resolveIntentResponse(intentType, message) {
       return createReceiptIssuanceResponse();
     case 'same_day_exam_availability':
       return createSameDayExamAvailabilityResponse();
+    case 'exam_preparation':
+      return findExamPreparationResponse(message);
     case 'medication_stop':
       return createMedicationStopResponse();
     case 'postop_bleeding':
