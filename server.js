@@ -5450,6 +5450,13 @@ async function buildChatResponse(rawMessage, sessionId) {
   effectiveMessage = buildDoctorContextualUserMessage(effectiveMessage, history);
   effectiveMessage = buildFollowUpBridgeMessage(effectiveMessage, history);
   const intentProbeMessage = buildIntentProbeMessage(effectiveMessage);
+  const preRetrievalIntent = classifyUserIntent(intentProbeMessage);
+  const preRetrievalIntentResponse = resolveIntentResponse(preRetrievalIntent.type, intentProbeMessage);
+
+  if (preRetrievalIntentResponse) {
+    return enrichResponsePayload(preRetrievalIntentResponse, message);
+  }
+
   const retrievalMessage = await buildKoreanRetrievalQuery(intentProbeMessage, history);
   const intent = classifyUserIntent(retrievalMessage);
 
