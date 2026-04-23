@@ -363,6 +363,7 @@ const documentCache = {
   pendingPromise: null,
 };
 const responseCache = new Map();
+const DOCUMENT_REQUEST_WARMUP_WAIT_MS = 2500;
 const RESPONSE_CACHE_TTL_MS = 10 * 60 * 1000;
 const RESPONSE_CACHE_MAX_ENTRIES = 200;
 const popularQuestionStats = loadPopularQuestionStats();
@@ -2605,7 +2606,7 @@ function createFallbackResponse(message, contextTitles = []) {
   return createFallbackInsufficientEvidenceResponse(contextTitles);
 }
 
-function getSmallTalkIntent(message) {
+function legacyGetSmallTalkIntent(message) {
   const normalized = normalizeSearchTextSafe(message);
   const compact = compactSearchTextSafe(message);
 
@@ -2638,7 +2639,7 @@ function getSmallTalkIntent(message) {
   return null;
 }
 
-function createSmallTalkResponse(intent) {
+function legacyCreateSmallTalkResponse(intent) {
   if (intent === 'greeting') {
     return {
       type: 'smalltalk',
@@ -2753,7 +2754,7 @@ function extractLinks(html, baseUrl) {
   return [...links];
 }
 
-function tokenize(text) {
+function legacyTokenizeBasic(text) {
   return String(text || '')
     .toLowerCase()
     .replace(/[^0-9a-zA-Z가-힣\s]/g, ' ')
@@ -4138,13 +4139,26 @@ async function getKnowledgeDocuments() {
 async function getDocumentsForRequest() {
   const maxAgeMs = 6 * 60 * 60 * 1000;
   const now = Date.now();
+  const localFallbackDocs = [...runtimeData.faqDocuments, ...runtimeData.localDocuments];
 
   if (documentCache.docs.length > 0 && now - documentCache.loadedAt < maxAgeMs) {
     return documentCache.docs;
   }
 
-  warmupKnowledgeDocuments();
-  return [...runtimeData.faqDocuments, ...runtimeData.localDocuments];
+  const pendingPromise = documentCache.pendingPromise || getKnowledgeDocuments();
+
+  try {
+    const docs = await Promise.race([
+      pendingPromise,
+      new Promise((resolve) => {
+        setTimeout(() => resolve(localFallbackDocs), DOCUMENT_REQUEST_WARMUP_WAIT_MS);
+      }),
+    ]);
+
+    return Array.isArray(docs) && docs.length > 0 ? docs : localFallbackDocs;
+  } catch (error) {
+    return localFallbackDocs;
+  }
 }
 
 function warmupKnowledgeDocuments() {
@@ -4195,6 +4209,29 @@ function isHomepageFaqDoc(doc) {
       || normalizedUrl.includes(normalizedName)
       || compactUrl.includes(compactName);
   });
+}
+
+function shouldPreferHomepageFaqDocs(question) {
+  if (!OPENAI_API_KEY) {
+    return false;
+  }
+
+  const localDocs = Array.isArray(runtimeData.localDocuments) ? runtimeData.localDocuments : [];
+  if (localDocs.length === 0) {
+    return false;
+  }
+
+  const rankedDocs = rankDocuments(question, localDocs, 3);
+  const [topDoc, secondDoc] = rankedDocs;
+
+  if (!topDoc || !isHomepageFaqDoc(topDoc)) {
+    return false;
+  }
+
+  const topScore = Number(topDoc.rawScore || topDoc.score || 0);
+  const secondScore = Number(secondDoc?.rawScore || secondDoc?.score || 0);
+
+  return topScore >= 18 && (secondScore === 0 || topScore - secondScore >= 4);
 }
 
 function isMedicationStopImageGuide(guide) {
@@ -4428,7 +4465,7 @@ function detectGuidedFlowStart(message) {
   return null;
 }
 
-function isDoctorSpecialtyQuestion(message) {
+function legacyIsDoctorSpecialtyQuestion(message) {
   const text = String(message || '').trim();
   if (!text) {
     return false;
@@ -5095,7 +5132,7 @@ async function buildKoreanRetrievalQuery(question, history = []) {
   }
 }
 
-async function callOpenAI(question, history, contextDocs) {
+async function legacyCallOpenAIStrict(question, history, contextDocs) {
   const contextText = contextDocs.map((doc, index) => (
     `[문서 ${index + 1}] ${doc.title}\n출처 유형: ${doc.sourceType}\n출처: ${doc.url}\n내용: ${doc.text}`
   )).join('\n\n');
@@ -5603,8 +5640,9 @@ async function buildChatResponse(rawMessage, sessionId) {
   const matchedDiseaseTerms = getMatchedHomepageDiseaseTerms(retrievalMessage);
   const shouldPrioritizeDiseaseDocs = matchedDiseaseTerms.length > 0;
   const shouldPrioritizeNasalIrrigationDocs = isNasalIrrigationQuestion(retrievalMessage);
+  const shouldPreferHomepageFaqDocResponse = shouldPreferHomepageFaqDocs(retrievalMessage);
 
-  const directFaqResponse = shouldPrioritizeDiseaseDocs || shouldPrioritizeNasalIrrigationDocs
+  const directFaqResponse = shouldPrioritizeDiseaseDocs || shouldPrioritizeNasalIrrigationDocs || shouldPreferHomepageFaqDocResponse
     ? null
     : findDirectFaqMatch(retrievalMessage);
   if (directFaqResponse) {
