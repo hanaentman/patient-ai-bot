@@ -1989,10 +1989,29 @@ function findDoctorOverviewResponse(message) {
     return null;
   }
 
-  const isDoctorOverviewQuestion = (
-    /(의사|의료진|원장)/u.test(text)
-    && /(소개|알려|누가 있어|누구 있어|전체|목록)/u.test(text)
-  );
+  const normalized = normalizeSearchTextSafe(text);
+  const compact = compactSearchTextSafe(text);
+  const hasDoctorCue = /(의사|의료진|원장)/u.test(text);
+  const hasExplicitOverviewCue = /(소개|알려|누가 있어|누구 있어|전체|목록|정보)/u.test(text);
+  const isStandaloneDoctorTopic = [
+    '의료진',
+    '의사',
+    '원장',
+    '원장님',
+    '의료진 정보',
+    '의사 정보',
+    '원장 정보',
+  ].includes(normalized) || [
+    '의료진',
+    '의사',
+    '원장',
+    '원장님',
+    '의료진정보',
+    '의사정보',
+    '원장정보',
+  ].includes(compact);
+
+  const isDoctorOverviewQuestion = hasDoctorCue && (hasExplicitOverviewCue || isStandaloneDoctorTopic);
 
   if (!isDoctorOverviewQuestion) {
     return null;
