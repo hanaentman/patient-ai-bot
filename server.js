@@ -27,6 +27,7 @@ const POPULAR_QUESTIONS_PATH = path.join(PERSISTENT_DATA_DIR, 'popular-question-
 const CHAT_LOGS_PATH = path.join(PERSISTENT_DATA_DIR, 'chat-logs.json');
 const CHAT_LOGS_DB_PATH = path.join(PERSISTENT_DATA_DIR, 'chat-logs.db');
 const DOCS_DIR = path.join(__dirname, 'docs');
+const DOCSS_DIR = path.join(__dirname, 'DOCSS');
 const DOCTOR_LIST_DOC_FILENAME = '외래-의료진 명단.txt';
 const DOCTOR_INFO_DOC_FILENAME = '홈페이지-의료진 정보.txt';
 const DOCTOR_SPECIALTY_DOC_PATH = path.join(DOCS_DIR, DOCTOR_INFO_DOC_FILENAME);
@@ -91,6 +92,7 @@ const faqCategoryUrlHints = {
 };
 const sourceTypeWeights = {
   official: 0.9,
+  docss: 2.2,
   local: 1.8,
   external: 0.2,
   low_trust: 0.1,
@@ -398,6 +400,7 @@ let doctorScheduleSyncInProgress = false;
 let doctorScheduleSyncQueued = false;
 let runtimeData = null;
 let docsWatcher = null;
+let docssWatcher = null;
 
 function readJsonArray(filePath) {
   if (!fs.existsSync(filePath)) {
@@ -429,7 +432,7 @@ function loadFaqEntries() {
 
 function createRuntimeData() {
   const faqEntries = loadFaqEntries();
-  const localDocuments = buildLocalDocuments();
+  const localDocuments = buildPreferredLocalDocuments();
 
   return {
     faqEntries,
@@ -546,6 +549,25 @@ function watchDocsDirectory() {
     });
   } catch (error) {
     console.error('[docs-watch-error]', error);
+  }
+
+  if (!fs.existsSync(DOCSS_DIR)) {
+    return;
+  }
+
+  try {
+    docssWatcher = fs.watch(DOCSS_DIR, (_eventType, filename) => {
+      scheduleDocsRefresh(String(filename || ''));
+    });
+    docssWatcher.on('error', (error) => {
+      console.error('[docss-watch-error]', error);
+      if (docssWatcher) {
+        docssWatcher.close();
+        docssWatcher = null;
+      }
+    });
+  } catch (error) {
+    console.error('[docss-watch-error]', error);
   }
 }
 
@@ -3864,9 +3886,23 @@ function buildFaqDocuments(entries) {
   });
 }
 
+function stripDocssMarkdown(text) {
+  return String(text || '')
+    .replace(/^\uFEFF/, '')
+    .replace(/^---\n[\s\S]*?\n---\n?/u, '')
+    .replace(/\n## 정규화 원문[\s\S]*$/u, '')
+    .replace(/^\s*#{1,6}\s*/gm, '')
+    .replace(/^\s*-\s*/gm, '')
+    .trim();
+}
+
 function readLocalDocumentText(filePath, extension) {
   if (extension === '.txt') {
     return fs.readFileSync(filePath, 'utf8');
+  }
+
+  if (extension === '.md') {
+    return stripDocssMarkdown(fs.readFileSync(filePath, 'utf8'));
   }
 
   if (extension === '.xls' || extension === '.xlsx') {
@@ -3957,6 +3993,101 @@ function buildLocalDocuments() {
     const fileStem = path.parse(label).name.replace(/\s+/g, ' ').trim();
     doc.title = `Local doc - ${fileStem}`;
   });
+
+  return docs;
+}
+
+function collectPreferredLocalDocumentInputs() {
+  const inputs = [];
+  const docssBases = new Set();
+
+  if (fs.existsSync(DOCSS_DIR)) {
+    const docssFiles = fs.readdirSync(DOCSS_DIR, { withFileTypes: true });
+    docssFiles.forEach((file) => {
+      if (!file.isFile() || path.extname(file.name).toLowerCase() !== '.md') {
+        return;
+      }
+
+      const baseName = path.parse(file.name).name;
+      docssBases.add(baseName);
+      inputs.push({
+        dir: DOCSS_DIR,
+        fileName: file.name,
+        extension: '.md',
+        sourceType: 'docss',
+        urlPrefix: 'local://docss/',
+        sourceTitle: baseName.replace(/\s+/g, ' ').trim(),
+      });
+    });
+  }
+
+  if (!fs.existsSync(DOCS_DIR)) {
+    return inputs;
+  }
+
+  const docsFiles = fs.readdirSync(DOCS_DIR, { withFileTypes: true });
+  docsFiles.forEach((file) => {
+    if (!file.isFile()) {
+      return;
+    }
+
+    const extension = path.extname(file.name).toLowerCase();
+    if (!['.txt', '.xls', '.xlsx'].includes(extension)) {
+      return;
+    }
+
+    const baseName = path.parse(file.name).name;
+    if (extension === '.txt' && docssBases.has(baseName)) {
+      return;
+    }
+
+    inputs.push({
+      dir: DOCS_DIR,
+      fileName: file.name,
+      extension,
+      sourceType: 'local',
+      urlPrefix: 'local://docs/',
+      sourceTitle: baseName.replace(/\s+/g, ' ').trim(),
+    });
+  });
+
+  return inputs;
+}
+
+function buildPreferredLocalDocuments() {
+  const inputs = collectPreferredLocalDocumentInputs();
+  const docs = [];
+
+  for (const input of inputs) {
+    const filePath = path.join(input.dir, input.fileName);
+    const fileStem = input.sourceTitle;
+    const rawText = readLocalDocumentText(filePath, input.extension);
+    const text = String(rawText || '')
+      .replace(/\r/g, '')
+      .replace(/\t/g, ' ')
+      .replace(/\n\s*\n+/g, '\n')
+      .trim();
+
+    if (!text) {
+      continue;
+    }
+
+    const chunks = splitIntoChunks(text, 700);
+    const keywords = [...new Set(tokenizeSafe(`${fileStem} ${text}`))].slice(0, 120);
+
+    chunks.forEach((chunk, index) => {
+      docs.push({
+        title: `Local doc - ${fileStem}`,
+        sourceTitle: fileStem,
+        url: `${input.urlPrefix}${encodeURIComponent(input.fileName)}`,
+        text: chunk,
+        keywords,
+        sourceType: input.sourceType,
+        hiddenSource: false,
+        chunkLabel: `${input.fileName}${chunks.length > 1 ? ` #${index + 1}` : ''}`,
+      });
+    });
+  }
 
   return docs;
 }
@@ -4453,7 +4584,8 @@ function rankDocuments(question, docs, limit = 7) {
       const compactScore = compactQuestionVariants.some((variant) => (
         variant && (compactTitle.includes(variant) || compactText.includes(variant))
       )) ? 8 : 0;
-      const localDocBonus = doc.sourceType === 'local' && (titleScore > 0 || phraseScore > 0 || compactScore > 0) ? 3 : 0;
+      const localDocBonus = (doc.sourceType === 'local' || doc.sourceType === 'docss') && (titleScore > 0 || phraseScore > 0 || compactScore > 0) ? 3 : 0;
+      const docssBonus = doc.sourceType === 'docss' && (titleScore > 0 || phraseScore > 0 || compactScore > 0 || tokenScore >= 2) ? 5 : 0;
       const homepageFaqDocBonus = isHomepageFaqDoc(doc) && (
         titleScore > 0
         || titlePhraseScore > 0
@@ -4470,6 +4602,7 @@ function rankDocuments(question, docs, limit = 7) {
         + titlePhraseScore
         + compactScore
         + localDocBonus
+        + docssBonus
         + homepageFaqDocBonus
         + diseaseDocBonus
         + nasalIrrigationDocBonus;
