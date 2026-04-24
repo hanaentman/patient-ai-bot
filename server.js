@@ -1916,6 +1916,13 @@ function findDirectFaqMatch(message) {
     type: 'faq',
     answer: bestMatch.entry.answer,
     followUp: bestMatch.entry.followUp || [],
+    matchMeta: {
+      score: bestMatch.score,
+      scoreGap,
+      exactKeywordMatch: bestMatch.exactKeywordMatch,
+      isConversationalQuestion,
+      category: bestMatch.entry.category || '',
+    },
     sources: [{
       title: sourceInfo.title,
       url: sourceInfo.url,
@@ -1939,6 +1946,41 @@ function getFaqResponseByCategory(category) {
       url: sourceInfo.url,
     }],
   };
+}
+
+function isGenerativeFriendlyQuestion(message) {
+  const text = String(message || '').trim();
+  if (!text) {
+    return false;
+  }
+
+  const normalized = normalizeSearchTextSafe(text);
+  const tokens = tokenizeSafe(text);
+
+  if (normalized.length >= 18 || tokens.length >= 5) {
+    return true;
+  }
+
+  return /(어떻게|왜|언제부터|언제까지|어떤|무슨|설명|자세히|궁금|괜찮|가능|준비|주의|관리|회복|과정|절차|차이|비교|추천|알려줘|알려주세요|문의하고 싶)/u.test(text);
+}
+
+function shouldPreferGenerativeDocAnswer(message, directFaqResponse) {
+  if (!OPENAI_API_KEY || !directFaqResponse || !directFaqResponse.matchMeta) {
+    return false;
+  }
+
+  const meta = directFaqResponse.matchMeta;
+  const shortSimpleQuestion = normalizeSearchTextSafe(message).length <= 12 && tokenizeSafe(message).length <= 3;
+
+  if (meta.exactKeywordMatch && meta.score >= 20 && !meta.isConversationalQuestion && shortSimpleQuestion) {
+    return false;
+  }
+
+  if (meta.category && /doctors_overview|doctor_schedule/i.test(meta.category)) {
+    return false;
+  }
+
+  return isGenerativeFriendlyQuestion(message) || !meta.exactKeywordMatch || meta.isConversationalQuestion;
 }
 
 function findDoctorOverviewResponse(message) {
@@ -2521,7 +2563,7 @@ function createFallbackInsufficientEvidenceResponse(contextTitles) {
 function createFallbackNeedsClarificationResponse() {
   return {
     type: 'fallback_needs_clarification',
-    answer: '질문 범위가 넓어 바로 안내드리기 어렵습니다. 어떤 항목이 궁금하신지 조금만 더 구체적으로 알려주시면 정확히 안내드릴게요.',
+    answer: '조금만 더 구체적으로 말씀해 주시면 더 자연스럽고 정확하게 안내드릴 수 있습니다. 궁금한 항목을 한 가지씩 알려주시면 그 내용부터 바로 설명드릴게요.',
     followUp: ['수술 종류를 알려주세요', '검사 종류를 알려주세요', '외래인지 입원인지 알려주세요'],
   };
 }
@@ -5407,8 +5449,9 @@ async function callOpenAI(question, history, contextDocs) {
       `질문: ${question}`,
       '',
       '아래 참고 문서를 우선 근거로 사용해 주세요.',
+      '문서에 있는 사실은 정확히 지키되, 설명은 병원 상담 직원처럼 자연스럽고 친절하게 풀어서 답해 주세요.',
       '병원 정보가 문서에 없으면 단정하지 말고, 확인이 어렵다고 자연스럽게 안내해 주세요.',
-      '단순 인사, 감사, 연결 멘트는 상담원처럼 부드럽게 답해도 됩니다.',
+      '짧은 질문이어도 필요하면 1~2문장 정도 맥락을 덧붙여 이해하기 쉽게 설명해도 됩니다.',
       '답변 언어는 사용자의 마지막 질문 언어를 그대로 따르세요. 영어 질문에는 영어로, 한국어 질문에는 한국어로 답하세요.',
       '',
       contextText,
@@ -5431,14 +5474,17 @@ async function callOpenAI(question, history, contextDocs) {
         model: OPENAI_MODEL,
         instructions: [
           '당신은 하나이비인후과병원 안내 상담 도우미입니다.',
-          '답변 톤은 딱딱한 챗봇보다 실제 상담원에 가깝게, 짧고 자연스럽게 유지하세요.',
+          '답변 톤은 딱딱한 챗봇보다 실제 상담원에 가깝게, 친절하고 자연스럽게 유지하세요.',
           '병원 운영 정보는 제공된 문서를 최우선 근거로 사용하세요.',
           'local 문서와 FAQ를 가장 우선하고, official 홈페이지는 그 다음, external은 보조 참고만 사용하세요.',
           '문서에 없는 병원 정보는 추측하지 말고 확인이 어렵다고 자연스럽게 안내하세요.',
+          '문서에 있는 사실을 그대로 반복만 하지 말고, 질문 의도에 맞게 정리해서 설명하세요.',
+          '안전한 범위에서는 이유, 절차, 준비사항, 주의점 같은 맥락 설명을 1~2문장 덧붙여도 됩니다.',
           '단순 인사, 감사, 대화 연결 문장은 문서 인용 없이도 자연스럽게 응답해도 됩니다.',
           '답변 언어는 사용자의 마지막 질문 언어를 그대로 따르세요. 영어 질문에는 영어로, 한국어 질문에는 한국어로 답하세요.',
           '금지: 진단, 응급 최종판단, 처방 변경, 약 복용 지시, 추측성 의료정보.',
-          '답변은 보통 2~4문장으로 하고, 필요할 때만 대표전화 02-6925-1111을 안내하세요.',
+          '답변은 보통 3~6문장으로 하되 장황하게 늘어놓지 말고 핵심 위주로 설명하세요.',
+          '대표전화 02-6925-1111 안내는 꼭 필요할 때만 덧붙이세요.',
         ].join(' '),
         input,
       }),
@@ -5511,8 +5557,9 @@ async function validateAIAnswer(question, answer, contextDocs) {
           'Check only two things: whether the answer matches the user intent, and whether the answer is supported by the provided documents.',
           'Return JSON only.',
           'Schema: {"valid": boolean, "reason": string}.',
-          'Mark valid=false if the answer shifts to a different topic, answers the wrong question, or cites details not supported by the documents.',
-          'Be strict about topic mismatch.',
+          'Mark valid=false if the answer shifts to a different topic, answers the wrong question, or adds specific hospital facts not supported by the documents.',
+          'Natural paraphrasing, polite framing, and brief explanatory wording are allowed when the core facts remain supported.',
+          'Be strict about topic mismatch, but do not reject answers only because they sound conversational.',
         ].join(' '),
         input: [{
           role: 'user',
@@ -5634,7 +5681,9 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   const cachedResponse = getCachedResponse(retrievalMessage);
   if (cachedResponse) {
-    return cachedResponse;
+    if (!(cachedResponse.type === 'faq' && shouldPreferGenerativeDocAnswer(retrievalMessage, cachedResponse))) {
+      return cachedResponse;
+    }
   }
 
   const matchedDiseaseTerms = getMatchedHomepageDiseaseTerms(retrievalMessage);
@@ -5646,14 +5695,19 @@ async function buildChatResponse(rawMessage, sessionId) {
     ? null
     : findDirectFaqMatch(retrievalMessage);
   if (directFaqResponse) {
-    const simplifiedFaqResponse = {
-      ...directFaqResponse,
-      answer: appendSupportLinks(applyPatientFriendlyTemplate(directFaqResponse.answer, effectiveMessage), message),
-      followUp: (directFaqResponse.followUp || []).map((item) => applyPatientFriendlyTemplate(item, message)),
-      images: findRelevantImages(message),
-    };
-    setCachedResponse(retrievalMessage, simplifiedFaqResponse);
-    return simplifiedFaqResponse;
+    if (shouldPreferGenerativeDocAnswer(retrievalMessage, directFaqResponse)) {
+      // Let document-grounded AI answer broader or more conversational questions
+      // so responses feel less templated while keeping source-backed safety.
+    } else {
+      const simplifiedFaqResponse = {
+        ...directFaqResponse,
+        answer: appendSupportLinks(applyPatientFriendlyTemplate(directFaqResponse.answer, effectiveMessage), message),
+        followUp: (directFaqResponse.followUp || []).map((item) => applyPatientFriendlyTemplate(item, message)),
+        images: findRelevantImages(message),
+      };
+      setCachedResponse(retrievalMessage, simplifiedFaqResponse);
+      return simplifiedFaqResponse;
+    }
   }
 
   const operationalInferenceResponse = findOperationalInferenceResponse(retrievalMessage);
