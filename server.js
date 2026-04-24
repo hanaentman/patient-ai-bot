@@ -2020,6 +2020,59 @@ function findDoctorOverviewResponse(message) {
   return getFaqResponseByCategory('doctors_overview');
 }
 
+function findLooseTopicResponse(message) {
+  const text = String(message || '').trim();
+  if (!text) {
+    return null;
+  }
+
+  const normalized = normalizeSearchTextSafe(text);
+  const compact = compactSearchTextSafe(text);
+  const tokenCount = tokenizeSafe(text).length;
+
+  if (tokenCount > 3 || normalized.length > 18) {
+    return null;
+  }
+
+  const isStandaloneTopic = (candidates) => (
+    candidates.includes(normalized) || candidates.includes(compact)
+  );
+
+  if (isStandaloneTopic(['의료진', '의사', '원장', '원장님', '의료진정보', '의사정보', '원장정보', '의료진 정보', '의사 정보', '원장 정보'])) {
+    return getFaqResponseByCategory('doctors_overview');
+  }
+
+  if (isStandaloneTopic(['수술', '수술안내', '수술정보', '수술 안내', '수술 정보'])) {
+    return createGuidedQuestionResponse(
+      '수술 관련해서는 비용, 입원기간, 주의사항, 준비사항처럼 궁금하신 항목이 나뉘어 있습니다. 원하시는 내용을 말씀해 주시면 그 부분부터 바로 안내드릴게요.',
+      ['수술 비용 알려줘', '수술 후 주의사항 알려줘', '수술 전 준비사항 알려줘']
+    );
+  }
+
+  if (isStandaloneTopic(['입원', '입원안내', '입원정보', '입원 안내', '입원 정보'])) {
+    return createGuidedQuestionResponse(
+      '입원 관련해서는 절차, 준비물, 보호자, 퇴원 절차처럼 나뉘어 안내드릴 수 있습니다. 궁금하신 항목을 말씀해 주세요.',
+      ['입원 절차 알려줘', '입원 준비물 알려줘', '퇴원 절차 알려줘']
+    );
+  }
+
+  if (isStandaloneTopic(['검사', '검사안내', '검사정보', '검사 안내', '검사 정보'])) {
+    return createGuidedQuestionResponse(
+      '검사 관련해서는 당일 검사 가능 여부, 검사 준비사항, 검사 종류 안내처럼 나누어 설명드릴 수 있습니다. 어떤 내용이 궁금하신가요?',
+      ['당일 검사 가능한가요?', '검사 준비사항 알려줘', '외래 검사 종류 알려줘']
+    );
+  }
+
+  if (isStandaloneTopic(['서류', '서류안내', '서류발급', '서류 안내', '서류 발급'])) {
+    return createGuidedQuestionResponse(
+      '서류는 영수증, 진단서, 진료상세내역처럼 종류가 나뉘어 있습니다. 필요한 서류를 말씀해 주시면 발급 방법을 안내드릴게요.',
+      ['영수증 발급 방법 알려줘', '진단서 발급 방법 알려줘', '진료상세내역 발급 방법 알려줘']
+    );
+  }
+
+  return null;
+}
+
 function createRestrictedMedicalResponse() {
   return {
     type: 'restricted',
@@ -5634,6 +5687,11 @@ async function buildChatResponse(rawMessage, sessionId) {
     return enrichResponsePayload(directDoctorOverviewResponse, message);
   }
 
+  const looseTopicResponse = findLooseTopicResponse(message);
+  if (looseTopicResponse) {
+    return enrichResponsePayload(looseTopicResponse, message);
+  }
+
   if (/(예약|접수)/u.test(message) && rawIntent.type === 'reservation_or_reception') {
     return enrichResponsePayload(createReservationOrReceptionResponse(), message);
   }
@@ -5680,6 +5738,11 @@ async function buildChatResponse(rawMessage, sessionId) {
     return enrichResponsePayload(preRetrievalDoctorOverviewResponse, message);
   }
 
+  const preRetrievalLooseTopicResponse = findLooseTopicResponse(intentProbeMessage);
+  if (preRetrievalLooseTopicResponse) {
+    return enrichResponsePayload(preRetrievalLooseTopicResponse, message);
+  }
+
   const retrievalMessage = await buildKoreanRetrievalQuery(intentProbeMessage, history);
   const intent = classifyUserIntent(retrievalMessage);
 
@@ -5691,6 +5754,11 @@ async function buildChatResponse(rawMessage, sessionId) {
   const doctorOverviewResponse = findDoctorOverviewResponse(retrievalMessage);
   if (doctorOverviewResponse) {
     return enrichResponsePayload(doctorOverviewResponse, message);
+  }
+
+  const retrievalLooseTopicResponse = findLooseTopicResponse(retrievalMessage);
+  if (retrievalLooseTopicResponse) {
+    return enrichResponsePayload(retrievalLooseTopicResponse, message);
   }
 
   const smallTalkIntent = getSmallTalkIntent(retrievalMessage);
