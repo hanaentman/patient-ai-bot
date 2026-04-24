@@ -5,6 +5,11 @@
     "updatedAt": 1776841161575
   },
   {
+    "question": "이상덕 전문분야 뭐야",
+    "count": 5,
+    "updatedAt": 1777026877622
+  },
+  {
     "question": "입원전 복용 하면 안되는 약",
     "count": 4,
     "updatedAt": 1776381341014
@@ -13,6 +18,16 @@
     "question": "입원전 복용중단 약물 리스트알려줘",
     "count": 4,
     "updatedAt": 1776381340893
+  },
+  {
+    "question": "홈페이지에서 예약할 수 있어?",
+    "count": 3,
+    "updatedAt": 1777026877740
+  },
+  {
+    "question": "의료진",
+    "count": 3,
+    "updatedAt": 1777026771096
   },
   {
     "question": "수술전 복용 금지약",
@@ -25,24 +40,19 @@
     "updatedAt": 1776383246672
   },
   {
-    "question": "의료진",
+    "question": "셔틀버스 안내해줘",
     "count": 2,
-    "updatedAt": 1777024593633
+    "updatedAt": 1777026877712
   },
   {
-    "question": "홈페이지에서 예약할 수 있어?",
+    "question": "영수증 발급 방법 알려줘",
     "count": 2,
-    "updatedAt": 1776832443974
+    "updatedAt": 1777026771297
   },
   {
     "question": "의사 소개해줘",
     "count": 2,
     "updatedAt": 1776832443958
-  },
-  {
-    "question": "이상덕 전문분야 뭐야",
-    "count": 2,
-    "updatedAt": 1776832443897
   },
   {
     "question": "1인실 비용 알려줘",
@@ -65,9 +75,9 @@
     "updatedAt": 1776382791849
   },
   {
-    "question": "영수증 발급 방법 알려줘",
+    "question": "당일에 검사까지 가능해요?",
     "count": 1,
-    "updatedAt": 1777024492791
+    "updatedAt": 1777026771329
   },
   {
     "question": "비염 진료 보는 의사 알려줘",

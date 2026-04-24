@@ -3382,7 +3382,7 @@ function buildDoctorSpecialtyEntries() {
     return [];
   }
 
-  const text = fs.readFileSync(DOCTOR_SPECIALTY_DOC_PATH, 'utf8');
+  const text = repairBrokenKoreanText(fs.readFileSync(DOCTOR_SPECIALTY_DOC_PATH, 'utf8'));
   const specialtyConfigs = buildDoctorSpecialtyKeywordConfigs();
   const doctorNames = extractDoctorNamesFromText(text);
   const entries = [];
@@ -3403,10 +3403,10 @@ function buildDoctorSpecialtyEntries() {
     const specialtyLine = block
       .split(/\r?\n/)
       .map((line) => line.trim())
-      .find((line) => line.includes('?꾨Ц遺꾩빞'));
+      .find((line) => line.includes('전문분야'));
 
     const specialtyText = specialtyLine
-      ? specialtyLine.replace(/^.*?꾨Ц遺꾩빞\s*/u, '').trim()
+      ? specialtyLine.replace(/^.*?전문분야\s*:?\s*/u, '').trim()
       : '';
     const normalizedSpecialty = normalizeSearchTextSafe(specialtyText);
 
@@ -3437,7 +3437,7 @@ function buildCertificateFeeEntries() {
 
   const rawLines = fs.readFileSync(CERTIFICATE_FEES_DOC_PATH, 'utf8')
     .split(/\r?\n/)
-    .map((line) => String(line || '').replace(/\r/g, '').trim())
+    .map((line) => repairBrokenKoreanText(String(line || '').replace(/\r/g, '').trim()))
     .filter(Boolean);
 
   const feeConfigs = [
@@ -3463,8 +3463,8 @@ function buildCertificateFeeEntries() {
     },
     {
       key: 'admission_discharge',
-      title: '?낇눜?먰솗?몄꽌',
-      requiredTerms: ['?낇눜?먰솗?몄꽌', 'pdz09'],
+      title: '입퇴원확인서',
+      requiredTerms: ['입퇴원확인서', 'pdz09'],
     },
     {
       key: 'admission_discharge_reissue',
@@ -3497,26 +3497,26 @@ function buildNonpayItemEntries() {
 
   const rawLines = fs.readFileSync(CERTIFICATE_FEES_DOC_PATH, 'utf8')
     .split(/\r?\n/)
-    .map((line) => String(line || '').replace(/\r/g, '').trim())
+    .map((line) => repairBrokenKoreanText(String(line || '').replace(/\r/g, '').trim()))
     .filter(Boolean);
 
   const configs = [
     {
       key: 'oxygen_therapy',
-      title: '?곗냼移섎즺',
-      aliases: ['?곗냼移섎즺', '怨좎븬?곗냼', '怨좎븬?곗냼移섎즺'],
-      matcher: (line) => compactSearchTextSafe(line).includes(compactSearchTextSafe('?곗냼移섎즺')),
+      title: '산소치료',
+      aliases: ['산소치료', '고압산소', '고압산소치료'],
+      matcher: (line) => compactSearchTextSafe(line).includes(compactSearchTextSafe('산소치료')),
     },
     {
       key: 'flu_shot',
-      title: '?낃컧二쇱궗',
-      aliases: ['?낃컧二쇱궗', '?낃컧 ?덈갑?묒쥌', '?낃컧?덈갑?묒쥌', '?낃컧諛깆떊', '?뚮（?꾨┃?ㅽ뀒?몃씪'],
+      title: '독감주사',
+      aliases: ['독감주사', '독감 예방접종', '독감예방접종', '독감백신', '플루아릭스테트라'],
       matcher: (line) => {
         const normalized = compactSearchTextSafe(line);
         return (
-          normalized.includes(compactSearchTextSafe('?낃컧 ?덈갑?묒쥌'))
-          || normalized.includes(compactSearchTextSafe('?낃컧?덈갑?묒쥌'))
-          || normalized.includes(compactSearchTextSafe('?뚮（?꾨┃?ㅽ뀒?몃씪'))
+          normalized.includes(compactSearchTextSafe('독감 예방접종'))
+          || normalized.includes(compactSearchTextSafe('독감예방접종'))
+          || normalized.includes(compactSearchTextSafe('플루아릭스테트라'))
         );
       },
     },
@@ -3550,7 +3550,7 @@ function buildFloorGuideIndex() {
 
   const lines = fs.readFileSync(FLOOR_GUIDE_DOC_PATH, 'utf8')
     .split(/\r?\n/)
-    .map((line) => String(line || '').trim())
+    .map((line) => repairBrokenKoreanText(String(line || '').trim()))
     .filter(Boolean);
 
   lines.forEach((line) => {
@@ -3613,7 +3613,7 @@ function findFloorGuideResponse(message) {
         type: 'floor_guide',
         answer: `${floorLabel}에는 ${floorInfo.line.replace(/^(지하\s*\d+\s*층|\d+\s*층)/u, '').trim()}가 있습니다.`,
         followUp: [
-          '?ㅻⅨ 痢??덈궡媛 ?꾩슂?섎㈃ 1痢? 2痢? 3痢듭쿂???ㅼ떆 吏덈Ц??二쇱꽭??',
+          '다른 층 안내가 필요하시면 1층, 2층, 3층처럼 다시 질문해 주세요.',
         ],
         sources: [{
           title: '기타-층별안내도',
@@ -3640,9 +3640,9 @@ function findFloorGuideResponse(message) {
 
   return {
     type: 'floor_guide',
-    answer: `${roomNumber}踰?吏꾨즺?ㅼ? ${floorInfo.floor}痢듭엯?덈떎. 痢듬퀎?덈궡??湲곗??쇰줈 ${department}???대떦?⑸땲??`,
+    answer: `${roomNumber}번 진료실은 ${floorInfo.floor}층입니다. 층별안내도 기준으로 ${department}에 해당합니다.`,
     followUp: [
-      '?뺥솗???꾩튂媛 ?룰컝由щ㈃ 1痢??먮뒗 ?대떦 痢??덈궡 ?곗뒪?ъ뿉???ㅼ떆 ?덈궡諛쏆쑝?쒕㈃ ?⑸땲??',
+      '정확한 위치가 헷갈리면 1층 또는 해당 층 안내 데스크에서 다시 안내받으시면 됩니다.',
     ],
     sources: [{
       title: '기타-층별안내도',
@@ -3652,14 +3652,14 @@ function findFloorGuideResponse(message) {
 }
 
 const HOMEPAGE_SURGERY_DOC_CONFIGS = [
-  { disease: '??', aliases: ['??', '????', '????', '??????', '??????', '????????'], filename: '????-????.txt' },
-  { disease: '???', aliases: ['???', '?????', '????', '??????', '?????'], filename: '????-???.txt' },
-  { disease: '??', aliases: ['??', '????', '????'], filename: '????-??.txt' },
-  { disease: '??????', aliases: ['??????', '????????', '???', '?????'], filename: '????-??????.txt' },
-  { disease: '???', aliases: ['???', '???', '????'], filename: '????-???.txt' },
-  { disease: '???', aliases: ['???', '?????'], filename: '????-?????.txt' },
-  { disease: '???', aliases: ['???'], filename: '????-???.txt' },
-  { disease: '??', aliases: ['??', '???', '???'], filename: '????-??.txt' },
+  { disease: '비염', aliases: ['비염', '만성비염', '알레르기비염', '비염수술', '비염 수술', '비염수술비'], filename: '홈페이지-만성비염.txt' },
+  { disease: '축농증', aliases: ['축농증', '부비동염', '축농증수술', '축농증 수술', '부비동염수술'], filename: '홈페이지-축농증.txt' },
+  { disease: '편도', aliases: ['편도', '편도수술', '편도 수술'], filename: '홈페이지-편도.txt' },
+  { disease: '비중격만곡증', aliases: ['비중격만곡증', '비중격', '비중격수술', '비중격 수술'], filename: '홈페이지-비중격만곡증.txt' },
+  { disease: '코물혹', aliases: ['코물혹', '비용종', '코물혹수술', '코물혹 수술'], filename: '홈페이지-코물혹.txt' },
+  { disease: '중이염', aliases: ['중이염', '만성중이염', '소아중이염'], filename: '홈페이지-만성중이염.txt' },
+  { disease: '갑상선', aliases: ['갑상선', '갑상선수술', '갑상선 수술'], filename: '홈페이지-갑상선.txt' },
+  { disease: '침샘', aliases: ['침샘', '침샘수술', '침샘 수술'], filename: '홈페이지-침샘.txt' },
 ];
 
 function findMatchedHomepageSurgeryDocConfig(message) {
@@ -3708,7 +3708,7 @@ function extractHomepageSurgerySectionLines(text, labels, stopLabels) {
     const normalizedLine = normalizeSearchTextSafe(line);
     if (
       normalizedStopLabels.some((label) => normalizedLine === label || normalizedLine.includes(label))
-      || normalizedLine.includes('?μ젏')
+      || normalizedLine.includes('특장')
     ) {
       break;
     }
@@ -3738,13 +3738,14 @@ function findHomepageSurgeryCostResponse(message) {
   }
 
   const text = fs.readFileSync(docPath, 'utf8');
-  const stopLabels = ['?섏닠鍮꾩슜', '?섏닠?쒓컙', '留덉랬諛⑸쾿', '?낆썝湲곌컙', '?댁썝移섎즺', '?뚮났湲곌컙', '移섎즺 ?μ젏'];
-  const costLines = extractHomepageSurgerySectionLines(text, ['?섏닠鍮꾩슜'], stopLabels);
-  const timeLines = extractHomepageSurgerySectionLines(text, ['?섏닠?쒓컙'], stopLabels);
-  const anesthesiaLines = extractHomepageSurgerySectionLines(text, ['留덉랬諛⑸쾿'], stopLabels);
-  const admissionLines = extractHomepageSurgerySectionLines(text, ['?낆썝湲곌컙'], stopLabels);
-  const followupLines = extractHomepageSurgerySectionLines(text, ['?댁썝移섎즺'], stopLabels);
-  const recoveryLines = extractHomepageSurgerySectionLines(text, ['?뚮났湲곌컙'], stopLabels);
+  const repairedText = repairBrokenKoreanText(text);
+  const stopLabels = ['수술비용', '수술시간', '마취방법', '입원기간', '내원치료', '회복기간', '치료 특장'];
+  const costLines = extractHomepageSurgerySectionLines(repairedText, ['수술비용'], stopLabels);
+  const timeLines = extractHomepageSurgerySectionLines(repairedText, ['수술시간'], stopLabels);
+  const anesthesiaLines = extractHomepageSurgerySectionLines(repairedText, ['마취방법'], stopLabels);
+  const admissionLines = extractHomepageSurgerySectionLines(repairedText, ['입원기간'], stopLabels);
+  const followupLines = extractHomepageSurgerySectionLines(repairedText, ['내원치료'], stopLabels);
+  const recoveryLines = extractHomepageSurgerySectionLines(repairedText, ['회복기간'], stopLabels);
 
   if (costLines.length === 0) {
     return null;
@@ -3755,38 +3756,38 @@ function findHomepageSurgeryCostResponse(message) {
     .map((line) => String(line || '').replace(/^\(+/, '').replace(/\)+$/, '').trim())
     .filter(Boolean);
   const sentences = [
-    `${matchedConfig.disease} ?섏닠 ?덈궡?쒕┰?덈떎.`,
-    `?섎굹?대퉬?명썑怨쇰퀝??湲곗??쇰줈 ?섏닠鍮꾩슜? ${costValue}${cleanedCostExtras.length > 0 ? `(${cleanedCostExtras.join(', ')})` : ''}?낅땲??`,
+    `${matchedConfig.disease} 수술 안내드립니다.`,
+    `하나이비인후과병원 기준으로 수술비용은 ${costValue}${cleanedCostExtras.length > 0 ? `(${cleanedCostExtras.join(', ')})` : ''}입니다.`,
   ];
 
   if (timeLines.length > 0) {
-    sentences.push(`?섏닠?쒓컙? ${timeLines.join(' ')}?낅땲??`);
+    sentences.push(`수술시간은 ${timeLines.join(' ')}입니다.`);
   }
 
   if (anesthesiaLines.length > 0) {
-    sentences.push(`留덉랬??${anesthesiaLines.join(' ')}?낅땲??`);
+    sentences.push(`마취방법은 ${anesthesiaLines.join(' ')}입니다.`);
   }
 
   if (admissionLines.length > 0) {
-    sentences.push(`?낆썝湲곌컙? ${admissionLines.join(' ')}?낅땲??`);
+    sentences.push(`입원기간은 ${admissionLines.join(' ')}입니다.`);
   }
 
   if (followupLines.length > 0) {
-    sentences.push(`?섏닠 ???댁썝移섎즺??${followupLines.join(' ')}?낅땲??`);
+    sentences.push(`수술 후 내원치료는 ${followupLines.join(' ')}입니다.`);
   }
 
   if (recoveryLines.length > 0) {
-    sentences.push(`?뚮났湲곌컙? ${recoveryLines.join(' ')}?낅땲??`);
+    sentences.push(`회복기간은 ${recoveryLines.join(' ')}입니다.`);
   }
 
-  sentences.push('?뺥솗???섏닠 ?곸쓳利앷낵 鍮꾩슜 諛⑸쾿? 吏꾩같怨?寃????寃곗젙?섎땲 ?먯꽭???곷떞?대굹 ?덉빟? ??쒖쟾??02-6925-1111濡?臾몄쓽??二쇱꽭??');
+  sentences.push('정확한 수술 적응증과 비용 적용 방식은 진료와 검사 후 결정되므로 자세한 상담이나 예약은 대표전화 02-6925-1111로 문의해 주세요.');
 
   return {
     type: 'homepage_surgery_cost',
     answer: sentences.join(' '),
     followUp: [
-      '蹂댄뿕 ?곸슜 ?щ?? ?ㅼ젣 鍮꾩슜? 吏덊솚 ?곹깭? 寃??寃곌낵???곕씪 ?щ씪吏????덉뒿?덈떎.',
-      '?ㅻⅨ ?섏닠??吏덊솚紐낆쓣 ?뚮젮二쇱떆硫??대떦 臾몄꽌 湲곗??쇰줈 ?ㅼ떆 ?덈궡???쒕┫ ???덉뒿?덈떎.',
+      '보험 적용 여부와 실제 비용은 질환 상태와 검사 결과에 따라 달라질 수 있습니다.',
+      '다른 수술이나 질환명을 말씀해 주시면 해당 문서 기준으로 다시 안내해 드릴게요.',
     ],
     sources: [{
       title: path.parse(matchedConfig.filename).name,
@@ -3815,14 +3816,14 @@ function findHomepageSurgeryInfoResponse(message) {
     return null;
   }
 
-  const docText = fs.readFileSync(docPath, 'utf8');
-  const stopLabels = ['?섏닠鍮꾩슜', '?섏닠?쒓컙', '留덉랬諛⑸쾿', '?낆썝湲곌컙', '?댁썝移섎즺', '?뚮났湲곌컙', '移섎즺 ?μ젏'];
-  const costLines = extractHomepageSurgerySectionLines(docText, ['?섏닠鍮꾩슜'], stopLabels);
-  const timeLines = extractHomepageSurgerySectionLines(docText, ['?섏닠?쒓컙'], stopLabels);
-  const anesthesiaLines = extractHomepageSurgerySectionLines(docText, ['留덉랬諛⑸쾿'], stopLabels);
-  const admissionLines = extractHomepageSurgerySectionLines(docText, ['?낆썝湲곌컙'], stopLabels);
-  const followupLines = extractHomepageSurgerySectionLines(docText, ['?댁썝移섎즺'], stopLabels);
-  const recoveryLines = extractHomepageSurgerySectionLines(docText, ['?뚮났湲곌컙'], stopLabels);
+  const docText = repairBrokenKoreanText(fs.readFileSync(docPath, 'utf8'));
+  const stopLabels = ['수술비용', '수술시간', '마취방법', '입원기간', '내원치료', '회복기간', '치료 특장'];
+  const costLines = extractHomepageSurgerySectionLines(docText, ['수술비용'], stopLabels);
+  const timeLines = extractHomepageSurgerySectionLines(docText, ['수술시간'], stopLabels);
+  const anesthesiaLines = extractHomepageSurgerySectionLines(docText, ['마취방법'], stopLabels);
+  const admissionLines = extractHomepageSurgerySectionLines(docText, ['입원기간'], stopLabels);
+  const followupLines = extractHomepageSurgerySectionLines(docText, ['내원치료'], stopLabels);
+  const recoveryLines = extractHomepageSurgerySectionLines(docText, ['회복기간'], stopLabels);
 
   if (
     costLines.length === 0
@@ -3833,44 +3834,44 @@ function findHomepageSurgeryInfoResponse(message) {
     return null;
   }
 
-  const sentences = [`${matchedConfig.disease} ?섏닠 ?덈궡?쒕┰?덈떎.`];
+  const sentences = [`${matchedConfig.disease} 수술 안내드립니다.`];
 
   if (costLines.length > 0) {
     const [costValue, ...costExtras] = costLines;
     const cleanedCostExtras = costExtras
       .map((line) => String(line || '').replace(/^\(+/, '').replace(/\)+$/, '').trim())
       .filter(Boolean);
-    sentences.push(`?섏닠鍮꾩슜? ${costValue}${cleanedCostExtras.length > 0 ? `(${cleanedCostExtras.join(', ')})` : ''}?낅땲??`);
+    sentences.push(`수술비용은 ${costValue}${cleanedCostExtras.length > 0 ? `(${cleanedCostExtras.join(', ')})` : ''}입니다.`);
   }
 
   if (timeLines.length > 0) {
-    sentences.push(`?섏닠?쒓컙? ${timeLines.join(' ')}?낅땲??`);
+    sentences.push(`수술시간은 ${timeLines.join(' ')}입니다.`);
   }
 
   if (anesthesiaLines.length > 0) {
-    sentences.push(`留덉랬諛⑸쾿? ${anesthesiaLines.join(' ')}?낅땲??`);
+    sentences.push(`마취방법은 ${anesthesiaLines.join(' ')}입니다.`);
   }
 
   if (admissionLines.length > 0) {
-    sentences.push(`?낆썝湲곌컙? ${admissionLines.join(' ')}?낅땲??`);
+    sentences.push(`입원기간은 ${admissionLines.join(' ')}입니다.`);
   }
 
   if (followupLines.length > 0) {
-    sentences.push(`?섏닠 ???댁썝移섎즺??${followupLines.join(' ')}?낅땲??`);
+    sentences.push(`수술 후 내원치료는 ${followupLines.join(' ')}입니다.`);
   }
 
   if (recoveryLines.length > 0) {
-    sentences.push(`?뚮났湲곌컙? ${recoveryLines.join(' ')}?낅땲??`);
+    sentences.push(`회복기간은 ${recoveryLines.join(' ')}입니다.`);
   }
 
-  sentences.push('?뺥솗???섏닠 ?곸쓳利앷낵 諛⑸쾿? 吏꾩같怨?寃????寃곗젙?섎땲 ?먯꽭???곷떞?대굹 ?덉빟? ??쒖쟾??02-6925-1111濡?臾몄쓽??二쇱꽭??');
+  sentences.push('정확한 수술 적응증과 방법은 진료와 검사 후 결정되므로 자세한 상담이나 예약은 대표전화 02-6925-1111로 문의해 주세요.');
 
   return {
     type: 'homepage_surgery_info',
     answer: sentences.join(' '),
     followUp: [
-      '沅곴툑???섏닠????援ъ껜?곸쑝濡?留먯???二쇱떆硫?鍮꾩슜, ?낆썝湲곌컙, ?뚮났湲곌컙 湲곗??쇰줈 ?ㅼ떆 ?덈궡???쒕┫ ???덉뒿?덈떎.',
-      '蹂댄뿕 ?곸슜 ?щ?? ?ㅼ젣 鍮꾩슜? 吏덊솚 ?곹깭? 寃??寃곌낵???곕씪 ?щ씪吏????덉뒿?덈떎.',
+      '원하시는 수술명을 구체적으로 말씀해 주시면 비용, 입원기간, 회복기간 기준으로 다시 안내해 드릴게요.',
+      '보험 적용 여부와 실제 비용은 질환 상태와 검사 결과에 따라 달라질 수 있습니다.',
     ],
     sources: [{
       title: path.parse(matchedConfig.filename).name,
@@ -4003,7 +4004,7 @@ function findSingleRoomFeeResponse(message) {
 
   const rawLines = fs.readFileSync(CERTIFICATE_FEES_DOC_PATH, 'utf8')
     .split(/\r?\n/)
-    .map((line) => String(line || '').replace(/\r/g, '').trim())
+    .map((line) => repairBrokenKoreanText(String(line || '').replace(/\r/g, '').trim()))
     .filter(Boolean);
 
   const oneNightLine = rawLines.find((line) => {
@@ -4056,7 +4057,7 @@ function readNonpayDocLines() {
 
   return fs.readFileSync(CERTIFICATE_FEES_DOC_PATH, 'utf8')
     .split(/\r?\n/)
-    .map((line) => String(line || '').replace(/\r/g, '').trim())
+    .map((line) => repairBrokenKoreanText(String(line || '').replace(/\r/g, '').trim()))
     .filter(Boolean);
 }
 
@@ -5294,14 +5295,461 @@ function classifyUserIntent(message) {
     return { type: 'doctor_specialty' };
   }
 
-  if (normalized.includes('?덉빟') || normalized.includes('?묒닔')) {
+  if (normalized.includes('예약') || normalized.includes('접수')) {
     return { type: 'reservation_or_reception' };
   }
 
   return { type: 'unknown' };
 }
 
+function buildLocalDocSource(title, filename) {
+  return {
+    title,
+    url: `local://docs/${encodeURIComponent(filename)}`,
+  };
+}
+
+function cleanIntentPayload(payload) {
+  return payload ? repairChatPayloadFields(payload) : null;
+}
+
+function buildCleanCertificateFeeResponse(message) {
+  const normalizedMessage = normalizeSearchTextSafe(message);
+  if (!normalizedMessage || !/(비용|금액|수수료|가격|얼마)/u.test(message)) {
+    return null;
+  }
+
+  const wantsReissue = /(재발급|재발행|재본)/u.test(message);
+  const targets = [
+    { baseKey: 'diagnosis', reissueKey: 'diagnosis_reissue', aliases: ['진단서'] },
+    { baseKey: 'surgery_confirmation', reissueKey: 'surgery_confirmation_reissue', aliases: ['수술확인서', '수술 확인서'] },
+    { baseKey: 'admission_discharge', reissueKey: 'admission_discharge_reissue', aliases: ['입퇴원확인서', '입원확인서', '퇴원확인서'] },
+  ];
+
+  const matchedTarget = targets.find((target) => (
+    target.aliases.some((alias) => normalizedMessage.includes(normalizeSearchTextSafe(alias)))
+  ));
+  if (!matchedTarget) {
+    return null;
+  }
+
+  const entryKey = wantsReissue ? matchedTarget.reissueKey : matchedTarget.baseKey;
+  const matchedEntry = (runtimeData.certificateFeeEntries || []).find((entry) => entry.key === entryKey);
+  if (!matchedEntry) {
+    return null;
+  }
+
+  return {
+    type: 'certificate_fee',
+    answer: `${matchedEntry.title} 비용은 ${matchedEntry.price}입니다.`,
+    followUp: [
+      '기준 문서는 기타-비급여비용입니다.',
+      wantsReissue ? '재발급 비용 기준으로 안내드렸습니다.' : '초발급 비용 기준으로 안내드렸습니다.',
+      '발급 절차는 원무과 또는 대표전화 02-6925-1111로 다시 확인해 주세요.',
+    ],
+    sources: [buildLocalDocSource('기타-비급여비용', path.basename(CERTIFICATE_FEES_DOC_PATH || '기타-비급여비용.txt'))],
+  };
+}
+
+function buildCleanNonpayItemResponse(message) {
+  const normalizedMessage = normalizeSearchTextSafe(message);
+  const compactMessage = compactSearchTextSafe(message);
+  if (!normalizedMessage || !/(비용|금액|가격|얼마)/u.test(message)) {
+    return null;
+  }
+
+  const matchedEntry = (runtimeData.nonpayItemEntries || []).find((entry) => (
+    (entry.aliases || []).some((alias) => {
+      const normalizedAlias = normalizeSearchTextSafe(alias);
+      const compactAlias = compactSearchTextSafe(alias);
+      return normalizedMessage.includes(normalizedAlias) || compactMessage.includes(compactAlias);
+    })
+  ));
+  if (!matchedEntry) {
+    return null;
+  }
+
+  return {
+    type: 'nonpay_item_fee',
+    answer: `${matchedEntry.title} 비용은 ${matchedEntry.price}입니다.`,
+    followUp: [
+      '기준 문서는 기타-비급여비용입니다.',
+      '실제 적용 금액이나 운영 여부는 대표전화 02-6925-1111로 다시 확인해 주세요.',
+      `비급여 안내 페이지: ${NONPAY_PAGE_URL}`,
+    ],
+    sources: [
+      buildLocalDocSource('기타-비급여비용', path.basename(CERTIFICATE_FEES_DOC_PATH || '기타-비급여비용.txt')),
+      { title: '비급여 안내 페이지', url: NONPAY_PAGE_URL },
+    ],
+  };
+}
+
+function buildCleanSingleRoomFeeResponse(message) {
+  const payload = findSingleRoomFeeResponse(message);
+  if (!payload) {
+    return null;
+  }
+
+  return {
+    type: 'single_room_fee',
+    answer: payload.answer,
+    followUp: [
+      '기준 문서는 기타-비급여비용입니다.',
+      '실제 적용 금액은 입원 형태에 따라 달라질 수 있어 대표전화 02-6925-1111로 다시 확인해 주세요.',
+      `비급여 안내 페이지: ${NONPAY_PAGE_URL}`,
+    ],
+    sources: [
+      buildLocalDocSource('기타-비급여비용', path.basename(CERTIFICATE_FEES_DOC_PATH || '기타-비급여비용.txt')),
+      { title: '비급여 안내 페이지', url: NONPAY_PAGE_URL },
+    ],
+  };
+}
+
+function buildCleanDoctorSpecialtyResponse(message) {
+  if (!isDoctorSpecialtyQuestion(message)) {
+    return null;
+  }
+
+  const doctorEntries = (runtimeData.doctorSpecialtyEntries || []).length > 0
+    ? runtimeData.doctorSpecialtyEntries
+    : buildDoctorSpecialtyEntries();
+
+  const doctorName = extractDoctorName(message);
+  if (doctorName) {
+    const doctorEntry = doctorEntries.find((entry) => entry.doctorName === doctorName);
+    if (doctorEntry) {
+      return {
+        type: 'doctor_specialty',
+        answer: `${doctorName} 의료진의 전문분야는 ${doctorEntry.specialtyText} 입니다.`,
+        followUp: ['진료 일정은 외래 진료표와 당일 상황에 따라 달라질 수 있습니다.'],
+        sources: [buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt')],
+      };
+    }
+  }
+
+  const expandedState = buildExpandedSearchState(message);
+  const matchedEntries = doctorEntries.filter((entry) => (
+    (entry.labels || []).some((label) => expandedState.normalizedVariants.some((variant) => (
+      variant.includes(normalizeSearchTextSafe(label)) || normalizeSearchTextSafe(label).includes(variant)
+    )))
+  ));
+
+  if (!matchedEntries.length) {
+    return null;
+  }
+
+  const uniqueDoctors = [...new Set(matchedEntries.map((entry) => entry.doctorName))];
+  const summary = matchedEntries
+    .map((entry) => `${entry.doctorName}: ${entry.specialtyText}`)
+    .join(' / ');
+
+  return {
+    type: 'doctor_specialty',
+    answer: `관련 전문분야 기준으로 안내드리면 ${uniqueDoctors.join(', ')} 의료진이 있습니다.`,
+    followUp: [
+      '진료 일정은 외래 진료표와 당일 상황에 따라 달라질 수 있습니다.',
+      `전문분야 참고: ${summary}`,
+    ],
+    sources: [buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt')],
+  };
+}
+
+function buildCleanPostOpCareResponse(message) {
+  const source = [buildLocalDocSource('입원-수술 후 주의사항', '입원-수술 후 주의사항.txt')];
+  const text = String(message || '');
+
+  if (/(코|비염|축농증|비중격|코물혹)/u.test(text)) {
+    return {
+      type: 'postop_care_nose',
+      answer: '코 수술 후에는 코를 세게 풀거나 강하게 건드리지 말고, 안내받은 시기부터 코세척과 외래 치료를 이어가시는 것이 중요합니다.',
+      followUp: ['출혈이 많아지거나 통증이 심하면 대표전화 02-6925-1111로 바로 연락해 주세요.', '사우나, 음주, 흡연, 격한 운동은 회복 기간 동안 피하는 편이 좋습니다.'],
+      sources: source,
+    };
+  }
+
+  if (/(목|편도)/u.test(text)) {
+    return {
+      type: 'postop_care_throat',
+      answer: '목 수술 후에는 뜨겁고 자극적인 음식보다 부드러운 식사를 권장하며, 출혈 여부를 잘 관찰하셔야 합니다.',
+      followUp: ['선홍색 피가 계속 나거나 양이 많으면 즉시 병원으로 연락해 주세요.', '회복 초반에는 무리한 운동과 과도한 목 사용을 피하는 것이 좋습니다.'],
+      sources: source,
+    };
+  }
+
+  if (/귀/u.test(text)) {
+    return {
+      type: 'postop_care_ear',
+      answer: '귀 수술 후에는 수술 부위에 물이 들어가지 않도록 주의하고, 압력이 많이 걸리는 행동은 피하는 편이 좋습니다.',
+      followUp: ['어지럼이 심해지거나 출혈, 분비물이 계속되면 병원으로 연락해 주세요.', '세안이나 샤워는 안내받은 시점부터 조심스럽게 진행해 주세요.'],
+      sources: source,
+    };
+  }
+
+  if (/갑상선/u.test(text)) {
+    return {
+      type: 'postop_care_thyroid',
+      answer: '갑상선 수술 후에는 목을 무리하게 젖히거나 강한 운동을 피하고, 상처 부위를 과하게 자극하지 않는 것이 중요합니다.',
+      followUp: ['붓기, 통증, 목소리 변화가 심해지면 병원에 확인해 주세요.', '흡연과 음주는 회복 기간 동안 피하는 편이 좋습니다.'],
+      sources: source,
+    };
+  }
+
+  if (/(침샘|이하선|악하선)/u.test(text)) {
+    return {
+      type: 'postop_care_salivary',
+      answer: '침샘 수술 후에는 상처 부위를 자극하지 말고, 부드러운 식사와 충분한 휴식을 권장합니다.',
+      followUp: ['붓기나 통증이 심해지거나 열이 나면 병원으로 연락해 주세요.', '무거운 물건을 드는 행동과 격한 운동은 회복 기간 동안 피하는 것이 좋습니다.'],
+      sources: source,
+    };
+  }
+
+  return {
+    type: 'postop_care',
+    answer: '수술 후 주의사항은 수술 종류에 따라 달라집니다. 어떤 수술 후 주의사항이 필요한지 말씀해 주시면 맞춰서 안내해 드릴게요.',
+    followUp: ['코 수술 후 주의사항', '목 수술 후 주의사항', '귀 수술 후 주의사항', '갑상선 수술 후 주의사항'],
+    sources: source,
+  };
+}
+
+function buildReinitializedIntentResponse(intentType, message) {
+  switch (intentType) {
+    case 'welcome':
+      return createWelcomeResponse();
+    case 'emergency':
+      return {
+        type: 'emergency',
+        answer: '응급으로 보일 수 있는 상황입니다. 채팅으로 지연하지 마시고 119 또는 가까운 응급실로 바로 이동해 주세요.',
+        followUp: ['심한 호흡곤란, 의식 저하, 심한 출혈은 즉시 응급 대응이 필요합니다.', '대표전화 02-6925-1111'],
+      };
+    case 'restricted':
+      return {
+        type: 'restricted',
+        answer: '이 부분은 상담봇이 판단해 드릴 수 없습니다. 진단, 처방 변경, 약 중단 여부는 의료진과 직접 확인해 주세요.',
+        followUp: ['대표전화 02-6925-1111', '증상이 급하면 가까운 응급실 또는 119 이용'],
+      };
+    case 'personal_info':
+      return {
+        type: 'privacy_warning',
+        answer: '주민등록번호, 전화번호, 주소 같은 개인정보나 민감한 건강정보는 입력하지 말아 주세요.',
+        followUp: ['개인정보 없이 증상, 비용, 예약, 진료시간처럼 일반적인 질문만 남겨 주세요.'],
+      };
+    case 'receipt_issuance':
+      return {
+        type: 'receipt_issuance',
+        answer: '영수증과 진료상세내역 같은 서류는 외래에서는 원무과에서 본인 확인 후 발급받으시면 됩니다. 입원 환자는 퇴원 하루 전 병동에 미리 신청하고, 퇴원 수납 시 원무과에서 받는 방식으로 안내됩니다.',
+        followUp: ['퇴원 후에는 외래 방문 시 다시 신청할 수 있습니다.', '대리 발급은 동의서와 신분증 사본 등 추가 서류가 필요할 수 있습니다.', '대표전화 02-6925-1111'],
+        sources: [
+          buildLocalDocSource('홈페이지-FAQ', '홈페이지-FAQ.txt'),
+          buildLocalDocSource('홈페이지-입퇴원 안내', '홈페이지-입퇴원 안내.txt'),
+        ],
+      };
+    case 'same_day_exam_availability':
+      return {
+        type: 'same_day_exam_availability',
+        answer: '대부분 검사는 진료 당일 진행하고 결과까지 확인하는 흐름으로 안내됩니다. 다만 검사 종류와 당일 상황에 따라 예약 검사로 전환될 수 있습니다.',
+        followUp: ['귀 검사와 청력·전정기능 검사는 상황에 따라 예약으로 안내될 수 있습니다.', '코골이·수면무호흡 검사는 1박 2일 입원 검사입니다.', '대표전화 02-6925-1111'],
+        sources: [buildLocalDocSource('홈페이지-FAQ', '홈페이지-FAQ.txt')],
+      };
+    case 'exam_preparation':
+      if (/(수면|코골이|수면무호흡|수면다원|수면내시경)/u.test(message)) {
+        return {
+          type: 'exam_preparation',
+          answer: '수면검사는 1박 2일 입원으로 진행됩니다. 기본 침구는 병동에 준비되어 있고, 개인 세면도구 정도 챙기시면 됩니다.',
+          followUp: ['금식이나 마취 관련 안내는 검사 전 병원에서 다시 확인해 주세요.', '대표전화 02-6925-1111'],
+          sources: [buildLocalDocSource('홈페이지-FAQ', '홈페이지-FAQ.txt')],
+        };
+      }
+      if (/(귀|청력|어지럼|전정)/u.test(message)) {
+        return {
+          type: 'exam_preparation',
+          answer: '귀 검사 전 특별히 챙길 준비물은 없습니다. 검사 시간이 길 수 있어 가능한 한 일찍 내원하시는 편이 좋습니다.',
+          followUp: ['청력검사와 전정기능검사는 당일 검사와 결과 상담이 가능하지만 상황에 따라 예약 검사로 전환될 수 있습니다.', '약 복용 중이거나 급성 심한 어지러움이 있으면 검사 시점이 달라질 수 있습니다.'],
+          sources: [buildLocalDocSource('홈페이지-FAQ', '홈페이지-FAQ.txt')],
+        };
+      }
+      return {
+        type: 'exam_preparation',
+        answer: '검사 전 특별한 준비물이 필요한 경우는 많지 않지만, 검사 종류에 따라 예외가 있을 수 있습니다.',
+        followUp: ['코 검사인지 귀 검사인지, 수면검사인지 알려주시면 더 정확히 안내해 드릴게요.', '대표전화 02-6925-1111'],
+        sources: [buildLocalDocSource('홈페이지-FAQ', '홈페이지-FAQ.txt')],
+      };
+    case 'medication_stop':
+      return {
+        type: 'medication_stop',
+        answer: '입원 전이나 수술 전에 복용을 중단해야 하는 약은 별도 리스트로 안내됩니다. 복용 중인 약이 있다면 입원 전 복용중단 약물 리스트를 먼저 확인해 주세요.',
+        followUp: ['리스트에 없는 약이거나 중단 여부가 애매하면 대표전화 02-6925-1111로 확인해 주세요.'],
+        sources: [buildLocalDocSource('병동-FAQ', '병동-FAQ.txt')],
+        images: [{
+          title: '입원 전 복용 중단 약물 리스트',
+          description: '입원 전에 중단이 필요한 약물 안내 이미지입니다.',
+          display: 'document',
+          url: resolvePublicImagePath('/images/%EC%9E%85%EC%9B%90%EC%A0%84%20%EB%B3%B5%EC%9A%A9%EC%A4%91%EB%8B%A8%20%EC%95%BD%EB%AC%BC%20%EB%A6%AC%EC%8A%A4%ED%8A%B8.jpg'),
+        }],
+      };
+    case 'postop_bleeding':
+      return {
+        type: 'postop_bleeding',
+        answer: '수술 후 출혈이 있으면 우선 안정을 취하고, 소량이면 얼음물 가글을 시도해 보실 수 있습니다. 출혈이 계속되거나 양이 많으면 즉시 병원으로 연락해 주세요.',
+        followUp: ['대표전화 02-6925-1111', '즉시 내원이 어렵다면 가까운 이비인후과 응급실 이용을 권장합니다.'],
+        sources: [
+          buildLocalDocSource('입원-수술 후 주의사항', '입원-수술 후 주의사항.txt'),
+          buildLocalDocSource('입원-입원생활안내문', '입원-입원생활안내문.txt'),
+        ],
+      };
+    case 'nasal_irrigation_surgery':
+      return {
+        type: 'nasal_irrigation_surgery',
+        answer: '수술 후 코세척은 보통 수술 후 3일부터, 빠르면 퇴원 당일 저녁부터 시작하도록 안내됩니다. 미지근한 물과 세척 분말을 사용해 천천히 세척해 주세요.',
+        followUp: ['세척 후 나온 물은 코를 세게 풀지 말고 닦는 정도로 정리해 주세요.', '불편감이 심하면 외래나 대표전화 02-6925-1111로 확인해 주세요.'],
+        sources: [buildLocalDocSource('외래-코세척 방법', '외래-코세척 방법.txt')],
+      };
+    case 'nasal_irrigation_general':
+      return {
+        type: 'nasal_irrigation_general',
+        answer: '일반 코세척은 생리식염수 또는 세척 분말을 미지근한 물에 풀어 부드럽게 시행하시면 됩니다. 한쪽 코로 넣고 반대쪽으로 자연스럽게 흘러나오게 해 주세요.',
+        followUp: ['통증이 있거나 귀가 먹먹하면 세게 하지 말고 중단해 주세요.', '자세한 방법은 외래-코세척 방법 문서를 기준으로 안내됩니다.'],
+        sources: [buildLocalDocSource('외래-코세척 방법', '외래-코세척 방법.txt')],
+      };
+    case 'postop_care':
+      return buildCleanPostOpCareResponse(message);
+    case 'homepage_surgery_cost':
+      return cleanIntentPayload(findHomepageSurgeryCostResponse(message));
+    case 'homepage_surgery_info':
+      return cleanIntentPayload(findHomepageSurgeryInfoResponse(message));
+    case 'surgery_cost':
+      return {
+        type: 'surgery_cost',
+        answer: '수술 비용은 수술 종류, 질환명, 보험 적용 여부에 따라 달라집니다. 질환명을 알려주시면 관련 문서를 기준으로 다시 안내해 드릴게요.',
+        followUp: [`비급여 안내 페이지: ${NONPAY_PAGE_URL}`, '대표전화 02-6925-1111'],
+        sources: [{ title: '비급여 안내 페이지', url: NONPAY_PAGE_URL }],
+      };
+    case 'surgery_schedule':
+      return {
+        type: 'surgery_schedule',
+        answer: '수술 시작 시간은 수술 동의와 설명 과정에서 안내되지만, 당일 상황과 환자 상태에 따라 변경될 수 있습니다.',
+        followUp: ['정확한 시간은 입원 후 병동 또는 수술 안내 과정에서 다시 확인해 주세요.', '대표전화 02-6925-1111'],
+        sources: [buildLocalDocSource('병동-FAQ', '병동-FAQ.txt')],
+      };
+    case 'surgery_duration':
+      return {
+        type: 'surgery_duration',
+        answer: '수술 소요시간은 수술 종류와 환자 상태에 따라 달라집니다. 수술실 입실 후 준비 시간과 회복실 회복 시간까지 포함하면 실제 체감 시간은 더 길 수 있습니다.',
+        followUp: ['코 수술은 국소마취 후 효과를 기다리는 시간이 있어 대기시간이 더 길 수 있습니다.', '정확한 예상 시간은 수술 설명 시 다시 확인해 주세요.'],
+        sources: [
+          buildLocalDocSource('병동-FAQ', '병동-FAQ.txt'),
+          buildLocalDocSource('입원-입원생활안내문', '입원-입원생활안내문.txt'),
+        ],
+      };
+    case 'certificate_fee':
+      return buildCleanCertificateFeeResponse(message);
+    case 'single_room_fee':
+      return buildCleanSingleRoomFeeResponse(message);
+    case 'nonpay_item_fee':
+      return buildCleanNonpayItemResponse(message);
+    case 'hospital_phone':
+      return {
+        type: 'hospital_phone',
+        answer: '하나이비인후과병원 대표전화는 02-6925-1111입니다.',
+        followUp: ['예약 변경, 문의, 병동 확인 모두 대표전화로 연결하실 수 있습니다.'],
+      };
+    case 'late_arrival':
+      return {
+        type: 'late_arrival',
+        answer: '예약 후 늦을 것 같으면 먼저 02-6925-1111로 연락해 주세요. 도착 예정 시간과 외래 대기 상황에 따라 방문 접수 또는 재예약으로 안내될 수 있습니다.',
+        followUp: ['1시간 이상 늦는 경우에는 먼저 전화로 확인하는 편이 안전합니다.'],
+        sources: [buildLocalDocSource('홈페이지-FAQ', '홈페이지-FAQ.txt')],
+      };
+    case 'inpatient_meal_policy':
+      return {
+        type: 'inpatient_meal_policy',
+        answer: '입원생활 안내 기준으로 병동 내 취사나 외부 음식 조리는 불가합니다. 배달음식은 가능할 수 있지만, 식사 후 불편이나 합병증 가능성을 고려해 주의가 필요합니다.',
+        followUp: ['식사시간은 보통 아침 8시, 점심 12시, 저녁 5시 30분으로 안내됩니다.', '세부 운영은 병동에 다시 확인해 주세요.'],
+        sources: [
+          buildLocalDocSource('입원-입원생활안내문', '입원-입원생활안내문.txt'),
+          buildLocalDocSource('병동-FAQ', '병동-FAQ.txt'),
+        ],
+      };
+    case 'inpatient_outing':
+      return {
+        type: 'inpatient_outing',
+        answer: '입원 중 외출과 외박은 특별한 사유가 없는 한 제한됩니다. 꼭 필요한 경우에는 요청서를 작성하고 주치의 또는 담당 의료진의 승인을 받아야 합니다.',
+        followUp: ['승인된 시간 안에 복귀하셔야 합니다.', '무단 외출·외박은 인정되지 않습니다.'],
+        sources: [buildLocalDocSource('병동-FAQ', '병동-FAQ.txt')],
+      };
+    case 'shuttle_bus':
+      return {
+        type: 'shuttle_bus',
+        answer: '셔틀버스는 평일 약 15분 간격으로 운행합니다. 오전은 8시 55분부터 12시 25분까지, 오후는 1시 40분부터 5시 40분까지 안내됩니다.',
+        followUp: ['토요일은 약 30분 간격으로 8시 55분부터 12시 55분까지 운행합니다.', '셔틀 승차 위치는 역삼역 1번 출구 인근입니다.'],
+        sources: [
+          buildLocalDocSource('기타-병원셔틀시간표', '기타-병원셔틀시간표.txt'),
+          buildLocalDocSource('홈페이지-셔틀버스 및 오시는길', '홈페이지-셔틀버스 및 오시는길.txt'),
+        ],
+      };
+    case 'discharge_procedure':
+      return {
+        type: 'discharge_procedure',
+        answer: '퇴원은 보통 퇴원 안내, 진료비 수납, 서류 수령 순서로 진행됩니다. 퇴원 당일에는 수술 부위 확인과 주의사항 설명이 함께 진행될 수 있습니다.',
+        followUp: ['서류가 필요하면 병동에 미리 말씀해 주세요.', '수납 후 다음 외래 일정이 안내될 수 있습니다.'],
+        sources: [buildLocalDocSource('홈페이지-입퇴원 안내', '홈페이지-입퇴원 안내.txt')],
+      };
+    case 'rhinitis_postop_visit':
+      return {
+        type: 'rhinitis_postop_visit',
+        answer: '비염 수술 후 내원 치료는 문서 기준으로 보통 8회에서 12회 정도 안내됩니다. 회복 기간은 보통 3주에서 4주 정도로 안내됩니다.',
+        followUp: ['정확한 내원 횟수는 수술 범위와 회복 상태에 따라 달라질 수 있습니다.', '대표전화 02-6925-1111'],
+        sources: [buildLocalDocSource('홈페이지-만성비염', '홈페이지-만성비염.txt')],
+      };
+    case 'guardian_shift':
+      return {
+        type: 'guardian_shift',
+        answer: '간호간병통합서비스 병동 운영 기준으로 보호자 상주나 잦은 교대는 제한될 수 있습니다. 꼭 필요한 경우에는 병동 또는 의료진 판단 아래 일시적으로 안내될 수 있습니다.',
+        followUp: ['세부 운영은 병동에 먼저 확인해 주세요.', '대표전화 02-6925-1111'],
+        sources: [
+          buildLocalDocSource('입원-입원생활안내문', '입원-입원생활안내문.txt'),
+          buildLocalDocSource('병동-FAQ', '병동-FAQ.txt'),
+        ],
+      };
+    case 'wifi_info':
+      return {
+        type: 'wifi_info',
+        answer: '병동 와이파이는 HANA_ENT_병동2 또는 HANA_ENT_병동5를 이용하시면 되고, 비밀번호는 0269251111입니다.',
+        followUp: ['층별 운영에 따라 접속명이 다를 수 있어 병동 안내를 함께 확인해 주세요.'],
+        sources: [buildLocalDocSource('입원-입원생활안내문', '입원-입원생활안내문.txt')],
+      };
+    case 'complaint_guide':
+      return {
+        type: 'complaint_guide',
+        answer: '불편사항이나 건의사항은 병동 안내문, 고객의 소리 창구, 또는 대표전화 02-6925-1111을 통해 접수하실 수 있습니다.',
+        followUp: ['입원 중이면 병동 간호사실에 먼저 말씀해 주셔도 됩니다.'],
+      };
+    case 'floor_guide':
+      return cleanIntentPayload(findFloorGuideResponse(message));
+    case 'doctor_specialty':
+      return buildCleanDoctorSpecialtyResponse(message);
+    case 'doctor_overview':
+      return cleanIntentPayload(findDoctorOverviewResponse(message) || buildDynamicDoctorOverviewResponse());
+    case 'reservation_or_reception':
+      return {
+        type: 'reservation_or_reception',
+        answer: '예약은 온라인 예약, 전화 예약, 방문 예약으로 가능합니다. 처음 내원하시는 경우에는 신분증을 지참하고 1층 접수 데스크에서 등록 후 진료실로 안내됩니다.',
+        followUp: ['예약 변경은 대표전화 02-6925-1111로 문의해 주세요.', '온라인 예약은 병원 홈페이지에서 요청 후 상담 확인 절차로 진행됩니다.'],
+        sources: [
+          buildLocalDocSource('홈페이지-FAQ', '홈페이지-FAQ.txt'),
+          buildLocalDocSource('홈페이지-외래진료안내', '홈페이지-외래진료안내.txt'),
+        ],
+      };
+    default:
+      return null;
+  }
+}
+
 function resolveIntentResponse(intentType, message) {
+  const rebuiltResponse = buildReinitializedIntentResponse(intentType, message);
+  if (rebuiltResponse) {
+    return rebuiltResponse;
+  }
+
   switch (intentType) {
     case 'welcome':
       return createWelcomeResponse();
@@ -6067,7 +6515,7 @@ async function buildChatResponse(rawMessage, sessionId) {
     return enrichResponsePayload(createWelcomeResponse(), message);
   }
 
-  const directDoctorSpecialtyResponse = findDoctorSpecialtyResponse(message);
+  const directDoctorSpecialtyResponse = buildCleanDoctorSpecialtyResponse(message);
   if (directDoctorSpecialtyResponse) {
     return enrichResponsePayload(directDoctorSpecialtyResponse, message);
   }
@@ -6083,7 +6531,7 @@ async function buildChatResponse(rawMessage, sessionId) {
   }
 
   if (/(예약|접수)/u.test(message) && rawIntent.type === 'reservation_or_reception') {
-    return enrichResponsePayload(createReservationOrReceptionResponse(), message);
+    return enrichResponsePayload(buildReinitializedIntentResponse('reservation_or_reception', message), message);
   }
 
   if (conversationState) {
