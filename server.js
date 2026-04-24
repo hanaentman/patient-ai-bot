@@ -5,6 +5,7 @@ const path = require('path');
 const { URL } = require('url');
 const { DatabaseSync } = require('node:sqlite');
 const XLSX = require('xlsx');
+const CPEXCEL = require('xlsx/dist/cpexcel.js');
 
 const PORT = process.env.PORT || 3000;
 const IS_RENDER = Boolean(process.env.RENDER || process.env.RENDER_SERVICE_ID);
@@ -1088,7 +1089,7 @@ function findDocPathByKeyword(keyword) {
 
 function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, { 'Content-Type': 'application/json; charset=utf-8' });
-  res.end(JSON.stringify(payload));
+  res.end(JSON.stringify(repairResponsePayloadText(payload)));
 }
 
 function isPublicHttpUrl(value) {
@@ -1617,21 +1618,149 @@ function appendSupportLinks(answer, question) {
   return result.replace(/(?:대표전화\s*)?02-6925-1111/g, '대표전화 02-6925-1111');
 }
 
+function looksLikeBrokenKoreanText(value) {
+  const text = String(value || '');
+  return /[\uF900-\uFAFF]|(?:\?[가-힣])|(?:[가-힣]\?)|(?:\?{2,})/.test(text);
+}
+
+function decodeCompatMojibakeToken(token) {
+  try {
+    return Buffer.from(CPEXCEL.utils.encode(949, token)).toString('utf8').replace(/\u0000/g, '');
+  } catch (error) {
+    return token;
+  }
+}
+
+function repairBrokenKoreanText(value) {
+  let result = String(value || '');
+  if (!result || !looksLikeBrokenKoreanText(result)) {
+    return result;
+  }
+
+  result = result.replace(/[\uF900-\uFAFF가-힣]{2,}/g, (token) => (
+    /[\uF900-\uFAFF]/.test(token) ? decodeCompatMojibakeToken(token) : token
+  ));
+
+  const replacements = [
+    ['?덈뀞?섏꽭??', '안녕하세요'],
+    ['?섎굹?대퉬?명썑怨쇰퀝???곷떞 ?꾩슦誘몄엯?덈떎', '하나이비인후과병원 상담 도우미입니다'],
+    ['?섎굹?대퉬?명썑怨쇰퀝??', '하나이비인후과병원'],
+    ['臾몄꽌 湲곗??쇰줈', '문서 기준으로'],
+    ['??쒖쟾??02-6925-1111', '대표전화 02-6925-1111'],
+    ['??쒖쟾??', '대표전화 '],
+    ['?섎즺吏??뺣낫', '의료진 정보'],
+    ['?몃옒吏꾨즺?덈궡', '외래진료 안내'],
+    ['?낇눜???덈궡', '입퇴원 안내'],
+    ['鍮꾧툒???덈궡 ?섏씠吏', '비급여 안내 페이지'],
+    ['?곷떞遊뉗?', '상담봇은'],
+    ['蹂듭슜 以묐떒', '복용 중단'],
+    ['?좊텇利', '신분증'],
+    ['?묒닔 ?곗뒪?', '접수 데스크'],
+    ['?묒닔?섏떊 ???대떦', '접수하신 뒤 해당'],
+    ['吏꾨즺?ㅼ뿉??', '진료실에서'],
+    ['吏꾨즺瑜?諛쏆쑝?쒕㈃ ?⑸땲??', '진료를 받으시면 됩니다'],
+    ['?낃컧 ?덈갑?묒쥌', '독감 예방접종'],
+    ['?낃컧?덈갑?묒쥌', '독감예방접종'],
+    ['?곗냼移섎즺', '산소치료'],
+    ['鍮꾩뿼', '비염'],
+    ['異뺣냽利?', '축농증'],
+    ['鍮꾩쨷寃⑸쭔怨≪쬆', '비중격만곡증'],
+    ['肄붾쭑??', '코물혹'],
+    ['媛묒긽??', '갑상선'],
+    ['移⑥깦', '침샘'],
+    ['?섏닠鍮꾩슜', '수술비용'],
+    ['留덉랬諛⑸쾿', '마취방법'],
+    ['?댁썝移섎즺', '내원치료'],
+    ['?뚮났湲곌컙', '회복기간'],
+    ['肄?吏덊솚 ?섏궗', '코 질환 의사'],
+    ['洹 吏덊솚 ?섏궗', '귀 질환 의사'],
+    ['紐㈑룸몢寃쎈?쨌?섎㈃?대━??', '목·두경부·수면클리닉'],
+    ['?꾨Ц遺꾩빞', '전문분야'],
+    ['?덈궡 ?대?吏', '안내 이미지'],
+    ['?좎껌', '요청'],
+    ['?덉빟', '예약'],
+    ['?꾪솕', '전화'],
+    ['諛⑸Ц', '방문'],
+    ['?⑤씪??', '온라인'],
+    ['?곷떞', '상담'],
+    ['?꾩슦誘', '도우미'],
+    ['吏꾨즺?쒓컙', '진료시간'],
+    ['吏꾨즺?쇱젙', '진료일정'],
+    ['吏꾨즺怨?', '진료과'],
+    ['吏꾨떒', '진단'],
+    ['泥섎갑', '처방'],
+    ['蹂寃', '변경'],
+    ['?먮떒', '판단'],
+    ['利앹긽', '증상'],
+    ['?섎즺吏?', '의료진'],
+    ['?낆썝', '입원'],
+    ['?댁썝', '내원'],
+    ['?덈궡', '안내'],
+    ['?뺤씤', '확인'],
+    ['?뺤젙', '확정'],
+    ['?곹솴', '상황'],
+    ['吏꾪뻾', '진행'],
+    ['吏李명븯怨', '지참하고'],
+    ['泥섏쓬', '처음'],
+    ['?뷀?踰꾩뒪', '셔틀버스'],
+    ['媛숈?', '같은'],
+    ['蹂묒썝', '병원'],
+    ['?뱀씪', '당일'],
+    ['?붿씪', '요일'],
+    ['?ㅽ썑', '오후'],
+    ['二쇱꽭??', '주세요'],
+    ['?덉뒿?덈떎', '있습니다'],
+    ['?딆뒿?덈떎', '않습니다'],
+    ['媛?ν빀?덈떎', '가능합니다'],
+    ['沅뚯옣', '권장'],
+  ];
+
+  for (const [from, to] of replacements) {
+    result = result.split(from).join(to);
+  }
+
+  return result
+    .replace(/\u0000/g, '')
+    .replace(/([가-힣])\?{1,2}(?=\s|$|[.,!:\n])/g, '$1')
+    .replace(/(^|\s)\?{1,2}(?=[가-힣])/g, '$1')
+    .replace(/\?{2,}/g, '?')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+function repairResponsePayloadText(value) {
+  if (typeof value === 'string') {
+    return repairBrokenKoreanText(value);
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => repairResponsePayloadText(item));
+  }
+
+  if (!value || typeof value !== 'object') {
+    return value;
+  }
+
+  return Object.fromEntries(
+    Object.entries(value).map(([key, item]) => [key, repairResponsePayloadText(item)])
+  );
+}
+
 function enrichResponsePayload(payload, question) {
   if (!payload || typeof payload !== 'object') {
     return payload;
   }
 
-  const localizedPayload = localizeFixedResponsePayload(payload, question);
+  const localizedPayload = repairResponsePayloadText(localizeFixedResponsePayload(payload, question));
   const images = Array.isArray(localizedPayload.images) && localizedPayload.images.length > 0
     ? localizedPayload.images
     : findRelevantImages(question);
 
-  return {
+  return repairResponsePayloadText({
     ...localizedPayload,
     answer: appendSupportLinks(localizedPayload.answer, question),
     images,
-  };
+  });
 }
 
 function localizeFixedResponsePayload(payload, question) {
