@@ -1089,7 +1089,7 @@ function findDocPathByKeyword(keyword) {
 
 function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, { 'Content-Type': 'application/json; charset=utf-8' });
-  res.end(JSON.stringify(repairResponsePayloadText(payload)));
+  res.end(JSON.stringify(repairChatPayloadFields(payload)));
 }
 
 function isPublicHttpUrl(value) {
@@ -1652,6 +1652,16 @@ function repairBrokenKoreanText(value) {
     ['?몃옒吏꾨즺?덈궡', '외래진료 안내'],
     ['?낇눜???덈궡', '입퇴원 안내'],
     ['鍮꾧툒???덈궡 ?섏씠吏', '비급여 안내 페이지'],
+    ['?섏닠 ??二쇱쓽?ы빆', '수술 후 주의사항'],
+    ['肄붿꽭泥?諛⑸쾿', '코세척 방법'],
+    ['?먯옣', '원장'],
+    ['??쒖썝', '대표원장'],
+    ['蹂묒썝??', '병원장'],
+    ['吏꾨즺遺??', '진료부장'],
+    ['遺?먯옣', '부원장'],
+    ['遺??', '부장'],
+    ['怨쇱옣', '과장'],
+    ['?쇳꽣??', '센터장'],
     ['?곷떞遊뉗?', '상담봇은'],
     ['蹂듭슜 以묐떒', '복용 중단'],
     ['?좊텇利', '신분증'],
@@ -1711,6 +1721,10 @@ function repairBrokenKoreanText(value) {
     ['二쇱꽭??', '주세요'],
     ['?덉뒿?덈떎', '있습니다'],
     ['?딆뒿?덈떎', '않습니다'],
+    ['?꾩슂?⑸땲??', '필요합니다.'],
+    ['?덉쟾?⑸땲??', '안전합니다.'],
+    ['?낅땲??', '입니다.'],
+    ['?⑸땲??', '됩니다.'],
     ['媛?ν빀?덈떎', '가능합니다'],
     ['沅뚯옣', '권장'],
   ];
@@ -1728,22 +1742,40 @@ function repairBrokenKoreanText(value) {
     .trim();
 }
 
-function repairResponsePayloadText(value) {
-  if (typeof value === 'string') {
-    return repairBrokenKoreanText(value);
+function repairChatPayloadFields(payload) {
+  if (!payload || typeof payload !== 'object') {
+    return payload;
   }
 
-  if (Array.isArray(value)) {
-    return value.map((item) => repairResponsePayloadText(item));
+  const repaired = { ...payload };
+
+  if (typeof repaired.answer === 'string') {
+    repaired.answer = repairBrokenKoreanText(repaired.answer);
   }
 
-  if (!value || typeof value !== 'object') {
-    return value;
+  if (Array.isArray(repaired.followUp)) {
+    repaired.followUp = repaired.followUp.map((item) => repairBrokenKoreanText(item));
   }
 
-  return Object.fromEntries(
-    Object.entries(value).map(([key, item]) => [key, repairResponsePayloadText(item)])
-  );
+  if (Array.isArray(repaired.sources)) {
+    repaired.sources = repaired.sources.map((source) => ({
+      ...source,
+      title: repairBrokenKoreanText(source.title),
+      sourceTitle: repairBrokenKoreanText(source.sourceTitle),
+      description: repairBrokenKoreanText(source.description),
+    }));
+  }
+
+  if (Array.isArray(repaired.images)) {
+    repaired.images = repaired.images.map((image) => ({
+      ...image,
+      title: repairBrokenKoreanText(image.title),
+      description: repairBrokenKoreanText(image.description),
+      display: repairBrokenKoreanText(image.display),
+    }));
+  }
+
+  return repaired;
 }
 
 function enrichResponsePayload(payload, question) {
@@ -1751,12 +1783,12 @@ function enrichResponsePayload(payload, question) {
     return payload;
   }
 
-  const localizedPayload = repairResponsePayloadText(localizeFixedResponsePayload(payload, question));
+  const localizedPayload = repairChatPayloadFields(localizeFixedResponsePayload(payload, question));
   const images = Array.isArray(localizedPayload.images) && localizedPayload.images.length > 0
     ? localizedPayload.images
     : findRelevantImages(question);
 
-  return repairResponsePayloadText({
+  return repairChatPayloadFields({
     ...localizedPayload,
     answer: appendSupportLinks(localizedPayload.answer, question),
     images,
@@ -2095,10 +2127,10 @@ function readDoctorOverviewEntriesFromDocss() {
       continue;
     }
 
-    const profile = (body.match(/- ?뚭컻: (.+)/) || [])[1] || '';
-    const center = (body.match(/- ?뚯냽\/吏꾨즺怨? (.+)/) || [])[1] || '';
-    const specialty = (body.match(/- ?꾨Ц遺꾩빞: (.+)/) || [])[1] || '';
-    const role = (body.match(/- 吏곹븿: (.+)/) || [])[1] || '';
+    const profile = (body.match(/- 소개: (.+)/) || [])[1] || '';
+    const center = (body.match(/- 소속\/진료과: (.+)/) || [])[1] || '';
+    const specialty = (body.match(/- 전문분야: (.+)/) || [])[1] || '';
+    const role = (body.match(/- 직함: (.+)/) || [])[1] || '';
 
     entries.push({
       name,
@@ -2170,27 +2202,27 @@ function buildDynamicDoctorOverviewResponse() {
 
   const followUp = [];
   if (noseDoctors.length > 0) {
-    followUp.push(`肄?吏덊솚 ?섏궗: ${formatNames(noseDoctors)}`);
+    followUp.push(`코 질환 의사: ${formatNames(noseDoctors)}`);
   }
   if (throatSleepDoctors.length > 0) {
-    followUp.push(`紐㈑룸몢寃쎈?쨌?섎㈃?대━?? ${formatNames(throatSleepDoctors)}`);
+    followUp.push(`목·두경부·수면클리닉: ${formatNames(throatSleepDoctors)}`);
   }
   if (earDoctors.length > 0) {
-    followUp.push(`洹 吏덊솚 ?섏궗: ${formatNames(earDoctors)}`);
+    followUp.push(`귀 질환 의사: ${formatNames(earDoctors)}`);
   }
   if (internalDoctors.length > 0) {
-    followUp.push(`?닿낵: ${formatNames(internalDoctors)}`);
+    followUp.push(`내과: ${formatNames(internalDoctors)}`);
   }
-  followUp.push('?몃? ?쇱젙? ?댁썝 ????쒖쟾??02-6925-1111濡??뺤씤??二쇱꽭??');
+  followUp.push('세부 일정은 내원 전 대표전화 02-6925-1111로 확인해 주세요.');
 
   return {
     type: 'doctor_overview',
     answer: representativeDoctors.length > 0
-      ? `?섎굹?대퉬?명썑怨쇰퀝???덊럹?댁? 湲곗??쇰줈 ?꾩옱 ?섎즺吏??뺣낫瑜??뺤씤?????덉뒿?덈떎. ????섎즺吏꾩쑝濡쒕뒗 ${representativeDoctors.join(', ')} ?깆씠 ?덉뒿?덈떎.`
-      : '?섎굹?대퉬?명썑怨쇰퀝???덊럹?댁? 湲곗??쇰줈 ?꾩옱 ?섎즺吏??뺣낫瑜??뺤씤?????덉뒿?덈떎.',
+      ? `하나이비인후과병원 홈페이지 기준으로 현재 의료진 정보를 확인할 수 있습니다. 대표 의료진으로는 ${representativeDoctors.join(', ')} 등이 있습니다.`
+      : '하나이비인후과병원 홈페이지 기준으로 현재 의료진 정보를 확인할 수 있습니다.',
     followUp,
     sources: [{
-      title: '?덊럹?댁?-?섎즺吏??뺣낫',
+      title: '홈페이지-의료진 정보',
       url: 'local://docss/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-%EC%9D%98%EB%A3%8C%EC%A7%84%20%EC%A0%95%EB%B3%B4.md',
     }],
   };
@@ -2287,7 +2319,7 @@ function findLooseTopicResponse(message) {
   );
 
   if (isStandaloneTopic(['의료진', '의사', '원장', '원장님', '의료진정보', '의사정보', '원장정보', '의료진 정보', '의사 정보', '원장 정보'])) {
-    return getFaqResponseByCategory('doctors_overview');
+    return buildDynamicDoctorOverviewResponse() || getFaqResponseByCategory('doctors_overview');
   }
 
   if (isStandaloneTopic(['수술', '수술안내', '수술정보', '수술 안내', '수술 정보'])) {

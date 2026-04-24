@@ -25,6 +25,11 @@
     "updatedAt": 1776383246672
   },
   {
+    "question": "의료진",
+    "count": 2,
+    "updatedAt": 1777024593633
+  },
+  {
     "question": "홈페이지에서 예약할 수 있어?",
     "count": 2,
     "updatedAt": 1776832443974
@@ -60,19 +65,9 @@
     "updatedAt": 1776382791849
   },
   {
-    "question": "진료시간 알려줘",
+    "question": "영수증 발급 방법 알려줘",
     "count": 1,
-    "updatedAt": 1777023499217
-  },
-  {
-    "question": "예약 어떻게 해?",
-    "count": 1,
-    "updatedAt": 1777023480306
-  },
-  {
-    "question": "안녕하세요",
-    "count": 1,
-    "updatedAt": 1777023480199
+    "updatedAt": 1777024492791
   },
   {
     "question": "비염 진료 보는 의사 알려줘",
