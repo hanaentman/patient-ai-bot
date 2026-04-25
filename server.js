@@ -210,6 +210,16 @@ const inpatientMealPolicyPatterns = [
   /환자\s*식사/u,
 ];
 
+const inpatientAmenityPatterns = [
+  /가습기/u,
+  /전자\s*레인지/u,
+  /전자\s*렌지/u,
+  /배달\s*음식/u,
+  /배달음식/u,
+  /병동.{0,12}(비치|구비|있어|있나요|사용|가능).{0,12}(가습기|전자\s*레인지|전자\s*렌지)/u,
+  /(가습기|전자\s*레인지|전자\s*렌지).{0,12}(비치|구비|있어|있나요|사용|가능)/u,
+];
+
 const inpatientOutingPatterns = [
   /입원.{0,10}(외출|외박)/u,
   /(외출|외박).{0,10}입원/u,
@@ -1020,7 +1030,7 @@ function buildWrongAnswerExportRows(query) {
     session_id: item.sessionId || '',
     question: item.question || '',
     actual_answer: item.answerFull || item.answer || '',
-    status: '?섏젙?꾩슂',
+    status: '수정필요',
     flag: item.flag || 'needs_review',
     type: item.type || 'unknown',
     question_note: item.note || '',
@@ -1089,7 +1099,7 @@ function findDocPathByKeyword(keyword) {
 
 function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, { 'Content-Type': 'application/json; charset=utf-8' });
-  res.end(JSON.stringify(repairChatPayloadFields(payload)));
+  res.end(JSON.stringify(sanitizeOutgoingPayload(payload)));
 }
 
 function isPublicHttpUrl(value) {
@@ -1394,7 +1404,7 @@ function getRequestGuardResult(req) {
       allowed: false,
       statusCode: 403,
       detail: 'invalid_user_agent',
-      answer: '?묎렐???쒗븳?섏뿀?듬땲?? 釉뚮씪?곗??먯꽌 ?ㅼ떆 ?쒕룄??二쇱꽭??',
+      answer: '접근이 제한되었습니다. 브라우저에서 다시 시도해 주세요.',
       followUp: [],
     };
   }
@@ -1404,7 +1414,7 @@ function getRequestGuardResult(req) {
       allowed: false,
       statusCode: 403,
       detail: 'invalid_origin',
-      answer: '吏곸젒 ?몄텧? ?쒗븳?섏뼱 ?덉뒿?덈떎. ?쒕퉬???붾㈃?먯꽌 ?ㅼ떆 ?쒕룄??二쇱꽭??',
+      answer: '직접 호출은 제한되어 있습니다. 서비스 화면에서 다시 시도해 주세요.',
       followUp: [],
     };
   }
@@ -1463,8 +1473,8 @@ function getRateLimitResult(req, sessionId) {
       statusCode: 429,
       retryAfterMs: ipCheck.retryAfterMs,
       detail: 'ip_minute_limit',
-      answer: '?붿껌???덈Т 留롮뒿?덈떎. ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??',
-      followUp: ['媛숈? ?ㅽ듃?뚰겕?먯꽌 ?붿껌??留롮씠 諛쒖깮?섎㈃ ?좎떆 ?쒗븳?????덉뒿?덈떎.'],
+      answer: '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.',
+      followUp: ['같은 네트워크에서 요청이 많이 발생하면 잠시 제한될 수 있습니다.'],
     };
   }
 
@@ -1485,8 +1495,8 @@ function getRateLimitResult(req, sessionId) {
       statusCode: 429,
       retryAfterMs: minuteCheck.retryAfterMs,
       detail: 'session_minute_limit',
-      answer: '吏덈Ц???덈Т 鍮좊Ⅴ寃??댁뼱吏怨??덉뒿?덈떎. 1遺??뺣룄 ???ㅼ떆 ?쒕룄??二쇱꽭??',
-      followUp: ['???몄뀡?먯꽌??1遺꾩뿉 10?뚭퉴吏 吏덈Ц?????덉뒿?덈떎.'],
+      answer: '질문이 너무 빠르게 이어지고 있습니다. 1분 정도 뒤에 다시 시도해 주세요.',
+      followUp: ['한 세션에서는 1분에 10회까지 질문할 수 있습니다.'],
     };
   }
 
@@ -1503,8 +1513,8 @@ function getRateLimitResult(req, sessionId) {
       statusCode: 429,
       retryAfterMs: dailyCheck.retryAfterMs,
       detail: 'session_daily_limit',
-      answer: '?ㅻ뒛 ????붿쓽 ?ъ슜 ?쒕룄???꾨떖?덉뒿?덈떎. ?댁씪 ?ㅼ떆 ?댁슜??二쇱꽭??',
-      followUp: ['???몄뀡?먯꽌???섎（ 40?뚭퉴吏 吏덈Ц?????덉뒿?덈떎.'],
+      answer: '오늘 이 세션의 사용 한도에 도달했습니다. 내일 다시 이용해 주세요.',
+      followUp: ['한 세션에서는 하루 40회까지 질문할 수 있습니다.'],
     };
   }
 
@@ -1620,7 +1630,7 @@ function appendSupportLinks(answer, question) {
 
 function looksLikeBrokenKoreanText(value) {
   const text = String(value || '');
-  return /[\uF900-\uFAFF]|(?:\?[가-힣])|(?:[가-힣]\?)|(?:\?{2,})/.test(text);
+  return /[\uF900-\uFAFF]|(?:\?[가-힣])|(?:\?{2,})/.test(text);
 }
 
 function decodeCompatMojibakeToken(token) {
@@ -1633,111 +1643,18 @@ function decodeCompatMojibakeToken(token) {
 
 function repairBrokenKoreanText(value) {
   let result = String(value || '');
-  if (!result || !looksLikeBrokenKoreanText(result)) {
+  if (!result) {
     return result;
   }
 
-  result = result.replace(/[\uF900-\uFAFF가-힣]{2,}/g, (token) => (
-    /[\uF900-\uFAFF]/.test(token) ? decodeCompatMojibakeToken(token) : token
-  ));
-
-  const replacements = [
-    ['?덈뀞?섏꽭??', '안녕하세요'],
-    ['?섎굹?대퉬?명썑怨쇰퀝???곷떞 ?꾩슦誘몄엯?덈떎', '하나이비인후과병원 상담 도우미입니다'],
-    ['?섎굹?대퉬?명썑怨쇰퀝??', '하나이비인후과병원'],
-    ['臾몄꽌 湲곗??쇰줈', '문서 기준으로'],
-    ['??쒖쟾??02-6925-1111', '대표전화 02-6925-1111'],
-    ['??쒖쟾??', '대표전화 '],
-    ['?섎즺吏??뺣낫', '의료진 정보'],
-    ['?몃옒吏꾨즺?덈궡', '외래진료 안내'],
-    ['?낇눜???덈궡', '입퇴원 안내'],
-    ['鍮꾧툒???덈궡 ?섏씠吏', '비급여 안내 페이지'],
-    ['?섏닠 ??二쇱쓽?ы빆', '수술 후 주의사항'],
-    ['肄붿꽭泥?諛⑸쾿', '코세척 방법'],
-    ['?먯옣', '원장'],
-    ['??쒖썝', '대표원장'],
-    ['蹂묒썝??', '병원장'],
-    ['吏꾨즺遺??', '진료부장'],
-    ['遺?먯옣', '부원장'],
-    ['遺??', '부장'],
-    ['怨쇱옣', '과장'],
-    ['?쇳꽣??', '센터장'],
-    ['?곷떞遊뉗?', '상담봇은'],
-    ['蹂듭슜 以묐떒', '복용 중단'],
-    ['?좊텇利', '신분증'],
-    ['?묒닔 ?곗뒪?', '접수 데스크'],
-    ['?묒닔?섏떊 ???대떦', '접수하신 뒤 해당'],
-    ['吏꾨즺?ㅼ뿉??', '진료실에서'],
-    ['吏꾨즺瑜?諛쏆쑝?쒕㈃ ?⑸땲??', '진료를 받으시면 됩니다'],
-    ['?낃컧 ?덈갑?묒쥌', '독감 예방접종'],
-    ['?낃컧?덈갑?묒쥌', '독감예방접종'],
-    ['?곗냼移섎즺', '산소치료'],
-    ['鍮꾩뿼', '비염'],
-    ['異뺣냽利?', '축농증'],
-    ['鍮꾩쨷寃⑸쭔怨≪쬆', '비중격만곡증'],
-    ['肄붾쭑??', '코물혹'],
-    ['媛묒긽??', '갑상선'],
-    ['移⑥깦', '침샘'],
-    ['?섏닠鍮꾩슜', '수술비용'],
-    ['留덉랬諛⑸쾿', '마취방법'],
-    ['?댁썝移섎즺', '내원치료'],
-    ['?뚮났湲곌컙', '회복기간'],
-    ['肄?吏덊솚 ?섏궗', '코 질환 의사'],
-    ['洹 吏덊솚 ?섏궗', '귀 질환 의사'],
-    ['紐㈑룸몢寃쎈?쨌?섎㈃?대━??', '목·두경부·수면클리닉'],
-    ['?꾨Ц遺꾩빞', '전문분야'],
-    ['?덈궡 ?대?吏', '안내 이미지'],
-    ['?좎껌', '요청'],
-    ['?덉빟', '예약'],
-    ['?꾪솕', '전화'],
-    ['諛⑸Ц', '방문'],
-    ['?⑤씪??', '온라인'],
-    ['?곷떞', '상담'],
-    ['?꾩슦誘', '도우미'],
-    ['吏꾨즺?쒓컙', '진료시간'],
-    ['吏꾨즺?쇱젙', '진료일정'],
-    ['吏꾨즺怨?', '진료과'],
-    ['吏꾨떒', '진단'],
-    ['泥섎갑', '처방'],
-    ['蹂寃', '변경'],
-    ['?먮떒', '판단'],
-    ['利앹긽', '증상'],
-    ['?섎즺吏?', '의료진'],
-    ['?낆썝', '입원'],
-    ['?댁썝', '내원'],
-    ['?덈궡', '안내'],
-    ['?뺤씤', '확인'],
-    ['?뺤젙', '확정'],
-    ['?곹솴', '상황'],
-    ['吏꾪뻾', '진행'],
-    ['吏李명븯怨', '지참하고'],
-    ['泥섏쓬', '처음'],
-    ['?뷀?踰꾩뒪', '셔틀버스'],
-    ['媛숈?', '같은'],
-    ['蹂묒썝', '병원'],
-    ['?뱀씪', '당일'],
-    ['?붿씪', '요일'],
-    ['?ㅽ썑', '오후'],
-    ['二쇱꽭??', '주세요'],
-    ['?덉뒿?덈떎', '있습니다'],
-    ['?딆뒿?덈떎', '않습니다'],
-    ['?꾩슂?⑸땲??', '필요합니다.'],
-    ['?덉쟾?⑸땲??', '안전합니다.'],
-    ['?낅땲??', '입니다.'],
-    ['?⑸땲??', '됩니다.'],
-    ['媛?ν빀?덈떎', '가능합니다'],
-    ['沅뚯옣', '권장'],
-  ];
-
-  for (const [from, to] of replacements) {
-    result = result.split(from).join(to);
+  if (looksLikeBrokenKoreanText(result)) {
+    result = result.replace(/[\uF900-\uFAFF?-?]{2,}/g, (token) => (
+      /[\uF900-\uFAFF]/.test(token) ? decodeCompatMojibakeToken(token) : token
+    ));
   }
 
   return result
     .replace(/\u0000/g, '')
-    .replace(/([가-힣])\?{1,2}(?=\s|$|[.,!:\n])/g, '$1')
-    .replace(/(^|\s)\?{1,2}(?=[가-힣])/g, '$1')
-    .replace(/\?{2,}/g, '?')
     .replace(/\s{2,}/g, ' ')
     .trim();
 }
@@ -1778,6 +1695,73 @@ function repairChatPayloadFields(payload) {
   return repaired;
 }
 
+function isChatLikePayload(payload) {
+  return Boolean(
+    payload
+    && typeof payload === 'object'
+    && (
+      typeof payload.answer === 'string'
+      || Array.isArray(payload.followUp)
+      || Array.isArray(payload.sources)
+      || Array.isArray(payload.images)
+    )
+  );
+}
+
+function textHasMojibake(value) {
+  const text = String(value || '');
+  if (!text) {
+    return false;
+  }
+
+  return /\uFFFD|[\uF900-\uFAFF]|[\u3400-\u9FFF]{2,}|(?:\?[가-힣])|(?:\?{2,})/.test(text);
+}
+
+function collectPayloadStrings(value, result = []) {
+  if (typeof value === 'string') {
+    result.push(value);
+    return result;
+  }
+
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectPayloadStrings(item, result));
+    return result;
+  }
+
+  if (value && typeof value === 'object') {
+    Object.values(value).forEach((item) => collectPayloadStrings(item, result));
+  }
+
+  return result;
+}
+
+function payloadHasMojibake(payload) {
+  return collectPayloadStrings(payload).some((value) => textHasMojibake(value));
+}
+
+function createMojibakeSafeFallback(originalPayload = {}) {
+  return {
+    type: `sanitized_${originalPayload.type || 'fallback'}`,
+    answer: '현재 확인된 문서 기준으로 바로 안내드리기 어려운 질문입니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.',
+    followUp: ['진료시간 알려줘', '의료진 안내해줘', '서류 발급 방법 알려줘'],
+    sources: [],
+    images: [],
+  };
+}
+
+function sanitizeOutgoingPayload(payload) {
+  if (!isChatLikePayload(payload)) {
+    return payload;
+  }
+
+  const repaired = repairChatPayloadFields(payload);
+  if (payloadHasMojibake(repaired)) {
+    return createMojibakeSafeFallback(repaired);
+  }
+
+  return repaired;
+}
+
 function enrichResponsePayload(payload, question) {
   if (!payload || typeof payload !== 'object') {
     return payload;
@@ -1787,10 +1771,22 @@ function enrichResponsePayload(payload, question) {
   const images = Array.isArray(localizedPayload.images) && localizedPayload.images.length > 0
     ? localizedPayload.images
     : findRelevantImages(question);
+  const shouldAppendSupportLinks = ![
+    'doctor_specialty',
+    'doctor_overview',
+    'smalltalk',
+    'welcome',
+    'privacy_warning',
+    'config_error',
+    'emergency',
+    'restricted',
+  ].includes(localizedPayload.type);
 
-  return repairChatPayloadFields({
+  return sanitizeOutgoingPayload({
     ...localizedPayload,
-    answer: appendSupportLinks(localizedPayload.answer, question),
+    answer: shouldAppendSupportLinks
+      ? appendSupportLinks(localizedPayload.answer, question)
+      : localizedPayload.answer,
     images,
   });
 }
@@ -1894,7 +1890,7 @@ function localizeFixedResponsePayload(payload, question) {
     },
     rhinitis_postop_visit: {
       answer: 'According to the document, follow-up visits after rhinitis surgery are usually guided as about 8 to 12 visits.',
-      followUp: ['The recovery period is usually about 3 to 4 weeks', 'The exact number of visits may vary depending on the procedure and recovery, so it is safest to follow the doctor?셲 final guidance'],
+      followUp: ['The recovery period is usually about 3 to 4 weeks', "The exact number of visits may vary depending on the procedure and recovery, so it is safest to follow the doctor's final guidance"],
     },
     fallback: {
       answer: 'Based on the information currently confirmed on the website, it is hard to give a precise answer right away. Please ask in a more specific way or call 02-6925-1111.',
@@ -1971,7 +1967,7 @@ function findRelevantImages(message, contextDocs = []) {
 
   return imageGuides
     .map((guide) => ({
-      title: guide.title || '?덈궡 ?대?吏',
+      title: guide.title || '안내 이미지',
       description: guide.description || '',
       display: guide.display || '',
       url: resolvePublicImagePath(guide.path),
@@ -2354,37 +2350,26 @@ function findLooseTopicResponse(message) {
 }
 
 function createRestrictedMedicalResponse() {
-  return {
+  return buildReinitializedIntentResponse('restricted', '') || {
     type: 'restricted',
-    answer: '???곷떞遊뉗? 吏꾨떒, 泥섎갑 蹂寃? ??蹂듭슜 以묐떒 ?щ?瑜??먮떒?섏? ?딆뒿?덈떎. 利앹긽?대굹 ??愿??吏덈Ц? 吏꾨즺怨??먮뒗 ?곷떞 吏곸썝?먭쾶 ?곌껐??二쇱꽭??',
-    followUp: [
-      '??쒖쟾??02-6925-1111',
-      '紐⑤컮???먮뒗 ?꾪솕濡?吏꾨즺 ?덉빟',
-      '利앹긽??湲됲븯硫?媛源뚯슫 ?묎툒???먮뒗 119 ?댁슜',
-    ],
+    answer: '이 부분은 상담봇이 판단해 드릴 수 없습니다. 진단, 처방 변경, 약 중단 여부는 의료진과 직접 확인해 주세요.',
+    followUp: ['대표전화 02-6925-1111', '증상이 급하면 가까운 응급실 또는 119 이용'],
   };
 }
 
 function createEmergencyResponse() {
-  return {
+  return buildReinitializedIntentResponse('emergency', '') || {
     type: 'emergency',
-    answer: '?묎툒 ?곹솴???섏떖?⑸땲?? ???곷떞遊뉗쑝濡?吏?고븯吏 留먭퀬 利됱떆 119 ?먮뒗 媛源뚯슫 ?묎툒?ㅻ줈 ?곕씫??二쇱꽭??',
-    followUp: [
-      '?섏떇 ??? ?명씉怨ㅻ?, ?ы븳 異쒗삁? 利됱떆 ?묎툒??沅뚭퀬',
-      '??쒖쟾??02-6925-1111',
-      '?쇨컙?먮뒗 ?묎툒 ???泥닿퀎濡??곌껐 ?꾩슂',
-    ],
+    answer: '응급으로 보일 수 있는 상황입니다. 채팅으로 지연하지 마시고 119 또는 가까운 응급실로 바로 이동해 주세요.',
+    followUp: ['심한 호흡곤란, 의식 저하, 심한 출혈은 즉시 응급 대응이 필요합니다.', '대표전화 02-6925-1111'],
   };
 }
 
 function createPersonalInfoWarningResponse() {
-  return {
+  return buildReinitializedIntentResponse('personal_info', '') || {
     type: 'privacy_warning',
-    answer: '媛쒖씤?뺣낫??誘쇨컧??嫄닿컯?뺣낫???낅젰?섏? 留먯븘 二쇱꽭?? 二쇰??깅줉踰덊샇, ?꾪솕踰덊샇, ?대찓?? ?곸꽭 二쇱냼 媛숈? ?뺣낫 ?놁씠 吏덈Ц??二쇱꽭??',
-    followUp: [
-      '?? 吏꾨떒??鍮꾩슜, ?덉빟 蹂寃?諛⑸쾿, 吏꾨즺?쒓컙泥섎읆 媛쒖씤?뺣낫 ?놁씠 吏덈Ц??二쇱꽭??',
-      '?대? ?낅젰??媛쒖씤?뺣낫媛 ?덈떎硫??ㅼ떆 ?곸? 留먭퀬 ?쇰컲?곸씤 ?쒗쁽?쇰줈 諛붽퓭 吏덈Ц??二쇱꽭??',
-    ],
+    answer: '주민등록번호, 전화번호, 주소 같은 개인정보나 민감한 건강정보는 입력하지 말아 주세요.',
+    followUp: ['개인정보 없이 증상, 비용, 예약, 진료시간처럼 일반적인 질문만 남겨 주세요.'],
   };
 }
 
@@ -2392,11 +2377,7 @@ function createWelcomeResponse() {
   return {
     type: 'welcome',
     answer: '안녕하세요. 하나이비인후과병원 AI 상담원입니다. 병원 홈페이지와 내부 문서를 바탕으로 예약, 진료시간, 의료진, 입원, 서류 발급 등을 안내해 드립니다.',
-    followUp: [
-      '진료시간 알려줘',
-      '동헌종 원장 진료시간 알려줘',
-      '입원 절차 알려줘',
-    ],
+    followUp: ['진료시간 알려줘', '동헌종 원장 진료시간 알려줘', '입원 절차 알려줘'],
   };
 }
 
@@ -2404,518 +2385,130 @@ function createApiKeyMissingResponse() {
   return {
     type: 'config_error',
     answer: '현재 OpenAI API 키가 설정되지 않아 AI 기반 상담 기능을 사용할 수 없습니다. PowerShell에서 OPENAI_API_KEY를 설정한 뒤 서버를 다시 실행해 주세요.',
-    followUp: [
-      '$env:OPENAI_API_KEY="발급받은키"',
-      'node .\\server.js',
-      '대표전화 02-6925-1111',
-    ],
+    followUp: ['$env:OPENAI_API_KEY="발급받은키"', 'node .\\server.js', '대표전화 02-6925-1111'],
   };
 }
 
 function createReservationOrReceptionResponse() {
-  return {
-    type: 'reservation_or_reception',
-    answer: '臾몄꽌 湲곗??쇰줈 ?덉빟? 諛⑸Ц ?덉빟, ?⑤씪???덉빟, ?꾪솕 ?덉빟??媛?ν빀?덈떎. ?⑤씪???덉빟? 蹂묒썝 ?덊럹?댁??먯꽌 ?좎껌?섏떆硫??곷떞?먯씠 ?덉빟 ?곹솴???뺤씤?????꾪솕濡??덉빟???뺤젙?섍퀬, ?꾪솕 ?덉빟?대굹 ?덉빟 蹂寃쎌? ??쒖쟾??02-6925-1111 ?곌껐 ???곷떞?먯쓣 ?듯빐 吏꾪뻾?섏떎 ???덉뒿?덈떎. 泥섏쓬 ?댁썝?섏떆??寃쎌슦?먮뒗 ?좊텇利앹쓣 吏李명븯怨?1痢??묒닔 ?곗뒪?ъ뿉???묒닔?섏떊 ???대떦 吏꾨즺?ㅼ뿉??吏꾨즺瑜?諛쏆쑝?쒕㈃ ?⑸땲??',
-    followUp: [
-      '?뱀씪 ?덉빟?대굹 ?묒닔 媛???щ????몃옒 ?湲??곹솴???곕씪 ?щ씪吏????덉뒿?덈떎.',
-      '??쒖쟾??02-6925-1111',
-      '?⑤씪???덉빟? 蹂묒썝 ?덊럹?댁??먯꽌 吏꾪뻾 媛?ν빀?덈떎.',
-    ],
-    sources: [
-      {
-        title: '?덊럹?댁?-FAQ',
-        url: 'local://docs/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-FAQ.txt',
-      },
-      {
-        title: '?덊럹?댁?-?몃옒吏꾨즺?덈궡',
-        url: 'local://docs/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-%EC%99%B8%EB%9E%98%EC%A7%84%EB%A3%8C%EC%95%88%EB%82%B4.txt',
-      },
-    ],
-  };
+  return buildReinitializedIntentResponse('reservation_or_reception', '') || null;
 }
 
 function createLateArrivalResponse() {
-  return {
-    type: 'late_arrival',
-    answer: '?덉빟 ????쾶 ?꾩갑??寃?媛숈쑝硫???쒖쟾??02-6925-1111濡?癒쇱? ?곕씫???곷떞?먯뿉寃??곹솴???뚮젮 二쇱꽭?? 臾몄꽌 湲곗??쇰줈 ?꾩갑 ?덉젙 ?쒓컙怨??몃옒 ?湲??곹솴???곕씪 諛⑸Ц ?묒닔濡??덈궡?섍굅???덉빟 媛???щ?瑜??ㅼ떆 ?뺤씤???덈궡?????덉뒿?덈떎.',
-    followUp: [
-      '1?쒓컙 ?대궡 ?꾩갑 媛?ν븯硫?諛⑸Ц ?묒닔濡??덈궡?????덉뒿?덈떎.',
-      '1?쒓컙 ?댁긽 ??뼱吏?寃?媛숈쑝硫??꾪솕濡??덉빟 媛???щ?瑜?癒쇱? ?뺤씤?섎뒗 ?몄씠 ?덉쟾?⑸땲??',
-      '??쒖쟾?? 02-6925-1111',
-    ],
-  };
+  return buildReinitializedIntentResponse('late_arrival', '') || null;
 }
 
 function createMedicationStopResponse() {
-  return {
-    type: 'medication_stop',
-    answer: '?낆썝 ?꾩씠???섏닠 ?꾩뿉 蹂듭슜?섎㈃ ???섎뒗 ?쎌? 蹂묐룞 ?덈궡 湲곗??쇰줈 蹂꾨룄 由ъ뒪?몃? 癒쇱? ?뺤씤?섏떆??寃껋씠 媛???뺥솗?⑸땲?? ?꾨옒???낆썝 ??蹂듭슜 以묐떒 ?쎈Ъ 由ъ뒪???대?吏瑜??④퍡 ?덈궡?쒕━?? 蹂듭슜 以묒씤 ?쎌씠 ?덉쑝硫??대떦 紐⑸줉??癒쇱? ?뺤씤??二쇱꽭??',
-    followUp: [
-      '?대?吏???녿뒗 ?쎌씠嫄곕굹 蹂듭슜 吏???щ?媛 ?좊ℓ?섎㈃ ??쒖쟾??02-6925-1111濡?瑗??뺤씤??二쇱꽭??',
-      '?꾩뒪?쇰┛, ??쓳怨좎젣泥섎읆 異쒗삁怨?愿?⑤맂 ?쎌? ?뱁엳 ?꾩쓽濡?怨꾩냽 蹂듭슜?섍굅??以묐떒?섏? 留먭퀬 蹂묒썝 ?덈궡瑜??곕Ⅴ??寃껋씠 ?덉쟾?⑸땲??',
-      '吏덈Ц????援ъ껜?곸쑝濡?二쇱떆硫??낆썝 以鍮꾨굹 ?섏닠 ??寃???덈궡? ?④퍡 ?댁뼱???꾩??쒕┫ ???덉뒿?덈떎.',
-    ],
-    sources: [{
-      title: '癰귣쵎猷?FAQ',
-      url: 'local://docs/%EB%B3%91%EB%8F%99-FAQ.txt',
-    }],
-    images: [{
-      title: '입원 전 복용 중단 약물 리스트',
-      description: '입원 전에 중단이 필요한 약물을 확인할 수 있는 안내 이미지입니다.',
-      display: 'document',
-      url: resolvePublicImagePath('/images/%EC%9E%85%EC%9B%90%EC%A0%84%20%EB%B3%B5%EC%9A%A9%EC%A4%91%EB%8B%A8%20%EC%95%BD%EB%AC%BC%20%EB%A6%AC%EC%8A%A4%ED%8A%B8.jpg'),
-    }],
-  };
+  return buildReinitializedIntentResponse('medication_stop', '') || null;
 }
 
 function createInpatientMealPolicyResponse() {
-  return {
-    type: 'inpatient_meal_policy',
-    answer: '?낆썝?앺솢 ?덈궡臾?湲곗??쇰줈 ?먮궡 ?꾩옄?덉씤吏??鍮꾩튂?섏뼱 ?덉? ?딆쑝硫? 痍⑥궗? 諛곕떖?뚯떇? 湲덉??낅땲??',
-    followUp: [
-      '?앹궗?쒓컙? 議곗떇 8?? 以묒떇 12?? ?앹떇 ?ㅽ썑 5??30遺꾩쑝濡??덈궡?섏뼱 ?덉뒿?덈떎.',
-      '?몃? ?덈궡??蹂묐룞 媛꾪샇?ъ떎?대굹 ??쒖쟾??02-6925-1111濡??뺤씤?????덉뒿?덈떎.',
-    ],
-    sources: [{
-      title: '입원-입원생활안내문',
-      url: 'local://docs/%EC%9E%85%EC%9B%90-%EC%9E%85%EC%9B%90%EC%83%9D%ED%99%9C%EC%95%88%EB%82%B4%EB%AC%B8.txt',
-    }],
-  };
+  return buildReinitializedIntentResponse('inpatient_meal_policy', '') || null;
 }
 
 function createInpatientOutingResponse() {
-  return {
-    type: 'inpatient_outing',
-    answer: '?낆썝 以??몄텧怨??몃컯? ?밸퀎???ъ쑀媛 ?녿뒗 ???먯튃?곸쑝濡??쒗븳?⑸땲?? ?ㅻ쭔 ?몄텧?대굹 ?몃컯???꾩슂?섎㈃ ?몄텧쨌?몃컯 ?좎껌?쒕? ?묒꽦?섍퀬, ?대떦?섏궗 ?먮뒗 二쇱튂?섏쓽 ?덇?瑜?諛쏆? 寃쎌슦?먮쭔 媛?ν빀?덈떎.',
-    followUp: [
-      '?몄텧쨌?몃컯 ?쒖뿉??蹂묐룞?먯꽌 ?덈궡???뺥빐吏??쒓컙??諛섎뱶??吏耳쒖빞 ?⑸땲??',
-      '?대떦?섏궗 ?덇? ?놁씠 臾대떒 ?몄텧쨌?몃컯? ?몄젙?섏? ?딆뒿?덈떎.',
-      '臾대떒 ?몄텧쨌?몃컯 ??以?섏쓽臾??꾨컲 ??利됱떆 ?댁썝 諛?移섎즺 以묐떒???????덉뒿?덈떎.',
-    ],
-    sources: [{
-      title: '蹂묐룞-FAQ',
-      url: 'local://docs/%EB%B3%91%EB%8F%99-FAQ.txt',
-    }],
-  };
+  return buildReinitializedIntentResponse('inpatient_outing', '') || null;
 }
 
 function createInpatientMealPolicyResponseFixed() {
-  return {
-    type: 'inpatient_meal_policy',
-    answer: '?낆썝?앺솢 ?덈궡臾?湲곗??쇰줈 ?먮궡 ?꾩옄?덉씤吏??鍮꾩튂?섏뼱 ?덉? ?딆쑝硫?痍⑥궗??湲덉??낅땲?? 諛곕떖?뚯떇? 媛?ν븯吏留??몃? ?뚯떇 ??랬 ???뚰솕 遺덊렪?대굹 ?⑸퀝利?媛?μ꽦??怨좊젮??二쇰Ц??二쇱떆湲?諛붾엻?덈떎.',
-    followUp: [
-      '?앹궗?쒓컙? 議곗떇 8?? 以묒떇 12?? ?앹떇 ?ㅽ썑 5??30遺꾩쑝濡??덈궡?섏뼱 ?덉뒿?덈떎.',
-      '諛곕떖?뚯떇 媛?μ떆媛꾩? ?ㅼ쟾 7?쒕????ㅽ썑 9?쒓퉴吏?대ŉ 吏??1痢듭뿉???섎졊?⑸땲??',
-      '異붽? ?덈궡??蹂묐룞 媛꾪샇?ъ떎?대굹 ??쒖쟾??02-6925-1111濡??뺤씤??二쇱꽭??',
-    ],
-    sources: [{
-      title: '입원-입원생활안내문',
-      url: 'local://docs/%EC%9E%85%EC%9B%90-%EC%9E%85%EC%9B%90%EC%83%9D%ED%99%9C%EC%95%88%EB%82%B4%EB%AC%B8.txt',
-    }],
-  };
+  return buildReinitializedIntentResponse('inpatient_meal_policy', '') || null;
 }
 
 function createShuttleBusResponse() {
-  return {
-    type: 'shuttle_bus',
-    answer: '?뷀?踰꾩뒪 ?쒓컙??湲곗??쇰줈 ?됱씪? ??15遺?媛꾧꺽?쇰줈 ?댄뻾?⑸땲?? ?ㅼ쟾? 08:55遺??12:25源뚯?, ?ㅽ썑??13:40遺??17:40源뚯? 蹂묒썝?먯꽌 異쒕컻????궪??쓣 嫄곗퀜 ?ㅼ떆 蹂묒썝?쇰줈 ?댄뻾?⑸땲??',
-    followUp: [
-      '?좎슂?쇱? 08:55遺??12:55源뚯? ??30遺?媛꾧꺽?쇰줈 ?댄뻾?⑸땲??',
-      '?뷀? ?뱀감 ?꾩튂????궪??1踰?異쒓뎄 ?멸렐?낅땲??',
-      '?? ?됱씪 ?ㅼ쟾 08:55, 09:10, 09:25 / ?ㅽ썑 13:40, 13:55, 14:10',
-    ],
-    sources: [
-      {
-        title: '기타-병원셔틀시간표',
-        url: 'local://docs/%EA%B8%B0%ED%83%80-%EB%B3%91%EC%9B%90%EC%85%94%ED%8B%80%EC%8B%9C%EA%B0%84%ED%91%9C.txt',
-      },
-      {
-        title: '?덊럹?댁?-?뷀?踰꾩뒪 諛??ㅼ떆?붽만',
-        url: 'local://docs/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-%EC%85%94%ED%8B%80%EB%B2%84%EC%8A%A4%20%EB%B0%8F%20%EC%98%A4%EC%8B%9C%EB%8A%94%EA%B8%B8.txt',
-      },
-    ],
-  };
+  return buildReinitializedIntentResponse('shuttle_bus', '') || null;
 }
 
 function createDischargeProcedureResponse() {
-  return {
-    type: 'discharge_procedure',
-    answer: '?댁썝 ?덉감??臾몄꽌 湲곗??쇰줈 ?댁썝?덈궡, 吏꾨즺鍮??ъ궗, 吏꾨즺鍮??섎궔, 洹媛 ?쒖꽌濡?吏꾪뻾?⑸땲?? ?댁썝 ?뱀씪 ?ㅼ쟾?먮뒗 ?대떦 ?섎즺吏꾩씠 ?섏닠遺?꾨? ?뺤씤?섍퀬 ?섏닠 ??愿由щ쾿怨?二쇱쓽?ы빆???덈궡?⑸땲??',
-    followUp: [
-      '?쒖쬆紐낆꽌瑜섍? ?꾩슂?섎㈃ ?댁썝 ?섎（ ??媛꾪샇?ъ떎??誘몃━ 留먯???二쇱꽭??',
-      '?댁썝?쎌씠 ?덉쑝硫??ㅻ챸???ｊ퀬 ?섎졊?⑸땲??',
-      '吏꾨즺鍮??ъ궗媛 ?앸굹硫?1痢??먮Т怨쇱뿉???섎궔?섍퀬 ?ㅼ쓬 ?듭썝移섎즺 ?좎쭨瑜??덉빟?⑸땲??',
-    ],
-    sources: [{
-      title: '?덊럹?댁?-?낇눜???덈궡',
-      url: 'local://docs/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-%EC%9E%85%ED%87%B4%EC%9B%90%20%EC%95%88%EB%82%B4.txt',
-    }],
-  };
+  return buildReinitializedIntentResponse('discharge_procedure', '') || null;
 }
 
 function createSurgeryDurationResponse() {
-  return {
-    type: 'surgery_duration',
-    answer: '?섏닠 ?뚯슂?쒓컙? ?섏닠 醫낅쪟? ?섏옄 ?곹깭???곕씪 ?ㅻ쫭?덈떎. 臾몄꽌 湲곗??쇰줈???섏닠???낆떎 ???湲곗떆媛꾩씠 ?앷만 ???덇퀬, ?뱁엳 肄??섏닠? 援?냼留덉랬 ???④낵瑜?湲곕떎由щ뒗 ?쒓컙???덉뼱 ?ㅼ젣 ?ㅻ챸諛쏆? ?섏닠?쒓컙蹂대떎 ??湲몄뼱吏????덉뒿?덈떎.',
-    followUp: [
-      '紐⑹씠??洹 ?섏닠? ?湲곗떆媛꾩씠 鍮꾧탳??湲몄? ?딆?留?肄??섏닠? 30遺꾩뿉??1?쒓컙 ?뺣룄 ?湲????쒖옉?????덉뒿?덈떎.',
-      '?섏닠 醫낅즺 ?꾩뿉???뚮났?ㅼ뿉??30遺꾩뿉??1?쒓컙 ?뺣룄 ?뚮났?????댁떎?⑸땲??',
-      '?뺥솗???덉긽 ?쒓컙? ?섏닠 ?ㅻ챸 ???섎즺吏??덈궡瑜??ㅼ떆 ?뺤씤??二쇱꽭??',
-    ],
-    sources: [
-      {
-        title: '蹂묐룞-FAQ',
-        url: 'local://docs/%EB%B3%91%EB%8F%99-FAQ.txt',
-      },
-      {
-        title: '입원-입원생활안내문',
-        url: 'local://docs/%EC%9E%85%EC%9B%90-%EC%9E%85%EC%9B%90%EC%83%9D%ED%99%9C%EC%95%88%EB%82%B4%EB%AC%B8.txt',
-      },
-    ],
-  };
+  return buildReinitializedIntentResponse('surgery_duration', '') || null;
 }
 
 function createSurgeryScheduleResponse() {
-  return {
-    type: 'surgery_schedule',
-    answer: '?섏닠 ?쒖옉 ?쒓컙? ?섏닠 ?숈쓽???ㅻ챸 ???덈궡?섏?留? ?뱀씪 ?곹솴?대굹 ?섏옄 ?곹깭???곕씪 蹂寃쎈맆 ???덉뒿?덈떎.',
-    followUp: [
-      '?뺥솗???쒓컙? ?낆썝 ??蹂묐룞 ?먮뒗 ?섏닠 ?덈궡 怨쇱젙?먯꽌 ?ㅼ떆 ?뺤씤??二쇱꽭??',
-      '蹂寃?媛?μ꽦???덉뼱 怨좎젙???쒓컙?쇰줈 誘몃━ ?뺤젙?댁꽌 ?덈궡?섏????딆쓣 ???덉뒿?덈떎.',
-      '異붽? ?뺤씤???꾩슂?섎㈃ ??쒖쟾??02-6925-1111濡?臾몄쓽??二쇱꽭??',
-    ],
-    sources: [{
-      title: '蹂묐룞-FAQ',
-      url: 'local://docs/%EB%B3%91%EB%8F%99-FAQ.txt',
-    }],
-  };
+  return buildReinitializedIntentResponse('surgery_schedule', '') || null;
 }
 
 function createPostOpBleedingResponse() {
-  return {
-    type: 'postop_bleeding',
-    answer: '臾몄꽌 湲곗??쇰줈 ?섏닠 ??異쒗삁???덉쑝硫?癒쇱? 異쒗삁 ?묎낵 吏???щ?瑜?蹂댁뀛???⑸땲?? 移⑥뿉 ?쇨? 議곌툑 ?욎씠???뺣룄?쇰㈃ ?쒖썝???쇱쓬臾쇰줈 20~30遺??뺣룄 媛湲??蹂????덉?留? 異쒗삁??怨꾩냽?섍굅???묒씠 留롮쑝硫???쒖쟾??02-6925-1111濡?諛붾줈 ?곕씫??二쇱꽭??',
-    followUp: [
-      '利됱떆 ?댁썝???대졄嫄곕굹 ?먭굅由ъ씤 寃쎌슦?먮뒗 ?대퉬?명썑怨??섏궗媛 ?덈뒗 媛源뚯슫 ?묎툒???댁썝??沅뚭퀬?⑸땲??',
-      '肄붿닔???꾩뿉??異쒗삁?묒씠 留롪퀬 怨꾩냽?섎㈃ 諛붾줈 ?곕씫?섍굅??媛源뚯슫 ?묎툒?ㅻ줈 ?덈궡?섏뼱 ?덉뒿?덈떎.',
-      '?댁썝 ??諛쏆? 二쇱튂???곕씫泥섍? ?덉쑝硫?洹?踰덊샇濡?癒쇱? ?곕씫?섏뀛???⑸땲??',
-    ],
-    sources: [
-      {
-        title: '입원-수술 후 주의사항',
-        url: 'local://docs/%EC%9E%85%EC%9B%90-%EC%88%98%EC%88%A0%20%ED%9B%84%20%EC%A3%BC%EC%9D%98%EC%82%AC%ED%95%AD.txt',
-      },
-      {
-        title: '??놁뜚-??놁뜚??븐넞??덇땀??',
-        url: 'local://docs/%EC%9E%85%EC%9B%90-%EC%9E%85%EC%9B%90%EC%83%9D%ED%99%9C%EC%95%88%EB%82%B4%EB%AC%B8.txt',
-      },
-    ],
-  };
+  return buildReinitializedIntentResponse('postop_bleeding', '') || null;
 }
 
 function createSurgeryCostResponse() {
-  return {
-    type: 'surgery_cost',
-    answer: `?섏닠 湲덉븸? ?섏닠 醫낅쪟, 吏덊솚紐? 蹂댄뿕 ?곸슜 ?щ????곕씪 ?щ씪????媛吏 湲덉븸?쇰줈 ?덈궡?섍린 ?대졄?듬땲?? 臾몄꽌 湲곗??쇰줈??吏덊솚蹂??덊럹?댁????섏닠鍮꾩슜 踰붿쐞媛 ?덈궡?섏뼱 ?덇퀬, ?먯꽭??湲곗?? 鍮꾧툒???덈궡 ?섏씠吏?먯꽌 ?ㅼ떆 ?뺤씤?섏떎 ???덉뒿?덈떎.\n\n鍮꾧툒???덈궡 ?섏씠吏: ${NONPAY_PAGE_URL}`,
-    followUp: [
-      '?대뼡 ?섏닠?몄? ?뚮젮二쇱떆硫?鍮꾩뿼, 鍮꾩쨷寃⑸쭔怨≪쬆, ?몃룄, 異뺣냽利앹쿂???대떦 吏덊솚 湲곗? 臾몄꽌濡??ㅼ떆 ?덈궡???쒕┫ ???덉뒿?덈떎.',
-      '??쒖쟾??02-6925-1111濡?臾몄쓽?섎㈃ 蹂댄뿕 ?곸슜 ?щ?? ?④퍡 ???뺥솗???덈궡瑜?諛쏆쓣 ???덉뒿?덈떎.',
-      '吏덊솚蹂??덈궡 湲덉븸? ?섏옄 ?곹깭? ?곸슜 湲곗????곕씪 ?ㅼ젣 吏꾨즺 ???щ씪吏????덉뒿?덈떎.',
-    ],
-    sources: [
-      {
-        title: '기타-비급여비용',
-        url: `local://docs/${encodeURIComponent(path.basename(CERTIFICATE_FEES_DOC_PATH || '기타-비급여비용.txt'))}`,
-      },
-      {
-        title: '鍮꾧툒???덈궡 ?섏씠吏',
-        url: NONPAY_PAGE_URL,
-      },
-    ],
-  };
+  return buildReinitializedIntentResponse('surgery_cost', '') || null;
 }
 
 function createSameDayExamAvailabilityResponse() {
-  return {
-    type: 'same_day_exam_availability',
-    answer: '臾몄꽌 湲곗??쇰줈 ?섎굹?대퉬?명썑怨쇰퀝?먯? ?먯뒪???쒖뒪?쒖쓣 ?댁쁺???遺遺꾩쓽 寃?щ? 吏꾨즺 ?뱀씪 1~2?쒓컙 ?대궡??吏꾪뻾?섍퀬 寃곌낵瑜??뺤씤?????덈떎怨??덈궡?섏뼱 ?덉뒿?덈떎. ?ㅻ쭔 洹 寃?щ뒗 吏꾪뻾 ?곹솴???곕씪 ?덉빟 寃?щ줈 諛붾????덇퀬, 肄붽낏?는룹닔硫대Т?명씉 寃?щ뒗 1諛?2???낆썝?쇰줈 吏꾪뻾?⑸땲??',
-    followUp: [
-      '肄?寃?щ뒗 ??20遺??뺣룄 ?뚯슂?섍퀬 ?뱀씪 寃곌낵 ?뺤씤??媛?ν븯?ㅺ퀬 ?덈궡?섏뼱 ?덉뒿?덈떎.',
-      '洹 寃?щ뒗 ?뱀씪 寃?ъ? 寃곌낵 ?곷떞???먯튃?댁?留??곹솴???곕씪 ?덉빟?쇰줈 吏꾪뻾?????덉뒿?덈떎.',
-      '?뺥솗??寃??媛???щ????댁썝 ????쒖쟾??02-6925-1111濡??뺤씤?섏떆硫?媛???덉쟾?⑸땲??',
-    ],
-    sources: [{
-      title: 'FAQ',
-      url: LOCAL_FAQ_URL,
-    }],
-  };
+  return buildReinitializedIntentResponse('same_day_exam_availability', '') || null;
 }
 
 function findExamPreparationResponse(message) {
-  const text = String(message || '').trim();
-  if (!text || !matchesAnyPattern(text, examPreparationPatterns)) {
+  const text = String(message || '');
+  if (!matchesAnyPattern(text, examPreparationPatterns)) {
     return null;
   }
-
-  if (/(수면|코골이|수면무호흡|수면다원|수면내시경)/u.test(text)) {
-    return {
-      type: 'exam_preparation',
-      answer: '?섎㈃寃???덈궡?쒕┰?덈떎. 臾몄꽌 湲곗??쇰줈 ?섎㈃?ㅼ썝寃?ъ? ?섎㈃?댁떆寃쎄??щ뒗 1諛?2???낆썝?쇰줈 吏꾪뻾?섎ŉ 湲곕낯 ?몃㈃?꾧뎄??蹂묒떎??以鍮꾨릺???덇퀬, 洹????꾩슂??媛쒖씤 臾쇳뭹? 媛?몄삤?쒕㈃ ?⑸땲?? ?섎㈃?댁떆寃쎄??щ뒗 留덉랬 ??吏꾪뻾?섎?濡??ъ쟾??留덉랬 媛???щ?瑜??뺤씤?섍린 ?꾪븳 寃?ш? ?꾩슂?섍퀬, 湲덉떇???꾩슂?????덉뼱 寃????蹂묒썝?쇰줈 ?뺤씤?섏떆??寃껋씠 醫뗭뒿?덈떎.',
-      followUp: [
-        '?섎㈃寃?щ뒗 1諛?2???낆썝?쇰줈 吏꾪뻾?⑸땲??',
-        '湲덉떇 ?щ?? ?ъ쟾 寃???꾩슂 ?щ?????쒖쟾??02-6925-1111濡??뺤씤??二쇱꽭??',
-      ],
-      sources: [{
-        title: '?덊럹?댁?-FAQ',
-        url: 'local://docs/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-FAQ.txt',
-      }],
-    };
-  }
-
-  if (/(귀|청력|어지럼|전정)/u.test(text)) {
-    return {
-      type: 'exam_preparation',
-      answer: '洹 寃????以鍮꾪빐?????ы빆? ?밸퀎???놁쑝?? 臾몄꽌 湲곗??쇰줈 寃???쒓컙???ㅻ옒 嫄몃┫ ???덉뼱 媛?ν븳 ???쇱컢 ?댁썝?섏떆??寃껋씠 醫뗭뒿?덈떎. 泥?젰寃?ъ? ?꾩젙湲곕뒫 寃?щ뒗 ?먯튃?곸쑝濡??뱀씪 寃?ъ? 寃곌낵 ?곷떞??吏꾪뻾?섏?留? 寃??吏꾪뻾 ?곹솴???곕씪 ?덉빟 ???쒗뻾?????덇퀬 ?쎈Ъ??蹂듭슜 以묒씠嫄곕굹 湲됱꽦???ы븳 ?댁??ъ????덉쑝硫??쇱젙 ?쒓컙??吏????寃?щ? 吏꾪뻾?섎뒗 寃쎌슦???덉뒿?덈떎.',
-      followUp: [
-        '寃???쒓컙??湲몄뼱吏????덉뼱 ?쇱컢 ?댁썝?섎뒗 ?몄씠 醫뗭뒿?덈떎.',
-        '??蹂듭슜 以묒씠嫄곕굹 ?ы븳 ?댁??ъ????덉쑝硫??댁썝 ????쒖쟾??02-6925-1111濡?癒쇱? 臾몄쓽??二쇱꽭??',
-      ],
-      sources: [{
-        title: '?덊럹?댁?-FAQ',
-        url: 'local://docs/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-FAQ.txt',
-      }],
-    };
-  }
-
-  if (/(코|비염|축농증|부비동|비중격)/u.test(text)) {
-    return {
-      type: 'exam_preparation',
-      answer: '肄?寃???쒖뿉???밸퀎??以鍮꾪빐?????ы빆? ?놁쑝硫? 臾몄꽌 湲곗??쇰줈 ?遺遺??뱀씪 寃?ш? 媛?ν빀?덈떎.',
-      followUp: [
-        '?뱀씪 寃??媛???щ???吏꾨즺???곹솴???곕씪 ?щ씪吏????덉뒿?덈떎.',
-        '??쒖쟾??02-6925-1111',
-      ],
-      sources: [{
-        title: '?덊럹?댁?-FAQ',
-        url: 'local://docs/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-FAQ.txt',
-      }],
-    };
-  }
-
-  return null;
+  return buildReinitializedIntentResponse('exam_preparation', text);
 }
 
 function createReceiptIssuanceResponse() {
-  return {
-    type: 'receipt_issuance',
-    answer: '?곸닔利앷낵 吏꾨즺?곸꽭?댁뿭 媛숈? ?쒕쪟???몃옒?먯꽌???먮Т怨쇱뿉??蹂몄씤 ?뺤씤 ??諛쒓툒諛쏆쑝?쒕㈃ ?⑸땲?? ?낆썝 ?섏옄???댁썝 ?섎（ ??二쇱튂?섎굹 蹂묐룞 媛꾪샇?ъ뿉寃?誘몃━ ?좎껌?쒕? ?쒖텧?섍퀬, ?댁썝 ?섎궔 ???먮Т怨쇱뿉???쒕쪟瑜?諛쏅뒗 諛⑹떇?쇰줈 ?덈궡?섏뼱 ?덉뒿?덈떎.',
-    followUp: [
-      '?댁썝 ?꾩뿉???몃옒 諛⑸Ц ???ㅼ떆 ?좎껌?????덉뒿?덈떎.',
-      '?섏옄 蹂몄씤 ??諛쒓툒? ?숈쓽?? ?좊텇利??щ낯, 愿怨꾩쬆紐낆꽌瑜??먮뒗 ?꾩엫??媛숈? 援щ퉬?쒕쪟媛 ?꾩슂?????덉뒿?덈떎.',
-      '?뺥솗??諛쒓툒 媛???щ?????쒖쟾??02-6925-1111濡?癒쇱? ?뺤씤?섏떆硫?媛???덉쟾?⑸땲??',
-    ],
-    sources: [
-      {
-        title: 'FAQ',
-        url: LOCAL_FAQ_URL,
-      },
-      {
-        title: '?덊럹?댁?-?낇눜???덈궡',
-        url: 'local://docs/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-%EC%9E%85%ED%87%B4%EC%9B%90%20%EC%95%88%EB%82%B4.txt',
-      },
-    ],
-  };
+  return buildReinitializedIntentResponse('receipt_issuance', '') || null;
 }
 
 function createTypedPostOpCareResponse(kind) {
-  const source = {
-    title: '입원-수술 후 주의사항',
-    url: 'local://docs/%EC%9E%85%EC%9B%90-%EC%88%98%EC%88%A0%20%ED%9B%84%20%EC%A3%BC%EC%9D%98%EC%82%AC%ED%95%AD.txt',
+  const messageByKind = {
+    nose: '코 수술 후 주의사항',
+    throat: '목 수술 후 주의사항',
+    ear: '귀 수술 후 주의사항',
+    thyroid: '갑상선 수술 후 주의사항',
+    salivary: '침샘 수술 후 주의사항',
   };
-
-  const responses = {
-    nose: {
-      type: 'postop_care_nose',
-      answer: '肄??섏닠 ??二쇱쓽?ы빆 ?덈궡?쒕┰?덈떎. 臾몄꽌 湲곗??쇰줈 ?섏닠 ??1~3媛쒖썡 ?뺣룄 ?몃옒 ?듭썝移섎즺媛 ?꾩슂?????덇퀬, 泥섏쓬 1~2二??뺣룄??肄붾? ?멸쾶 ?嫄곕굹 肄붾? 嫄대뱶由щ뒗 ?됰룞???쇳븯??寃껋씠 醫뗭뒿?덈떎. 肄붿꽭泥??꾩뿉??肄붾? 臾대━?섍쾶 ?먭레?섏? 留먭퀬, 異쒗삁???덇굅???묎툒移섎즺媛 ?꾩슂?섎㈃ 02-6925-1111濡?諛붾줈 ?곕씫??二쇱꽭??',
-      followUp: [
-        '理쒖냼 2二쇨컙? ?ъ슦?? ?ы븳 ?대룞, 臾대━???쇱쇅?쒕룞???쇳븯??履쎌쑝濡??덈궡?섏뼱 ?덉뒿?덈떎.',
-        '?섏쁺? 理쒖냼 4二??뺣룄 ?쇳븯怨? 湲덉뿰쨌湲덉＜??理쒖냼 2媛쒖썡 ?뺣룄 沅뚭퀬?⑸땲??',
-        '鍮꾪뻾湲??묒듅? ?섏닠 ????1媛쒖썡媛??쇳븯??履쎌쑝濡??덈궡?섏뼱 ?덉뒿?덈떎.',
-      ],
-      sources: [source],
-    },
-    throat: {
-      type: 'postop_care_throat',
-      answer: '紐??섏닠 ??二쇱쓽?ы빆 ?덈궡?쒕┰?덈떎. 臾몄꽌 湲곗??쇰줈 ?곸쿂媛 ?덉젙???뚭퉴吏 2~3二??뺣룄???덈Т ?④쾪嫄곕굹 ?먭레?곸씤 ?뚯떇, ?깅뵳???뚯떇蹂대떎 遺?쒕윭???뚯떇 ?꾩＜濡??쒖떆??寃껋씠 醫뗭뒿?덈떎. 異쒗삁 ?덈갑???꾪빐 鍮⑤? ?ъ슜? ?쇳븯怨? ?쇨? 怨꾩냽 ?욎뿬 ?섏삤嫄곕굹 ?묒씠 留롮쑝硫?蹂묒썝???곕씫 ??吏꾨즺瑜?諛쏆쑝?붿빞 ?⑸땲??',
-      followUp: [
-        '?섏닠 ??5~10???뺣룄源뚯? 異쒗삁 媛?μ꽦???덉뼱 移⑥뿉 ?쇨? 怨꾩냽 ?욎씠嫄곕굹 ?좏솉??異쒗삁??留롮쑝硫?諛붾줈 ?뺤씤???꾩슂?⑸땲??',
-        '?섏닠 ??1~2二??뺣룄???ы븳 ?대룞?대굹 臾대━???쇱쇅?쒕룞???쇳븯怨?異⑸텇???щ뒗 寃껋씠 醫뗭뒿?덈떎.',
-        '?듭쬆?대굹 異쒗삁媛먯씠 ?덉쓣 ?뚮뒗 ?쒖썝???쇱쓬臾쇰줈 ?좉퉸 媛湲?섎뒗 諛⑸쾿???덈궡?섏뼱 ?덉뒿?덈떎.',
-      ],
-      sources: [source],
-    },
-    ear: {
-      type: 'postop_care_ear',
-      answer: '洹 ?섏닠 ??二쇱쓽?ы빆 ?덈궡?쒕┰?덈떎. 臾몄꽌 湲곗??쇰줈 ?섏닠 遺?꾨? 遺?れ튂吏 ?딅룄濡?議곗떖?섍퀬, 肄붾? ?멸쾶 ?嫄곕굹 臾닿굅??臾쇨굔???쒕뒗 ?됰룞? ?쇳븯??寃껋씠 醫뗭뒿?덈떎. ?ъ콈湲곕굹 湲곗묠?????뚮뒗 ?낆쓣 踰뚮━怨??섍퀬, 癒몃━瑜?媛먯쓣 ?뚮룄 ?섏닠 遺?꾧? ?먭레?섏? ?딄쾶 二쇱쓽??二쇱꽭??',
-      followUp: [
-        '?꾨윴 怨좊쫫 媛숈? 遺꾨퉬臾쇱씠 ?섏삤嫄곕굹 ?댁??쇱씠 怨꾩냽?섎㈃ ?댁썝 ?뺤씤???꾩슂?⑸땲??',
-        '媛묒옄湲??낆씠 ?뚯븘媛???먮굦 媛숈? ?덈㈃留덈퉬 利앹긽???덉쑝硫?諛붾줈 蹂묒썝???곕씫?섏뀛???⑸땲??',
-        '湲고? 異쒗삁?대굹 ?묎툒移섎즺媛 ?꾩슂?섎㈃ 02-6925-1111濡??곕씫?섎룄濡??덈궡?섏뼱 ?덉뒿?덈떎.',
-      ],
-      sources: [source],
-    },
-    thyroid: {
-      type: 'postop_care_thyroid',
-      answer: '媛묒긽???섏닠 ??二쇱쓽?ы빆 ?덈궡?쒕┰?덈떎. 臾몄꽌 湲곗??쇰줈 ?섏닠 ??2~3???뺣룄??紐⑷낵 ?닿묠 ?吏곸엫??議곗떖?섍퀬, 臾대━??紐??대룞?대굹 媛뺥븳 ?쒕룞? ?쇳븯??寃껋씠 醫뗭뒿?덈떎. ?쇱긽?앺솢? 媛?ν븯吏留?媛뺣룄媛 ?믪? ?대룞?대굹 臾닿굅??臾쇨굔???쒕뒗 ?됰룞? ??4二??뺣룄 ?쇳븯?꾨줉 ?덈궡?섏뼱 ?덉뒿?덈떎.',
-      followUp: [
-        '?ㅼ썙??蹂댄넻 ?섏닠 ??3~5???ㅻ???媛?ν븯?ㅺ퀬 ?덈궡?섏뼱 ?덉뒿?덈떎.',
-        '紐⑹쓽 ?밴?媛? ?쇳궡 遺덊렪媛? ?섏닠 遺??媛먭컖 ?댁긽? ?쇱떆?곸쑝濡??먭뺨吏????덉뒿?덈떎.',
-        '?곸쿂 ?뚮났 湲곌컙?먮뒗 湲덉뿰쨌湲덉＜媛 沅뚭퀬?⑸땲??',
-      ],
-      sources: [source],
-    },
-    salivary: {
-      type: 'postop_care_salivary',
-      answer: '移⑥깦 ?섏닠 ??二쇱쓽?ы빆 ?덈궡?쒕┰?덈떎. 臾몄꽌 湲곗??쇰줈 ?섏닠 遺?꾩? 洹 二쇰???湲곴굅???먭레?섏? 留먭퀬, 泥섏쓬 2二??뺣룄??遺?쒕읇怨??먭레???곸? ?뚯떇 ?꾩＜濡??쒖떆??寃껋씠 醫뗭뒿?덈떎. ?섏닠 遺??遺볤린???덉쓣 ???덉?留??ы빐吏嫄곕굹 ?댁씠 ?섎㈃ 蹂묒썝 ?뺤씤???꾩슂?⑸땲??',
-      followUp: [
-        '鍮꾪뻾湲??묒듅? 蹂댄넻 ?섏닠 ??3~4二??ㅻ???媛?ν븯?ㅺ퀬 ?덈궡?섏뼱 ?덉뒿?덈떎.',
-        '?ㅻ갈 ?쒓굅 ?꾪썑 ?곸쿂 愿由ъ? ?ㅼ썙 ?쒖젏? 臾몄꽌 湲곗???留욎떠 議곗떖?댁꽌 吏꾪뻾?댁빞 ?⑸땲??',
-        '臾닿굅??臾쇨굔???ㅺ굅??媛뺥븳 ?대룞? ??4二??뺣룄 ?쇳븯怨? 媛踰쇱슫 嫄룰린 ?뺣룄遺???쒖옉?섎뒗 寃껋씠 醫뗭뒿?덈떎.',
-      ],
-      sources: [source],
-    },
-  };
-
-  return responses[kind] || null;
+  return buildCleanPostOpCareResponse(messageByKind[kind] || '수술 후 주의사항');
 }
 
 function findPostOpCareResponse(message) {
-  const text = String(message || '');
-  if (!matchesAnyPattern(text, postOpCarePatterns)) {
-    return null;
-  }
-
-  if (/(코|비염|축농증|비중격|코물혹)/u.test(text)) {
-    return createTypedPostOpCareResponse('nose');
-  }
-
-  if (/(목|편도)/u.test(text)) {
-    return createTypedPostOpCareResponse('throat');
-  }
-
-  if (/귀/u.test(text)) {
-    return createTypedPostOpCareResponse('ear');
-  }
-
-  if (/갑상선/u.test(text)) {
-    return createTypedPostOpCareResponse('thyroid');
-  }
-
-  if (/(침샘|이하선|악하선)/u.test(text)) {
-    return createTypedPostOpCareResponse('salivary');
-  }
-
-  return null;
+  return matchesAnyPattern(String(message || ''), postOpCarePatterns)
+    ? buildCleanPostOpCareResponse(message)
+    : null;
 }
 
 function createNasalIrrigationResponse(mode = 'general') {
-  const isSurgery = mode === 'surgery';
-
-  return {
-    type: isSurgery ? 'nasal_irrigation_surgery' : 'nasal_irrigation_general',
-    answer: isSurgery
-      ? '?섏닠 ??肄붿꽭泥??덈궡?쒕┰?덈떎. 臾몄꽌 湲곗??쇰줈 ?몄쿃湲곌뎄? ?앸━?앹뿼??遺꾨쭚? ?쇰컲 ?쎄뎅?먯꽌 泥섎갑???놁씠 援щℓ?????덉뒿?덈떎. 誘몄?洹쇳븳 臾쇱뿉 ?몄쿃遺꾨쭚???욎뼱 ?ъ슜?섍퀬, 肄??낃뎄???몄쫹?????????뚮━瑜??대㈃??泥쒖쿇???몄쿃??二쇱꽭?? ?섏닠 ?꾩뿉??肄붾줈 ?섏삤??臾쇱쓣 ?덈? ?멸쾶 ?吏 留먭퀬 ??븘二쇰뒗 ?뺣룄濡쒕쭔 ?섏떆??寃껋씠 醫뗭뒿?덈떎. 肄붾? ?멸쾶 嫄대뱶由ш굅??臾대━?섍쾶 ?硫?異쒗삁?대굹 ?곸쿂 ?먭레???앷만 ???덉뒿?덈떎. ?몄쿃 ?쒖옉 ?쒓린??鍮좊Ⅴ硫??댁썝 ?뱀씪 ??곷??? 蹂댄넻? ?섏닠 ??3?쇰????덈궡?섎ŉ ?섎즺吏?吏?쒓? ?덉쑝硫?洹??쇱젙??留욎떠 二쇱꽭??'
-      : '?쇰컲 肄붿꽭泥??덈궡?쒕┰?덈떎. 臾몄꽌 湲곗??쇰줈 ?몄쿃湲곌뎄? ?앸━?앹뿼??遺꾨쭚? ?쇰컲 ?쎄뎅?먯꽌 泥섎갑???놁씠 援щℓ?????덉뒿?덈떎. 誘몄?洹쇳븳 臾쇱뿉 ?몄쿃遺꾨쭚???욎뼱 ?ъ슜?섍퀬, 肄??낃뎄???몄쫹?????????뚮━瑜??대㈃??泥쒖쿇???몄쿃??二쇱꽭?? 肄붾줈 ?섏삤??臾쇱? ?怨??낆쑝濡??섏삤??臾쇱? 諭됱뼱???⑸땲?? ?몄쿃湲곕? ?덈Т ?멸쾶 ?꾨Ⅴ硫?洹 ?듭쬆?대굹 ?먰넻???앷만 ???덉뼱 泥쒖쿇???섎뒗 寃껋씠 醫뗪퀬, 遺덊렪?섎㈃ ??泥쒖쿇??吏꾪뻾??二쇱꽭?? 蹂댄넻 ?섎（ 2???뺣룄 洹쒖튃?곸쑝濡??섎뒗 諛⑹떇?쇰줈 ?덈궡?⑸땲??',
-    followUp: isSurgery
-      ? ['異쒗삁???덇굅???듭쬆???ы븯硫?02-6925-1111濡?諛붾줈 臾몄쓽??二쇱꽭??']
-      : ['遺덊렪媛먯씠 ?ы븯嫄곕굹 諛⑸쾿???룰컝由щ㈃ 吏꾨즺?ㅼ씠????쒖쟾??02-6925-1111濡?臾몄쓽??二쇱꽭??'],
-    sources: [{
-      title: '?몃옒-肄붿꽭泥?諛⑸쾿',
-      url: 'local://docs/%EC%99%B8%EB%9E%98-%EC%BD%94%EC%84%B8%EC%B2%99%20%EB%B0%A9%EB%B2%95.txt',
-    }],
-    images: findRelevantImages(isSurgery ? '수술 후 코세척' : '일반 코세척'),
-  };
+  return buildReinitializedIntentResponse(
+    mode === 'surgery' ? 'nasal_irrigation_surgery' : 'nasal_irrigation_general',
+    mode === 'surgery' ? '수술 후 코세척' : '일반 코세척'
+  );
 }
 
 function createComplaintGuideResponse() {
-  return {
-    type: 'complaint_guide',
-    answer: '遺덈쭔, 怨좎땐, 而댄뵆?덉씤 愿???섍껄? 怨좉컼 ?섍껄?? ?댁썝 ???ㅻЦ, 蹂묒썝 ?덊럹?댁? 怨좉컼?뚮━?? ?꾪솕濡??묒닔?섏떎 ???덉뒿?덈떎.',
-    followUp: [
-      '怨좉컼 ?섍껄?⑥? 1痢? 2痢? 4痢? 5痢듭뿉 ?덉뒿?덈떎.',
-      '?댁썝 ???ㅻЦ???듯빐?쒕룄 ?섍껄???④린?????덉뒿?덈떎.',
-      '蹂묒썝 ?덊럹?댁? 怨좉컼?뚮━???먮뒗 ?꾪솕 3002濡??뚮젮 二쇱꽭??',
-    ],
-    sources: [{
-      title: '입원-입원생활안내문',
-      url: 'local://docs/%EC%9E%85%EC%9B%90-%EC%9E%85%EC%9B%90%EC%83%9D%ED%99%9C%EC%95%88%EB%82%B4%EB%AC%B8.txt',
-    }],
-  };
+  return buildReinitializedIntentResponse('complaint_guide', '') || null;
 }
 
 function createGuardianShiftResponse() {
-  return {
-    type: 'guardian_shift',
-    answer: '?곸＜ 蹂댄샇??援먮???媛?ν빀?덈떎. ?ㅻ쭔 媛꾪샇媛꾨퀝?듯빀?쒕퉬??蹂묐룞 ?뱀꽦??蹂댄샇???곸＜???먯튃?곸쑝濡??쒗븳?섎ŉ, 遺덇??쇳븯寃??곸＜媛 ?덉슜??寃쎌슦?먮룄 移섎즺? 媛먯뿼 ?덈갑???꾪빐 瑗??꾩슂??寃쎌슦?먮쭔 援먮???二쇱뀛???⑸땲??',
-    followUp: [
-      '蹂댄샇???곸＜媛 ?꾩슂??寃쎌슦?먮뒗 ?섎즺吏??먮떒???곕씪 ?쒖떆?곸쑝濡??덉슜?⑸땲??',
-      '援먮?媛 ?꾩슂???곹솴?대㈃ 蹂묐룞?먯꽌 ?꾩옱 ?덈궡 湲곗????④퍡 ?뺤씤??二쇱꽭??',
-    ],
-    sources: [{
-      title: '입원-입원생활안내문',
-      url: 'local://docs/%EC%9E%85%EC%9B%90-%EC%9E%85%EC%9B%90%EC%83%9D%ED%99%9C%EC%95%88%EB%82%B4%EB%AC%B8.txt',
-    }],
-  };
+  return buildReinitializedIntentResponse('guardian_shift', '') || null;
 }
 
 function createWifiResponse() {
-  return {
-    type: 'wifi_info',
-    answer: '??댄뙆??鍮꾨?踰덊샇??HANA濡??쒖옉?섎뒗 0269251111?낅땲??',
-    followUp: [
-      '紐⑤뱺 痢듭뿉???숈씪?섍쾶 ?덈궡?⑸땲??',
-    ],
-    sources: [],
-  };
+  return buildReinitializedIntentResponse('wifi_info', '') || null;
 }
 
 function createHospitalPhoneResponse() {
-  return {
-    type: 'hospital_phone',
-    answer: '?섎굹?대퉬?명썑怨쇰퀝????쒖쟾?붾뒗 02-6925-1111?낅땲??',
-    followUp: [
-      '?꾪솕 ?덉빟?대굹 ?덉빟 蹂寃쎌? ??쒖쟾???곌껐 ???덈궡諛쏆쓣 ???덉뒿?덈떎.',
-    ],
-  };
+  return buildReinitializedIntentResponse('hospital_phone', '') || null;
 }
 
 function createRhinitisPostOpVisitResponse() {
-  return {
-    type: 'rhinitis_postop_visit',
-    answer: '臾몄꽌 湲곗??쇰줈 鍮꾩뿼 ?섏닠 ???댁썝移섎즺??蹂댄넻 8~12?뚮줈 ?덈궡?섏뼱 ?덉뒿?덈떎.',
-    followUp: [
-      '?뚮났湲곌컙? 3~4二쇰줈 ?덈궡?섏뼱 ?덉뒿?덈떎.',
-      '?몃? ?댁썝 ?잛닔? ?쇱젙? ?섏닠 諛⑹떇怨?寃쎄낵???곕씪 ?щ씪吏????덉뼱 吏꾨즺 ??理쒖쥌 ?덈궡瑜?諛쏅뒗 寃껋씠 ?덉쟾?⑸땲??',
-    ],
-    sources: [{
-      title: '鍮꾩뿼 ?섏닠',
-      url: 'https://hanaent.co.kr/nose/nose05.html?type=A&sub_tp=3',
-    }],
-  };
+  return buildReinitializedIntentResponse('rhinitis_postop_visit', '비염 수술 후 내원') || null;
 }
 
 function createFallbackInsufficientEvidenceResponse(contextTitles) {
   return {
     type: 'fallback_insufficient_evidence',
-    answer: '?꾩옱 ?뺤씤???덊럹?댁? ?댁슜留뚯쑝濡쒕뒗 ?뺥솗???덈궡媛 ?대졄?듬땲?? ??쒖쟾??02-6925-1111濡??뺤씤??二쇱꽭??',
-    followUp: contextTitles.length > 0 ? contextTitles : ['吏꾨즺?쒓컙 ?덈궡', '?섎즺吏??쇱젙', '?쒕쪟 諛쒓툒 ?덈궡'],
+    answer: '현재 확인된 병원 문서만으로는 정확히 안내드리기 어렵습니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.',
+    followUp: contextTitles.length > 0 ? contextTitles : ['진료시간 안내', '의료진 일정', '서류 발급 안내'],
   };
 }
 
 function createFallbackNeedsClarificationResponse() {
   return {
     type: 'fallback_needs_clarification',
-    answer: '議곌툑留???援ъ껜?곸쑝濡?留먯???二쇱떆硫????먯뿰?ㅻ읇怨??뺥솗?섍쾶 ?덈궡?쒕┫ ???덉뒿?덈떎. 沅곴툑????ぉ????媛吏???뚮젮二쇱떆硫?洹??댁슜遺??諛붾줈 ?ㅻ챸?쒕┫寃뚯슂.',
+    answer: '질문 범위가 넓어 한 번에 정확히 안내드리기 어렵습니다. 궁금한 항목을 조금만 더 구체적으로 알려주시면 그 내용부터 바로 안내해 드릴게요.',
     followUp: ['수술 종류를 알려주세요', '검사 종류를 알려주세요', '외래인지 입원인지 알려주세요'],
   };
 }
@@ -2923,7 +2516,7 @@ function createFallbackNeedsClarificationResponse() {
 function createFallbackInferenceResponse() {
   return {
     type: 'fallback_inference',
-    answer: '臾몄꽌??愿???⑥꽌???뺤씤?섏?留?吏곸젒 紐낆떆???덈궡???꾨땲???뺥솗???⑥젙?섍린???대졄?듬땲?? ?뺥솗???댁쁺 諛⑹떇? 蹂묐룞 ?먮뒗 ??쒖쟾??02-6925-1111濡??뺤씤??二쇱꽭??',
+    answer: '문서에서 관련 근거는 확인되지만 직접 명시된 안내는 아니라 확정해서 말씀드리기는 어렵습니다. 정확한 운영 방식은 병동 또는 대표전화 02-6925-1111로 확인해 주세요.',
     followUp: ['문서에서 확인한 관련 항목을 기준으로 안내드립니다.', '운영 방식은 시점에 따라 달라질 수 있습니다.'],
   };
 }
@@ -2931,8 +2524,8 @@ function createFallbackInferenceResponse() {
 function createFallbackRestrictedResponse() {
   return {
     type: 'fallback_restricted',
-    answer: '??遺遺꾩? ?곷떞遊뉗뿉???먮떒???쒕┫ ???놁뒿?덈떎. ?섎즺吏??먮뒗 蹂묒썝?쇰줈 吏곸젒 ?뺤씤??二쇱꽭??',
-    followUp: ['??쒖쟾??02-6925-1111', '吏꾨즺怨??먮뒗 ?섎즺吏??곷떞 沅뚯옣'],
+    answer: '이 부분은 상담봇이 판단해 드릴 수 없습니다. 진료과 또는 의료진과 직접 확인해 주세요.',
+    followUp: ['대표전화 02-6925-1111', '진료과 또는 의료진 상담 권장'],
   };
 }
 
@@ -3009,9 +2602,11 @@ function legacyGetSmallTalkIntent(message) {
   }
 
   if (
-    ['안녕하세요', '안녕', '반가워요', '반갑습니다', '처음 왔어요'].includes(normalized)
+    ['안녕하세요', '안녕', 'ㅎㅇ', '하이', '반가워요', '반갑습니다', '처음 왔어요'].includes(normalized)
     || compact === '안녕하세요'
     || compact === '안녕'
+    || compact === 'ㅎㅇ'
+    || compact === '하이'
   ) {
     return 'greeting';
   }
@@ -3037,7 +2632,7 @@ function legacyCreateSmallTalkResponse(intent) {
   if (intent === 'greeting') {
     return {
       type: 'smalltalk',
-      answer: '?덈뀞?섏꽭?? ?섎굹?대퉬?명썑怨쇰퀝???곷떞 ?꾩슦誘몄엯?덈떎. ?덉빟, 吏꾨즺?쒓컙, ?섎즺吏? ?낆썝, ?뷀?踰꾩뒪 媛숈? 蹂묒썝 ?덈궡瑜??명븯寃?臾쇱뼱蹂댁떆硫??⑸땲??',
+      answer: '안녕하세요. 하나이비인후과병원 안내 상담봇입니다. 예약, 진료시간, 의료진, 입원, 셔틀버스 같은 병원 안내를 도와드릴게요.',
       followUp: ['진료시간 알려줘', '셔틀버스 시간표 알려줘', '입원 안내 알려줘'],
     };
   }
@@ -3045,7 +2640,7 @@ function legacyCreateSmallTalkResponse(intent) {
   if (intent === 'thanks') {
     return {
       type: 'smalltalk',
-      answer: '?? ?꾩슂?섏떊 ?댁슜 ?덉쑝硫??댁뼱??留먯???二쇱꽭?? 蹂묒썝 ?덈궡 愿??吏덈Ц?대㈃ 諛붾줈 ?꾩??쒕━寃좎뒿?덈떎.',
+      answer: '네, 필요하신 내용이 있으면 이어서 말씀해 주세요. 병원 안내 질문이면 바로 도와드릴게요.',
       followUp: [],
     };
   }
@@ -3053,7 +2648,7 @@ function legacyCreateSmallTalkResponse(intent) {
   if (intent === 'closing') {
     return {
       type: 'smalltalk',
-      answer: '?? ?꾩슂?섏떎 ???ㅼ떆 留먯???二쇱꽭?? 湲됲븳 臾몄쓽????쒖쟾??02-6925-1111濡?諛붾줈 ?곕씫?섏뀛???⑸땲??',
+      answer: '네, 필요하실 때 다시 말씀해 주세요. 급한 문의는 대표전화 02-6925-1111로 바로 연락해 주세요.',
       followUp: [],
     };
   }
@@ -3268,7 +2863,7 @@ function buildIntentProbeMessage(text) {
     return value;
   }
 
-  return `${value}\n寃??蹂닿컯: ${[...hints].join(', ')}`;
+  return `${value}\n검색 보강: ${[...hints].join(', ')}`;
 }
 
 function tokenizeSafe(text) {
@@ -3345,8 +2940,22 @@ function extractDoctorNamesFromText(text) {
   }
 
   const names = new Set();
+  const addDoctorName = (name) => {
+    const value = String(name || '').trim();
+    if (
+      /^[가-힣]{2,4}$/u.test(value)
+      && !/(이비|비인|진료|센터|전문|수면|두경|내과|소아|코|목|귀)/u.test(value)
+      && !value.endsWith('과')
+    ) {
+      names.add(value);
+    }
+  };
   const titlePattern = /(대표원장|병원장|원장|부원장|센터장|진료부장|과장|부장|전문의)/u;
-  const inlineNamePattern = /([가-힣]{2,4})\s*(대표원장|병원장|원장|부원장|센터장|진료부장|과장|부장|전문의)/gu;
+  const structuredNamePattern = /이름\s*:\s*([가-힣]{2,4})/gu;
+  for (const match of value.matchAll(structuredNamePattern)) {
+    addDoctorName(match[1]);
+  }
+
   const blocks = value
     .split(/\r?\n\s*\r?\n+/)
     .map((block) => block.split(/\r?\n/).map((line) => line.trim()).filter(Boolean))
@@ -3356,16 +2965,12 @@ function extractDoctorNamesFromText(text) {
     const [firstLine = '', secondLine = ''] = lines;
 
     if (/^[가-힣]{2,4}$/u.test(firstLine) && titlePattern.test(secondLine)) {
-      names.add(firstLine);
+      addDoctorName(firstLine);
       return;
     }
 
-    const header = lines.slice(0, 2).join(' ');
-    for (const match of header.matchAll(inlineNamePattern)) {
-      if (match[1]) {
-        names.add(match[1]);
-      }
-    }
+    // Inline titles like "이비인후과 전문의" are not names, so only standalone
+    // name blocks and structured "이름:" rows are used for automatic extraction.
   });
 
   DOCTOR_NAME_FALLBACK_LIST.forEach((name) => {
@@ -3384,7 +2989,12 @@ function buildDoctorSpecialtyEntries() {
 
   const text = repairBrokenKoreanText(fs.readFileSync(DOCTOR_SPECIALTY_DOC_PATH, 'utf8'));
   const specialtyConfigs = buildDoctorSpecialtyKeywordConfigs();
-  const doctorNames = extractDoctorNamesFromText(text);
+  const doctorNames = [
+    ...new Set([
+      ...DOCTOR_NAME_FALLBACK_LIST.filter((name) => text.includes(name)),
+      ...extractDoctorNamesFromText(text),
+    ]),
+  ];
   const entries = [];
 
   doctorNames.forEach((doctorName, index) => {
@@ -3406,7 +3016,10 @@ function buildDoctorSpecialtyEntries() {
       .find((line) => line.includes('전문분야'));
 
     const specialtyText = specialtyLine
-      ? specialtyLine.replace(/^.*?전문분야\s*:?\s*/u, '').trim()
+      ? specialtyLine
+        .replace(/^.*?전문분야\s*:?\s*/u, '')
+        .split(/\s+(주간\s*진료\s*시간표|주요경력|논문및연구|세부설명)/u)[0]
+        .trim()
       : '';
     const normalizedSpecialty = normalizeSearchTextSafe(specialtyText);
 
@@ -3925,11 +3538,11 @@ function findCertificateFeeResponse(message) {
 
   return {
     type: 'certificate_fee',
-    answer: `${matchedEntry.title} 鍮꾩슜? ${matchedEntry.price}?먯엯?덈떎.`,
+    answer: `${matchedEntry.title} 비용은 ${matchedEntry.price}입니다.`,
     followUp: [
-      '湲곗? 臾몄꽌: 湲고?-鍮꾧툒?щ퉬??txt',
-      wantsReissue ? '?щ컻湲??먮뒗 ?щ컻??湲곗? 湲덉븸?쇰줈 ?덈궡?덉뒿?덈떎.' : '諛쒓툒 湲곗? 湲덉븸?쇰줈 ?덈궡?덉뒿?덈떎.',
-      '?몃? 湲곗?? ?먮Т怨??먮뒗 ??쒖쟾??02-6925-1111濡??ㅼ떆 ?뺤씤??二쇱꽭??',
+      '기준 문서: 기타-비급여비용.txt',
+      wantsReissue ? '재발급 기준 금액으로 안내드립니다.' : '초발급 기준 금액으로 안내드립니다.',
+      '세부 기준은 원무과 또는 대표전화 02-6925-1111로 다시 확인해 주세요.',
     ],
     sources: [{
       title: '기타-비급여비용',
@@ -3945,7 +3558,7 @@ function findNonpayItemResponse(message) {
     return null;
   }
 
-  if (!/(鍮꾩슜|湲덉븸|媛寃??쇰쭏)/u.test(message)) {
+  if (!/(비용|금액|가격|얼마)/u.test(message)) {
     return null;
   }
 
@@ -3963,11 +3576,11 @@ function findNonpayItemResponse(message) {
 
   return {
     type: 'nonpay_item_fee',
-    answer: `${matchedEntry.title} 鍮꾩슜? ${matchedEntry.price}?먯엯?덈떎.`,
+    answer: `${matchedEntry.title} 비용은 ${matchedEntry.price}입니다.`,
     followUp: [
-      '湲곗? 臾몄꽌: 湲고?-鍮꾧툒?щ퉬??txt',
-      '?몃? ?곸슜 湲곗??대굹 蹂寃??щ?????쒖쟾??02-6925-1111濡??ㅼ떆 ?뺤씤??二쇱꽭??',
-      `鍮꾧툒???덈궡 ?섏씠吏: ${NONPAY_PAGE_URL}`,
+      '기준 문서: 기타-비급여비용.txt',
+      '실제 적용 기준이나 변경 여부는 대표전화 02-6925-1111로 다시 확인해 주세요.',
+      `비급여 안내 페이지: ${NONPAY_PAGE_URL}`,
     ],
     sources: [
       {
@@ -3975,7 +3588,7 @@ function findNonpayItemResponse(message) {
         url: `local://docs/${encodeURIComponent(path.basename(CERTIFICATE_FEES_DOC_PATH || '기타-비급여비용.txt'))}`,
       },
       {
-        title: '鍮꾧툒???덈궡 ?섏씠吏',
+        title: '비급여 안내 페이지',
         url: NONPAY_PAGE_URL,
       },
     ],
@@ -4033,9 +3646,9 @@ function findSingleRoomFeeResponse(message) {
     type: 'single_room_fee',
     answer,
     followUp: [
-      '湲곗? 臾몄꽌: 湲고?-鍮꾧툒?щ퉬??txt',
-      '?낆썝 ?뺥깭???곸슜 湲곗????곕씪 ?ㅼ젣 ?덈궡???щ씪吏????덉쑝????쒖쟾??02-6925-1111濡??ㅼ떆 ?뺤씤??二쇱꽭??',
-      `鍮꾧툒???덈궡 ?섏씠吏: ${NONPAY_PAGE_URL}`,
+      '기준 문서: 기타-비급여비용.txt',
+      '입원 형태와 적용 기준에 따라 실제 안내가 달라질 수 있어 대표전화 02-6925-1111로 다시 확인해 주세요.',
+      `비급여 안내 페이지: ${NONPAY_PAGE_URL}`,
     ],
     sources: [
       {
@@ -4043,7 +3656,7 @@ function findSingleRoomFeeResponse(message) {
         url: `local://docs/${encodeURIComponent(path.basename(CERTIFICATE_FEES_DOC_PATH || '기타-비급여비용.txt'))}`,
       },
       {
-        title: '鍮꾧툒???덈궡 ?섏씠吏',
+        title: '비급여 안내 페이지',
         url: NONPAY_PAGE_URL,
       },
     ],
@@ -4077,7 +3690,7 @@ function findOperationalInferenceResponse(message) {
 
   if (/(보호자.{0,8}(식사|식대|밥))/u.test(text)) {
     const matchedLine = readNonpayDocLines().find((line) => (
-      compactSearchTextSafe(line).includes(compactSearchTextSafe('蹂댄샇???앸?'))
+      compactSearchTextSafe(line).includes(compactSearchTextSafe('보호자 식대'))
     ));
 
     if (!matchedLine) {
@@ -4089,12 +3702,12 @@ function findOperationalInferenceResponse(message) {
     return {
       type: 'operational_inference',
       answer: price
-        ? `鍮꾧툒?щ퉬??臾몄꽌??蹂댄샇???앸? ${price}????ぉ???덉뼱 蹂댄샇???앹궗媛 ?쒓났?섍굅???좎껌 媛?ν븳 ?댁쁺??媛?μ꽦???믪뒿?덈떎. ?ㅻ쭔 臾몄꽌???좎껌 諛⑸쾿?대굹 ?쒓났 湲곗???吏곸젒 ?곹? ?덉????딆븘 ?뺥솗???댁쁺 諛⑹떇? 蹂묐룞 ?먮뒗 ??쒖쟾??02-6925-1111濡??뺤씤??二쇱꽭??`
-        : '鍮꾧툒?щ퉬??臾몄꽌??蹂댄샇???앸? ??ぉ???덉뼱 蹂댄샇???앹궗媛 ?쒓났?섍굅???좎껌 媛?ν븳 ?댁쁺??媛?μ꽦???믪뒿?덈떎. ?ㅻ쭔 臾몄꽌???좎껌 諛⑸쾿?대굹 ?쒓났 湲곗???吏곸젒 ?곹? ?덉????딆븘 ?뺥솗???댁쁺 諛⑹떇? 蹂묐룞 ?먮뒗 ??쒖쟾??02-6925-1111濡??뺤씤??二쇱꽭??',
+        ? `비급여비용 문서에 보호자 식대 ${price} 항목이 있어 보호자 식사가 제공되거나 신청 가능한 운영일 가능성이 높습니다. 다만 문서에 신청 방법이나 제공 기준이 직접 적혀 있지는 않아 정확한 운영 방식은 병동 또는 대표전화 02-6925-1111로 확인해 주세요.`
+        : '비급여비용 문서에 보호자 식대 항목이 있어 보호자 식사가 제공되거나 신청 가능한 운영일 가능성이 높습니다. 다만 신청 방법이나 제공 기준은 문서에 직접 적혀 있지 않아 병동 또는 대표전화 02-6925-1111로 확인해 주세요.',
       followUp: [
-        `臾몄꽌 洹쇨굅: ${matchedLine}`,
-        '???듬?? 臾몄꽌??媛꾩젒 洹쇨굅瑜?諛뷀깢?쇰줈 ??異붿젙?낅땲??',
-        '?뺥솗???좎껌 諛⑸쾿?대굹 ?쒓났 湲곗?? 蹂묐룞 ?먮뒗 ??쒖쟾??02-6925-1111濡??뺤씤??二쇱꽭??',
+        `문서 근거: ${matchedLine}`,
+        '이 답변은 문서의 간접 근거를 바탕으로 한 추정입니다.',
+        '정확한 신청 방법이나 제공 기준은 병동 또는 대표전화 02-6925-1111로 확인해 주세요.',
       ],
       sources: [{
         title: '기타-비급여비용',
@@ -4117,11 +3730,11 @@ function findOperationalInferenceResponse(message) {
 
   return {
     type: 'operational_inference',
-    answer: `鍮꾧툒?щ퉬??臾몄꽌??${matchedEntry.title} 鍮꾩슜 ??ぉ???덉뼱 ?대떦 ?쒕퉬?ㅻ뒗 ?댁쁺 以묒씪 媛?μ꽦???믪뒿?덈떎. ?ㅻ쭔 ?댁슜 湲곗??대굹 ?곸슜 ??곸? 臾몄꽌??吏곸젒 ?뺣━???덉? ?딆쓣 ???덉뼱 ?뺥솗???댁쁺 諛⑹떇? ??쒖쟾??02-6925-1111濡??뺤씤??二쇱꽭??`,
+    answer: `비급여비용 문서에 ${matchedEntry.title} 비용 항목이 있어 해당 서비스는 운영 중일 가능성이 높습니다. 다만 적용 기준이나 대상은 문서에 직접 정리되어 있지 않아 정확한 운영 방식은 대표전화 02-6925-1111로 확인해 주세요.`,
     followUp: [
-      `臾몄꽌 洹쇨굅: ${matchedEntry.line}`,
-      '???듬?? 臾몄꽌??媛꾩젒 洹쇨굅瑜?諛뷀깢?쇰줈 ??異붿젙?낅땲??',
-      `鍮꾧툒???덈궡 ?섏씠吏: ${NONPAY_PAGE_URL}`,
+      `문서 근거: ${matchedEntry.line}`,
+      '이 답변은 문서의 간접 근거를 바탕으로 한 추정입니다.',
+      `비급여 안내 페이지: ${NONPAY_PAGE_URL}`,
     ],
     sources: [{
       title: '기타-비급여비용',
@@ -4220,8 +3833,8 @@ function buildLocalDocuments() {
 
     chunks.forEach((chunk, index) => {
       docs.push({
-        title: '?대? 臾몄꽌',
-        sourceTitle: '?대? 臾몄꽌',
+        title: '로컬 문서',
+        sourceTitle: '로컬 문서',
         url: '',
         text: chunk,
         keywords,
@@ -4241,7 +3854,7 @@ function buildLocalDocuments() {
     const label = String(doc.chunkLabel || '').split(' #')[0];
     const fileStem = path.parse(label).name.replace(/\s+/g, ' ').trim();
 
-    doc.title = `濡쒖뺄 臾몄꽌 - ${fileStem}`;
+    doc.title = `로컬 문서 - ${fileStem}`;
     doc.sourceTitle = fileStem;
     doc.url = `local://docs/${encodeURIComponent(label)}`;
     doc.hiddenSource = false;
@@ -4353,16 +3966,16 @@ function buildPreferredLocalDocuments() {
 
 function extractHomepageDiseaseName(sourceTitle) {
   const value = String(sourceTitle || '').trim();
-  if (!value.startsWith('?덊럹?댁?-')) {
+  if (!value.startsWith('홈페이지-')) {
     return '';
   }
 
   const diseaseName = value.replace(/^홈페이지-/, '').trim();
   const excludedTitles = new Set([
-    '?뷀?踰꾩뒪 諛??ㅼ떆?붽만',
-    '?몃옒吏꾨즺?덈궡',
-    '?섎즺吏??뺣낫',
-    '?낇눜???덈궡',
+    '셔틀버스 및 오시는길',
+    '외래진료안내',
+    '의료진 정보',
+    '입퇴원 안내',
   ]);
 
   if (!diseaseName || excludedTitles.has(diseaseName)) {
@@ -4542,7 +4155,7 @@ async function loadTrustedExternalDocuments() {
       }));
     } catch (error) {
       return [{
-        title: `${source.title} (濡쒕뱶 ?ㅽ뙣)`,
+        title: `${source.title} (로드 실패)`,
         url: source.url,
         text: '',
         keywords: source.keywords || [],
@@ -4703,7 +4316,7 @@ function isHomepageFaqDoc(doc) {
   const compactTitle = compactSearchTextSafe(`${doc?.title || ''} ${doc?.sourceTitle || ''}`);
   const normalizedUrl = normalizeSearchTextSafe(String(doc?.url || ''));
   const compactUrl = compactSearchTextSafe(String(doc?.url || ''));
-  const candidates = ['?덊럹?댁?-FAQ', '?덊럹?댁? FAQ', 'homepage-faq'];
+  const candidates = ['홈페이지-FAQ', '홈페이지 FAQ', 'homepage-faq'];
 
   return candidates.some((name) => {
     const normalizedName = normalizeSearchTextSafe(name);
@@ -4938,8 +4551,8 @@ function detectGuidedFlowStart(message) {
     return {
       topic: 'nasal_irrigation',
       prompt: createGuidedQuestionResponse(
-        '肄붿꽭泥??덈궡???섏닠 ?꾩씤吏 ?쇰컲 肄붿꽭泥숈씤吏???곕씪 ?щ씪吏묐땲?? ?섏닠 ??肄붿꽭泥숈씤吏, ?쇰컲 肄붿꽭泥숈씤吏 ?뚮젮二쇱꽭??',
-        ['?섏닠 ??肄붿꽭泥숈씠?먯슂', '?쇰컲 肄붿꽭泥숈씠?먯슂']
+        '코세척 안내는 수술 후 코세척인지 일반 코세척인지에 따라 달라집니다. 수술 후 코세척인지, 일반 코세척인지 알려주세요.',
+        ['수술 후 코세척이에요', '일반 코세척이에요']
       ),
     };
   }
@@ -4949,21 +4562,21 @@ function detectGuidedFlowStart(message) {
       topic: 'admission_prep',
       originalMessage: message,
       prompt: createGuidedQuestionResponse(
-        '?낆썝?대굹 ?섏닠 以鍮꾨뒗 ??ぉ???섎돇???덉뒿?덈떎. 以鍮꾨Ъ, 二쇱감, 蹂댄샇?? ?섏닠 ??寃?? 蹂듭슜 以묐떒 ??以??대뼡 ?댁슜??沅곴툑?섏떊媛??',
-        ['以鍮꾨Ъ??沅곴툑?댁슂', '二쇱감媛 沅곴툑?댁슂', '蹂댄샇?먭? 沅곴툑?댁슂', '?섏닠 ??寃?ш? 沅곴툑?댁슂', '蹂듭슜 以묐떒 ?쎌씠 沅곴툑?댁슂']
+        '입원이나 수술 준비는 항목이 나뉘어 있습니다. 준비물, 주차, 보호자, 수술 전 검사, 복용 중단 약물 중 어떤 내용이 궁금하신가요?',
+        ['준비물이 궁금해요', '주차가 궁금해요', '보호자가 궁금해요', '수술 전 검사가 궁금해요', '복용 중단 약물이 궁금해요']
       ),
     };
   }
 
   if (
     matchesAnyPattern(message, postOpCarePatterns)
-    && !/(肄?鍮꾩뿼|異뺣냽利?鍮꾩쨷寃?肄붾Ъ??紐??몃룄|洹|媛묒긽??移⑥깦)/u.test(String(message || ''))
+    && !/(코|비염|축농증|비중격|코물혹|목|편도|귀|갑상선|침샘|이하선|악하선)/u.test(String(message || ''))
   ) {
     return {
       topic: 'postop_care',
       prompt: createGuidedQuestionResponse(
-        '?섏닠 ??二쇱쓽?ы빆? ?섏닠 醫낅쪟???곕씪 ?щ씪吏묐땲?? ?대뼡 ?섏닠 ??二쇱쓽?ы빆???꾩슂?쒖? ?뚮젮二쇱꽭??',
-        ['肄??섏닠 ??二쇱쓽?ы빆', '紐??섏닠 ??二쇱쓽?ы빆', '洹 ?섏닠 ??二쇱쓽?ы빆', '媛묒긽???섏닠 ??二쇱쓽?ы빆', '移⑥깦 ?섏닠 ??二쇱쓽?ы빆']
+        '수술 후 주의사항은 수술 종류에 따라 달라집니다. 어떤 수술 후 주의사항이 필요한지 알려주세요.',
+        ['코 수술 후 주의사항', '목 수술 후 주의사항', '귀 수술 후 주의사항', '갑상선 수술 후 주의사항', '침샘 수술 후 주의사항']
       ),
     };
   }
@@ -4995,12 +4608,12 @@ function findDoctorSpecialtyResponse(message) {
     if (doctorEntry) {
       return {
         type: 'doctor_specialty',
-        answer: `${doctorName} ?섎즺吏꾩쓽 ?꾨Ц遺꾩빞??${doctorEntry.specialtyText} ?낅땲??`,
+        answer: `${doctorName} 의료진의 전문분야는 ${doctorEntry.specialtyText} 입니다.`,
         followUp: [
-          '吏꾨즺 ?쇱젙? ?섎즺吏꾨퀎 ?몃옒 ?ㅼ?以꾩뿉 ?곕씪 ?щ씪吏????덉뒿?덈떎.',
+          '진료 일정은 의료진별 외래 진료표와 당일 상황에 따라 달라질 수 있습니다.',
         ],
         sources: [{
-          title: '?덊럹?댁?-?섎즺吏??뺣낫',
+          title: '홈페이지-의료진 정보',
           url: 'local://docs/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-%EC%9D%98%EB%A3%8C%EC%A7%84%20%EC%A0%95%EB%B3%B4.txt',
         }],
       };
@@ -5029,13 +4642,13 @@ function findDoctorSpecialtyResponse(message) {
 
   return {
     type: 'doctor_specialty',
-    answer: `愿???꾨Ц遺꾩빞 湲곗??쇰줈 ?덈궡?쒕━硫?${uniqueDoctors.join(', ')} ?섎즺吏꾩씠 ?덉뒿?덈떎.`,
+    answer: `관련 전문분야 기준으로 안내드리면 ${uniqueDoctors.join(', ')} 의료진이 있습니다.`,
     followUp: [
-      '吏꾨즺 ?쇱젙? ?섎즺吏꾨퀎 ?몃옒 ?ㅼ?以꾩뿉 ?곕씪 ?щ씪吏????덉뒿?덈떎.',
-      `?꾨Ц遺꾩빞 李멸퀬: ${summary}`,
+      '진료 일정은 의료진별 외래 진료표와 당일 상황에 따라 달라질 수 있습니다.',
+      `전문분야 참고: ${summary}`,
     ],
     sources: [{
-      title: '?덊럹?댁?-?섎즺吏??뺣낫',
+      title: '홈페이지-의료진 정보',
       url: 'local://docs/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-%EC%9D%98%EB%A3%8C%EC%A7%84%20%EC%A0%95%EB%B3%B4.txt',
     }],
   };
@@ -5048,11 +4661,11 @@ function resolveGuidedFlowMessage(message, state) {
 
   if (state.topic === 'parking') {
     if (matchesAnyPattern(message, PARKING_OUTPATIENT_PATTERNS)) {
-      return { resolved: true, message: '?몃옒 諛⑸Ц媛?二쇱감 ?덈궡' };
+      return { resolved: true, message: '외래 방문 주차 안내' };
     }
 
     if (matchesAnyPattern(message, PARKING_INPATIENT_PATTERNS)) {
-      return { resolved: true, message: '?낆썝 ?섏옄 二쇱감 ?덈궡' };
+      return { resolved: true, message: '입원 환자 주차 안내' };
     }
 
     return {
@@ -5066,18 +4679,18 @@ function resolveGuidedFlowMessage(message, state) {
 
   if (state.topic === 'nasal_irrigation') {
     if (matchesAnyPattern(message, NASAL_IRRIGATION_SURGERY_PATTERNS)) {
-      return { resolved: true, message: '?섏닠 ?섏옄 肄붿꽭泥?諛⑸쾿' };
+      return { resolved: true, message: '수술 후 코세척 방법' };
     }
 
     if (matchesAnyPattern(message, NASAL_IRRIGATION_GENERAL_PATTERNS)) {
-      return { resolved: true, message: '?쇰컲 ?섏옄 肄붿꽭泥?諛⑸쾿' };
+      return { resolved: true, message: '일반 코세척 방법' };
     }
 
     return {
       resolved: false,
       prompt: createGuidedQuestionResponse(
-        '肄붿꽭泥??덈궡瑜?留욎떠 ?쒕━?ㅻ㈃ ?섏닠 ?꾩씤吏 ?쇰컲 肄붿꽭泥숈씤吏 ?뺤씤???꾩슂?⑸땲?? ?대뒓 寃쎌슦?몄? ?뚮젮二쇱꽭??',
-        ['?섏닠 ??肄붿꽭泥숈씠?먯슂', '?쇰컲 肄붿꽭泥숈씠?먯슂']
+        '코세척 안내를 맞춰 드리려면 수술 후 코세척인지 일반 코세척인지 확인이 필요합니다. 어느 경우인지 알려주세요.',
+        ['수술 후 코세척이에요', '일반 코세척이에요']
       ),
     };
   }
@@ -5114,30 +4727,30 @@ function resolveGuidedFlowMessage(message, state) {
 
   if (state.topic === 'postop_care') {
     if (/(코|비염|축농증|비중격|코물혹)/u.test(message)) {
-      return { resolved: true, message: '肄??섏닠 ??二쇱쓽?ы빆' };
+      return { resolved: true, message: '코 수술 후 주의사항' };
     }
 
     if (/(목|편도)/u.test(message)) {
-      return { resolved: true, message: '紐??섏닠 ??二쇱쓽?ы빆' };
+      return { resolved: true, message: '목 수술 후 주의사항' };
     }
 
     if (/귀/u.test(message)) {
-      return { resolved: true, message: '洹 ?섏닠 ??二쇱쓽?ы빆' };
+      return { resolved: true, message: '귀 수술 후 주의사항' };
     }
 
     if (/갑상선/u.test(message)) {
-      return { resolved: true, message: '媛묒긽???섏닠 ??二쇱쓽?ы빆' };
+      return { resolved: true, message: '갑상선 수술 후 주의사항' };
     }
 
     if (/(침샘|이하선|악하선)/u.test(message)) {
-      return { resolved: true, message: '移⑥깦 ?섏닠 ??二쇱쓽?ы빆' };
+      return { resolved: true, message: '침샘 수술 후 주의사항' };
     }
 
     return {
       resolved: false,
       prompt: createGuidedQuestionResponse(
-        '?섏닠 ??二쇱쓽?ы빆???뺥솗???덈궡?섎젮硫??섏닠 醫낅쪟瑜?癒쇱? ?뚯븘???⑸땲?? ?꾨옒 以묒뿉??怨⑤씪 二쇱꽭??',
-        ['肄??섏닠 ??二쇱쓽?ы빆', '紐??섏닠 ??二쇱쓽?ы빆', '洹 ?섏닠 ??二쇱쓽?ы빆', '媛묒긽???섏닠 ??二쇱쓽?ы빆', '移⑥깦 ?섏닠 ??二쇱쓽?ы빆']
+        '수술 후 주의사항을 정확히 안내하려면 수술 종류가 필요합니다. 아래 중에서 골라 주세요.',
+        ['코 수술 후 주의사항', '목 수술 후 주의사항', '귀 수술 후 주의사항', '갑상선 수술 후 주의사항', '침샘 수술 후 주의사항']
       ),
     };
   }
@@ -5243,7 +4856,7 @@ function classifyUserIntent(message) {
     return { type: 'single_room_fee' };
   }
 
-  if (findNonpayItemResponse(text)) {
+  if (buildCleanNonpayItemResponse(text)) {
     return { type: 'nonpay_item_fee' };
   }
 
@@ -5253,6 +4866,10 @@ function classifyUserIntent(message) {
 
   if (matchesAnyPattern(text, lateArrivalPatterns)) {
     return { type: 'late_arrival' };
+  }
+
+  if (matchesAnyPattern(text, inpatientAmenityPatterns)) {
+    return { type: 'inpatient_amenity' };
   }
 
   if (matchesAnyPattern(text, inpatientMealPolicyPatterns)) {
@@ -5406,7 +5023,14 @@ function buildCleanSingleRoomFeeResponse(message) {
 }
 
 function buildCleanDoctorSpecialtyResponse(message) {
-  if (!isDoctorSpecialtyQuestion(message)) {
+  const text = String(message || '').trim();
+  const directDoctorName = extractDoctorName(text)
+    || DOCTOR_NAME_FALLBACK_LIST.find((name) => text.includes(name))
+    || '';
+  const hasDirectSpecialtyCue = Boolean(directDoctorName)
+    && /(전문분야|전문\s*분야|전문|분야|무슨\s*진료|어떤\s*진료|뭐야|뭐예요|뭐에요|알려|궁금)/u.test(text);
+
+  if (!isDoctorSpecialtyQuestion(text) && !hasDirectSpecialtyCue) {
     return null;
   }
 
@@ -5414,7 +5038,7 @@ function buildCleanDoctorSpecialtyResponse(message) {
     ? runtimeData.doctorSpecialtyEntries
     : buildDoctorSpecialtyEntries();
 
-  const doctorName = extractDoctorName(message);
+  const doctorName = directDoctorName;
   if (doctorName) {
     const doctorEntry = doctorEntries.find((entry) => entry.doctorName === doctorName);
     if (doctorEntry) {
@@ -5508,6 +5132,48 @@ function buildCleanPostOpCareResponse(message) {
     answer: '수술 후 주의사항은 수술 종류에 따라 달라집니다. 어떤 수술 후 주의사항이 필요한지 말씀해 주시면 맞춰서 안내해 드릴게요.',
     followUp: ['코 수술 후 주의사항', '목 수술 후 주의사항', '귀 수술 후 주의사항', '갑상선 수술 후 주의사항'],
     sources: source,
+  };
+}
+
+function buildCleanInpatientAmenityResponse(message) {
+  const text = String(message || '');
+  const sources = [
+    buildLocalDocSource('병동-FAQ', '병동-FAQ.txt'),
+    buildLocalDocSource('입원-입원생활안내문', '입원-입원생활안내문.txt'),
+  ];
+
+  if (/가습기/u.test(text)) {
+    return {
+      type: 'inpatient_amenity',
+      answer: '병동 FAQ 기준으로 공용 가습기는 감염 문제로 제공되지 않습니다. 필요하시면 개인 가습기를 준비해 오시는 쪽으로 안내되어 있습니다.',
+      followUp: ['개인 물품 사용 가능 여부는 병동 상황에 따라 달라질 수 있어 입원 전 병동에 한 번 더 확인해 주세요.', '대표전화 02-6925-1111'],
+      sources: [sources[0]],
+    };
+  }
+
+  if (/전자\s*레인지|전자\s*렌지/u.test(text)) {
+    return {
+      type: 'inpatient_amenity',
+      answer: '입원생활 안내문 기준으로 병동 내 전자레인지는 비치되어 있지 않으며, 원내 취사는 금지되어 있습니다.',
+      followUp: ['식사는 조식 8시, 중식 12시, 석식 오후 5시 30분 기준으로 안내됩니다.', '대표전화 02-6925-1111'],
+      sources,
+    };
+  }
+
+  if (/배달\s*음식|배달음식/u.test(text)) {
+    return {
+      type: 'inpatient_amenity',
+      answer: '입원생활 안내문 기준으로 배달음식은 가능하지만, 외부 음식 섭취 후 소화 불편이나 합병증 가능성을 고려해 주의해서 주문해 주세요. 가능 시간은 오전 7시부터 오후 9시까지이며 지하 1층에서 수령하는 방식으로 안내되어 있습니다.',
+      followUp: ['수술 직후나 식이 제한이 있는 경우에는 병동에 먼저 확인해 주세요.', '대표전화 02-6925-1111'],
+      sources,
+    };
+  }
+
+  return {
+    type: 'inpatient_amenity',
+    answer: '병동 비치 물품은 항목에 따라 다릅니다. 가습기, 전자레인지, 배달음식처럼 궁금한 물품이나 이용 항목을 알려주시면 문서 기준으로 안내해 드릴게요.',
+    followUp: ['가습기 있어?', '전자레인지 있어?', '배달음식 가능한가요?'],
+    sources,
   };
 }
 
@@ -5659,6 +5325,8 @@ function buildReinitializedIntentResponse(intentType, message) {
         followUp: ['1시간 이상 늦는 경우에는 먼저 전화로 확인하는 편이 안전합니다.'],
         sources: [buildLocalDocSource('홈페이지-FAQ', '홈페이지-FAQ.txt')],
       };
+    case 'inpatient_amenity':
+      return buildCleanInpatientAmenityResponse(message);
     case 'inpatient_meal_policy':
       return {
         type: 'inpatient_meal_policy',
@@ -5750,78 +5418,7 @@ function resolveIntentResponse(intentType, message) {
     return rebuiltResponse;
   }
 
-  switch (intentType) {
-    case 'welcome':
-      return createWelcomeResponse();
-    case 'emergency':
-      return createEmergencyResponse();
-    case 'restricted':
-      return createRestrictedMedicalResponse();
-    case 'personal_info':
-      return createPersonalInfoWarningResponse();
-    case 'receipt_issuance':
-      return createReceiptIssuanceResponse();
-    case 'same_day_exam_availability':
-      return createSameDayExamAvailabilityResponse();
-    case 'exam_preparation':
-      return findExamPreparationResponse(message);
-    case 'medication_stop':
-      return createMedicationStopResponse();
-    case 'postop_bleeding':
-      return createPostOpBleedingResponse();
-    case 'nasal_irrigation_surgery':
-      return createNasalIrrigationResponse('surgery');
-    case 'nasal_irrigation_general':
-      return createNasalIrrigationResponse('general');
-    case 'postop_care':
-      return findPostOpCareResponse(message);
-    case 'homepage_surgery_cost':
-      return findHomepageSurgeryCostResponse(message);
-    case 'homepage_surgery_info':
-      return findHomepageSurgeryInfoResponse(message);
-    case 'surgery_cost':
-      return createSurgeryCostResponse();
-    case 'surgery_schedule':
-      return createSurgeryScheduleResponse();
-    case 'surgery_duration':
-      return createSurgeryDurationResponse();
-    case 'certificate_fee':
-      return findCertificateFeeResponse(message);
-    case 'single_room_fee':
-      return findSingleRoomFeeResponse(message);
-    case 'nonpay_item_fee':
-      return findNonpayItemResponse(message);
-    case 'hospital_phone':
-      return createHospitalPhoneResponse();
-    case 'late_arrival':
-      return createLateArrivalResponse();
-    case 'inpatient_meal_policy':
-      return createInpatientMealPolicyResponseFixed();
-    case 'inpatient_outing':
-      return createInpatientOutingResponse();
-    case 'shuttle_bus':
-      return createShuttleBusResponse();
-    case 'discharge_procedure':
-      return createDischargeProcedureResponse();
-    case 'rhinitis_postop_visit':
-      return createRhinitisPostOpVisitResponse();
-    case 'guardian_shift':
-      return createGuardianShiftResponse();
-    case 'wifi_info':
-      return createWifiResponse();
-    case 'complaint_guide':
-      return createComplaintGuideResponse();
-    case 'floor_guide':
-      return findFloorGuideResponse(message);
-    case 'doctor_specialty':
-      return findDoctorSpecialtyResponse(message);
-    case 'doctor_overview':
-      return findDoctorOverviewResponse(message);
-    case 'reservation_or_reception':
-      return createReservationOrReceptionResponse();
-    default:
-      return null;
-  }
+  return null;
 }
 
 function isDoctorSpecialtyQuestion(message) {
@@ -5916,13 +5513,18 @@ function buildContextualUserMessage(message, history) {
     return current;
   }
 
-  return `${lastUserMessage}\n?꾩냽 吏덈Ц: ${current}`;
+  return `${lastUserMessage}\n후속 질문: ${current}`;
 }
 
 function extractDoctorName(text) {
   const value = String(text || '');
   if (!value) {
     return '';
+  }
+
+  const fallbackDoctorName = DOCTOR_NAME_FALLBACK_LIST.find((name) => value.includes(name));
+  if (fallbackDoctorName) {
+    return fallbackDoctorName;
   }
 
   const parsedDoctorNames = Array.isArray(runtimeData?.doctorNames) && runtimeData.doctorNames.length > 0
@@ -6018,7 +5620,7 @@ function buildFollowUpBridgeMessage(message, history) {
     return current;
   }
 
-  return `${anchor}\n?꾩냽 吏덈Ц: ${current}`;
+  return `${anchor}\n후속 질문: ${current}`;
 }
 
 function isEnglishDominantText(text) {
@@ -6086,7 +5688,7 @@ async function buildKoreanRetrievalQuery(question, history = []) {
 
 async function legacyCallOpenAIStrict(question, history, contextDocs) {
   const contextText = contextDocs.map((doc, index) => (
-    `[臾몄꽌 ${index + 1}] ${doc.title}\n異쒖쿂 ?좏삎: ${doc.sourceType}\n異쒖쿂: ${doc.url}\n?댁슜: ${doc.text}`
+    `[문서 ${index + 1}] ${doc.title}\n출처 유형: ${doc.sourceType}\n출처: ${doc.url}\n내용: ${doc.text}`
   )).join('\n\n');
 
   const input = history.map((message) => ({
@@ -6097,11 +5699,11 @@ async function legacyCallOpenAIStrict(question, history, contextDocs) {
   input.push({
     role: 'user',
     content: [
-      '?ㅼ쓬 吏덈Ц???듯빐 二쇱꽭??',
-      `吏덈Ц: ${question}`,
+      '다음 질문에 답해 주세요.',
+      `질문: ${question}`,
       '',
-      '諛섎뱶???꾨옒 李멸퀬 臾몄꽌留?洹쇨굅濡??듯븯?몄슂.',
-      '臾몄꽌???녿뒗 ?댁슜? 異붿륫?섏? 留먭퀬 "?덊럹?댁??먯꽌 ?뺤씤?섏? ?딆뒿?덈떎"?쇨퀬 ?듯븯?몄슂.',
+      '반드시 아래 참고 문서만 근거로 답하세요.',
+      '문서에 없는 내용은 추측하지 말고 확인이 필요하다고 답하세요.',
       '',
       contextText,
     ].join('\n'),
@@ -6122,12 +5724,12 @@ async function legacyCallOpenAIStrict(question, history, contextDocs) {
       body: JSON.stringify({
         model: OPENAI_MODEL,
         instructions: [
-        '?뱀떊? ?섎굹?대퉬?명썑怨쇰퀝???섏옄 ?덈궡 AI?낅땲??',
-        '??븷: 蹂묒썝 怨듭떇 ?덊럹?댁?? FAQ???덈뒗 ?댁슜留?洹쇨굅濡??먯뿰?ㅻ읇怨?媛꾧껐?섍쾶 ?듬??⑸땲??',
-        '怨듭떇 ?덊럹?댁?? FAQ瑜?理쒖슦??洹쇨굅濡??ъ슜?섍퀬, external? 蹂댁“ 李멸퀬留??섎ŉ, low_trust??10% 鍮꾩쨷??李멸퀬 ?뺣낫濡쒕쭔 痍④툒?⑸땲??',
-        '?쒕줈 異⑸룎?섎㈃ official > external > low_trust ?쒖쑝濡??곗꽑?⑸땲??',
-        '湲덉?: 吏꾨떒, ?묎툒 理쒖쥌?먮떒, 泥섎갑 蹂寃? ??蹂듭슜 吏?? 異붿륫???뺣낫.',
-        '?ㅽ??? 議대뙎留? 3~5臾몄옣, ?꾩슂??寃쎌슦 留덉?留?臾몄옣????쒖쟾??02-6925-1111 ?덈궡.',
+        '당신은 하나이비인후과병원 환자 안내 AI입니다.',
+        '병원 공식 홈페이지와 FAQ 문서에 있는 내용만 근거로 자연스럽고 간결하게 답하세요.',
+        '공식 홈페이지와 FAQ를 최우선 근거로 사용하고 external 자료는 보조 참고로만 사용하세요.',
+        '서로 충돌하면 official > external > low_trust 순서로 우선합니다.',
+        '금지: 진단, 응급 최종판단, 처방 변경, 약 복용 지시, 추측성 의료정보.',
+        '답변은 3~5문장으로 하고 필요한 경우 마지막 문장에 대표전화 02-6925-1111을 안내하세요.',
       ].join(' '),
         input,
       }),
@@ -6282,6 +5884,11 @@ function applyPatientFriendlyTemplate(text, question) {
 }
 
 function getSmallTalkIntent(message) {
+  const raw = String(message || '').trim().toLowerCase();
+  if (/^(ㅎㅇ|ㅎㅇ요|하이|hi|hello)$/iu.test(raw)) {
+    return 'greeting';
+  }
+
   const normalized = normalizeSearchTextSafe(message);
   const compact = compactSearchTextSafe(message);
 
@@ -6290,9 +5897,11 @@ function getSmallTalkIntent(message) {
   }
 
   if (
-    ['안녕하세요', '안녕', '반가워요', '반갑습니다', '처음 왔어요'].includes(normalized)
+    ['안녕하세요', '안녕', 'ㅎㅇ', '하이', '반가워요', '반갑습니다', '처음 왔어요'].includes(normalized)
     || compact === '안녕하세요'
     || compact === '안녕'
+    || compact === 'ㅎㅇ'
+    || compact === '하이'
   ) {
     return 'greeting';
   }
@@ -6344,7 +5953,7 @@ function createSmallTalkResponse(intent) {
 
 async function callOpenAI(question, history, contextDocs) {
   const contextText = contextDocs.map((doc, index) => (
-    `[臾몄꽌 ${index + 1}] ${doc.title}\n異쒖쿂 ?좏삎: ${doc.sourceType}\n異쒖쿂: ${doc.url}\n?댁슜: ${doc.text}`
+    `[문서 ${index + 1}] ${doc.title}\n출처 유형: ${doc.sourceType}\n출처: ${doc.url}\n내용: ${doc.text}`
   )).join('\n\n');
 
   const input = history.map((message) => ({
@@ -6355,14 +5964,14 @@ async function callOpenAI(question, history, contextDocs) {
   input.push({
     role: 'user',
     content: [
-      '?ㅼ쓬 吏덈Ц???듯빐 二쇱꽭??',
-      `吏덈Ц: ${question}`,
+      '다음 질문에 답해 주세요.',
+      `질문: ${question}`,
       '',
-      '?꾨옒 李멸퀬 臾몄꽌瑜??곗꽑 洹쇨굅濡??ъ슜??二쇱꽭??',
-      '臾몄꽌???덈뒗 ?ъ떎? ?뺥솗??吏?ㅻ릺, ?ㅻ챸? 蹂묒썝 ?곷떞 吏곸썝泥섎읆 ?먯뿰?ㅻ읇怨?移쒖젅?섍쾶 ??댁꽌 ?듯빐 二쇱꽭??',
-      '蹂묒썝 ?뺣낫媛 臾몄꽌???놁쑝硫??⑥젙?섏? 留먭퀬, ?뺤씤???대졄?ㅺ퀬 ?먯뿰?ㅻ읇寃??덈궡??二쇱꽭??',
-      '吏㏃? 吏덈Ц?댁뼱???꾩슂?섎㈃ 1~2臾몄옣 ?뺣룄 留λ씫???㏓텤???댄빐?섍린 ?쎄쾶 ?ㅻ챸?대룄 ?⑸땲??',
-      '?듬? ?몄뼱???ъ슜?먯쓽 留덉?留?吏덈Ц ?몄뼱瑜?洹몃?濡??곕Ⅴ?몄슂. ?곸뼱 吏덈Ц?먮뒗 ?곸뼱濡? ?쒓뎅??吏덈Ц?먮뒗 ?쒓뎅?대줈 ?듯븯?몄슂.',
+      '아래 참고 문서를 우선 근거로 사용해 주세요.',
+      '문서에 있는 사실은 질문 의도에 맞게 정리해서 설명해 주세요.',
+      '문서에 없는 병원 운영 정보는 추측하지 말고 확인이 필요하다고 안내해 주세요.',
+      '질문 의도를 이해하는 데 필요한 경우 1~2문장 정도 부드럽게 맥락을 설명해도 됩니다.',
+      '답변 언어는 사용자의 마지막 질문 언어를 그대로 따르세요. 한국어 질문에는 한국어로, 영어 질문에는 영어로 답하세요.',
       '',
       contextText,
     ].join('\n'),
@@ -6383,18 +5992,18 @@ async function callOpenAI(question, history, contextDocs) {
       body: JSON.stringify({
         model: OPENAI_MODEL,
         instructions: [
-          '?뱀떊? ?섎굹?대퉬?명썑怨쇰퀝???덈궡 ?곷떞 ?꾩슦誘몄엯?덈떎.',
-          '?듬? ?ㅼ? ?깅뵳??梨쀫큸蹂대떎 ?ㅼ젣 ?곷떞?먯뿉 媛源앷쾶, 移쒖젅?섍퀬 ?먯뿰?ㅻ읇寃??좎??섏꽭??',
-          '蹂묒썝 ?댁쁺 ?뺣낫???쒓났??臾몄꽌瑜?理쒖슦??洹쇨굅濡??ъ슜?섏꽭??',
-          'local 臾몄꽌? FAQ瑜?媛???곗꽑?섍퀬, official ?덊럹?댁???洹??ㅼ쓬, external? 蹂댁“ 李멸퀬留??ъ슜?섏꽭??',
-          '臾몄꽌???녿뒗 蹂묒썝 ?뺣낫??異붿륫?섏? 留먭퀬 ?뺤씤???대졄?ㅺ퀬 ?먯뿰?ㅻ읇寃??덈궡?섏꽭??',
-          '臾몄꽌???덈뒗 ?ъ떎??洹몃?濡?諛섎났留??섏? 留먭퀬, 吏덈Ц ?섎룄??留욊쾶 ?뺣━?댁꽌 ?ㅻ챸?섏꽭??',
-          '?덉쟾??踰붿쐞?먯꽌???댁쑀, ?덉감, 以鍮꾩궗?? 二쇱쓽??媛숈? 留λ씫 ?ㅻ챸??1~2臾몄옣 ?㏓텤?щ룄 ?⑸땲??',
-          '?⑥닚 ?몄궗, 媛먯궗, ????곌껐 臾몄옣? 臾몄꽌 ?몄슜 ?놁씠???먯뿰?ㅻ읇寃??묐떟?대룄 ?⑸땲??',
-          '?듬? ?몄뼱???ъ슜?먯쓽 留덉?留?吏덈Ц ?몄뼱瑜?洹몃?濡??곕Ⅴ?몄슂. ?곸뼱 吏덈Ц?먮뒗 ?곸뼱濡? ?쒓뎅??吏덈Ц?먮뒗 ?쒓뎅?대줈 ?듯븯?몄슂.',
-          '湲덉?: 吏꾨떒, ?묎툒 理쒖쥌?먮떒, 泥섎갑 蹂寃? ??蹂듭슜 吏?? 異붿륫???섎즺?뺣낫.',
-          '?듬?? 蹂댄넻 3~6臾몄옣?쇰줈 ?섎릺 ?ν솴?섍쾶 ?섏뼱?볦? 留먭퀬 ?듭떖 ?꾩＜濡??ㅻ챸?섏꽭??',
-          '??쒖쟾??02-6925-1111 ?덈궡??瑗??꾩슂???뚮쭔 ?㏓텤?댁꽭??',
+          '당신은 하나이비인후과병원 안내 상담 도우미입니다.',
+          '답변은 챗봇 템플릿보다 실제 상담원에 가깝게, 친절하고 자연스럽게 작성하세요.',
+          '병원 운영 정보는 제공된 문서를 최우선 근거로 사용하세요.',
+          'local 문서와 FAQ를 가장 우선하고, official 홈페이지 문서를 그 다음 근거로 사용하세요. external 자료는 보조 참고로만 사용하세요.',
+          '문서에 없는 병원 정보는 추측하지 말고 확인이 필요하다고 안내하세요.',
+          '문서에 있는 사실을 그대로 반복만 하지 말고, 질문 의도에 맞게 정리해서 설명하세요.',
+          '안전한 범위에서는 이유, 절차, 준비사항, 주의사항 같은 맥락 설명을 1~2문장 추가해도 됩니다.',
+          '단순 인사, 감사, 재질문 연결 문장은 문서 인용 없이 자연스럽게 답해도 됩니다.',
+          '답변 언어는 사용자의 마지막 질문 언어를 그대로 따르세요.',
+          '금지: 진단, 응급 최종판단, 처방 변경, 약 복용 지시 같은 의료 판단.',
+          '답변은 보통 3~6문장으로 하되, 필요한 핵심을 먼저 말하세요.',
+          '대표전화 02-6925-1111 안내는 확인이 필요한 경우에만 붙이세요.',
         ].join(' '),
         input,
       }),
@@ -6446,7 +6055,7 @@ async function validateAIAnswer(question, answer, contextDocs) {
   }
 
   const docSummaries = (contextDocs || []).slice(0, 3).map((doc, index) => (
-    `[臾몄꽌 ${index + 1}] ${doc.title}\n異쒖쿂: ${doc.url}\n?댁슜 ?붿빟: ${String(doc.text || '').slice(0, 700)}`
+    `[문서 ${index + 1}] ${doc.title}\n출처: ${doc.url}\n내용 요약: ${String(doc.text || '').slice(0, 700)}`
   )).join('\n\n');
 
   const controller = new AbortController();
@@ -6474,8 +6083,8 @@ async function validateAIAnswer(question, answer, contextDocs) {
         input: [{
           role: 'user',
           content: [
-            `吏덈Ц: ${question}`,
-            `?듬?: ${answer}`,
+            `질문: ${question}`,
+            `답변: ${answer}`,
             '',
             docSummaries,
           ].join('\n'),
@@ -6761,7 +6370,7 @@ function handleApiChat(req, res) {
       if (!matchesAnyPattern(String(parsed.message || ''), personalInfoPatterns)) {
         recordPopularQuestion(parsed.message);
       }
-      const response = await buildChatResponse(parsed.message, parsed.sessionId);
+      const response = sanitizeOutgoingPayload(await buildChatResponse(parsed.message, parsed.sessionId));
       recordSessionTurn(parsed.sessionId, parsed.message, response.answer);
       appendChatLog({
         id: `log-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -6784,7 +6393,7 @@ function handleApiChat(req, res) {
       console.error('[chat-error]', error);
       sendJson(res, 500, {
         type: 'error',
-        answer: 'AI ?묐떟 泥섎━ 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎. ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??',
+        answer: 'AI 응답 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
         detail: error.message,
       });
     }

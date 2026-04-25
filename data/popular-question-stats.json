@@ -1,13 +1,43 @@
 [
   {
-    "question": "귀 검사시 준비해야될게 있어?",
-    "count": 6,
-    "updatedAt": 1776841161575
+    "question": "이상덕 전문분야 뭐야",
+    "count": 16,
+    "updatedAt": 1777119261219
   },
   {
-    "question": "이상덕 전문분야 뭐야",
+    "question": "귀 검사시 준비해야될게 있어?",
+    "count": 7,
+    "updatedAt": 1777118961351
+  },
+  {
+    "question": "병동에 가습기 있어?",
+    "count": 6,
+    "updatedAt": 1777119261195
+  },
+  {
+    "question": "셔틀버스 안내해줘",
     "count": 5,
-    "updatedAt": 1777026877622
+    "updatedAt": 1777118941179
+  },
+  {
+    "question": "ㅎㅇ",
+    "count": 4,
+    "updatedAt": 1777119261115
+  },
+  {
+    "question": "코세척",
+    "count": 4,
+    "updatedAt": 1777119014890
+  },
+  {
+    "question": "비염 진료 보는 의사 누가 있어",
+    "count": 4,
+    "updatedAt": 1777118941362
+  },
+  {
+    "question": "정도광 원장 전문분야는?",
+    "count": 4,
+    "updatedAt": 1777118903738
   },
   {
     "question": "입원전 복용 하면 안되는 약",
@@ -18,6 +48,26 @@
     "question": "입원전 복용중단 약물 리스트알려줘",
     "count": 4,
     "updatedAt": 1776381340893
+  },
+  {
+    "question": "산소치료얼마야",
+    "count": 3,
+    "updatedAt": 1777118941282
+  },
+  {
+    "question": "보호자 식사가 가능해?",
+    "count": 3,
+    "updatedAt": 1777118941251
+  },
+  {
+    "question": "수술 후 주의사항",
+    "count": 3,
+    "updatedAt": 1777118941228
+  },
+  {
+    "question": "주형로 전문분야 뭐야",
+    "count": 3,
+    "updatedAt": 1777118903763
   },
   {
     "question": "홈페이지에서 예약할 수 있어?",
@@ -40,9 +90,9 @@
     "updatedAt": 1776383246672
   },
   {
-    "question": "셔틀버스 안내해줘",
+    "question": "검사",
     "count": 2,
-    "updatedAt": 1777026877712
+    "updatedAt": 1777119118787
   },
   {
     "question": "영수증 발급 방법 알려줘",
@@ -75,6 +125,26 @@
     "updatedAt": 1776382791849
   },
   {
+    "question": "수술",
+    "count": 1,
+    "updatedAt": 1777119014858
+  },
+  {
+    "question": "홈페이지에서 예약할 수 있나요?",
+    "count": 1,
+    "updatedAt": 1777118961278
+  },
+  {
+    "question": "독감주사얼마야",
+    "count": 1,
+    "updatedAt": 1777118941304
+  },
+  {
+    "question": "병동에 전자레인지 있어?",
+    "count": 1,
+    "updatedAt": 1777118941154
+  },
+  {
     "question": "당일에 검사까지 가능해요?",
     "count": 1,
     "updatedAt": 1777026771329
@@ -83,11 +153,6 @@
     "question": "비염 진료 보는 의사 알려줘",
     "count": 1,
     "updatedAt": 1776832443942
-  },
-  {
-    "question": "정도광 원장 전문분야는?",
-    "count": 1,
-    "updatedAt": 1776832443926
   },
   {
     "question": "갑상선 수술 후 주의사항",
