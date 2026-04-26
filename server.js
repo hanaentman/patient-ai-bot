@@ -28,7 +28,6 @@ const POPULAR_QUESTIONS_PATH = path.join(PERSISTENT_DATA_DIR, 'popular-question-
 const CHAT_LOGS_PATH = path.join(PERSISTENT_DATA_DIR, 'chat-logs.json');
 const CHAT_LOGS_DB_PATH = path.join(PERSISTENT_DATA_DIR, 'chat-logs.db');
 const DOCS_DIR = path.join(__dirname, 'docs');
-const DOCSS_DIR = path.join(__dirname, 'DOCSS');
 const DOCTOR_LIST_DOC_FILENAME = '외래-의료진 명단.txt';
 const DOCTOR_INFO_DOC_FILENAME = '홈페이지-의료진 정보.txt';
 const DOCTOR_SPECIALTY_DOC_PATH = path.join(DOCS_DIR, DOCTOR_INFO_DOC_FILENAME);
@@ -93,7 +92,6 @@ const faqCategoryUrlHints = {
 };
 const sourceTypeWeights = {
   official: 0.9,
-  docss: 2.2,
   local: 1.8,
   external: 0.2,
   low_trust: 0.1,
@@ -2190,36 +2188,55 @@ function getFaqResponseByCategory(category) {
   };
 }
 
-function readDoctorOverviewEntriesFromDocss() {
-  const docssPath = path.join(DOCSS_DIR, '홈페이지-의료진 정보.md');
-  if (!fs.existsSync(docssPath)) {
+function readDoctorOverviewEntriesFromDocs() {
+  if (!fs.existsSync(DOCTOR_SPECIALTY_DOC_PATH)) {
     return [];
   }
 
-  const text = fs.readFileSync(docssPath, 'utf8');
-  const blockPattern = /^###\s+(.+)\n([\s\S]*?)(?=^###\s+|(?![\s\S]))/gm;
+  const text = repairBrokenKoreanText(fs.readFileSync(DOCTOR_SPECIALTY_DOC_PATH, 'utf8'));
+  const doctorNames = [
+    ...new Set([
+      ...DOCTOR_NAME_FALLBACK_LIST.filter((name) => text.includes(name)),
+      ...extractDoctorNamesFromText(text),
+    ]),
+  ]
+    .map((name) => ({ name, index: text.indexOf(name) }))
+    .filter((item) => item.index >= 0)
+    .sort((a, b) => a.index - b.index)
+    .map((item) => item.name);
   const entries = [];
 
-  for (const match of text.matchAll(blockPattern)) {
-    const name = String(match[1] || '').trim();
-    const body = String(match[2] || '');
-    if (!name) {
-      continue;
-    }
+  doctorNames.forEach((name, index) => {
+    const startIndex = text.indexOf(name);
+    const nextDoctorIndex = doctorNames
+      .slice(index + 1)
+      .map((nextName) => text.indexOf(nextName, startIndex + name.length))
+      .filter((value) => value > startIndex)
+      .sort((a, b) => a - b)[0] || text.length;
 
-    const profile = (body.match(/- 소개: (.+)/) || [])[1] || '';
-    const center = (body.match(/- 소속\/진료과: (.+)/) || [])[1] || '';
-    const specialty = (body.match(/- 전문분야: (.+)/) || [])[1] || '';
-    const role = (body.match(/- 직함: (.+)/) || [])[1] || '';
+    const body = text.slice(startIndex, nextDoctorIndex);
+    const lines = body
+      .split(/\r?\n/)
+      .map((line) => normalizeDocLine(line))
+      .filter(Boolean);
+    const profile = lines.find((line) => (
+      line.includes(name) && /(전문의|병원장|대표원장|원장|부원장|센터장|진료부장|과장|부장)/u.test(line)
+    )) || '';
+    const center = lines.find((line) => /(진료과목|진료과)/u.test(line)) || '';
+    const specialtyLine = lines.find((line) => line.includes('전문분야')) || '';
+    const specialty = specialtyLine
+      .replace(/^.*?전문분야\s*:?\s*/u, '')
+      .trim();
+    const roleMatch = profile.match(/(병원장|대표원장|원장|부원장|센터장|진료부장|과장|부장|전문의)/u);
 
     entries.push({
       name,
       profile: profile.trim(),
       center: center.trim(),
       specialty: specialty.trim(),
-      role: role.trim(),
+      role: roleMatch ? roleMatch[1] : '',
     });
-  }
+  });
 
   return entries;
 }
@@ -2248,7 +2265,7 @@ function formatDoctorOverviewDisplayName(entry) {
 }
 
 function buildDynamicDoctorOverviewResponse() {
-  const entries = readDoctorOverviewEntriesFromDocss();
+  const entries = readDoctorOverviewEntriesFromDocs();
   if (!entries.length) {
     return null;
   }
@@ -2303,7 +2320,7 @@ function buildDynamicDoctorOverviewResponse() {
     followUp,
     sources: [{
       title: '홈페이지-의료진 정보',
-      url: 'local://docss/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-%EC%9D%98%EB%A3%8C%EC%A7%84%20%EC%A0%95%EB%B3%B4.md',
+      url: 'local://docs/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-%EC%9D%98%EB%A3%8C%EC%A7%84%20%EC%A0%95%EB%B3%B4.txt',
     }],
   };
 }
@@ -3911,23 +3928,9 @@ function buildFaqDocuments(entries) {
   });
 }
 
-function stripDocssMarkdown(text) {
-  return String(text || '')
-    .replace(/^\uFEFF/, '')
-    .replace(/^---\n[\s\S]*?\n---\n?/u, '')
-    .replace(/\n## 정리된 원문[\s\S]*$/u, '')
-    .replace(/^\s*#{1,6}\s*/gm, '')
-    .replace(/^\s*-\s*/gm, '')
-    .trim();
-}
-
 function readLocalDocumentText(filePath, extension) {
   if (extension === '.txt') {
     return fs.readFileSync(filePath, 'utf8');
-  }
-
-  if (extension === '.md') {
-    return stripDocssMarkdown(fs.readFileSync(filePath, 'utf8'));
   }
 
   if (extension === '.xls' || extension === '.xlsx') {
@@ -4024,27 +4027,6 @@ function buildLocalDocuments() {
 
 function collectPreferredLocalDocumentInputs() {
   const inputs = [];
-  const docssBases = new Set();
-
-  if (fs.existsSync(DOCSS_DIR)) {
-    const docssFiles = fs.readdirSync(DOCSS_DIR, { withFileTypes: true });
-    docssFiles.forEach((file) => {
-      if (!file.isFile() || path.extname(file.name).toLowerCase() !== '.md') {
-        return;
-      }
-
-      const baseName = path.parse(file.name).name;
-      docssBases.add(baseName);
-      inputs.push({
-        dir: DOCSS_DIR,
-        fileName: file.name,
-        extension: '.md',
-        sourceType: 'docss',
-        urlPrefix: 'local://docss/',
-        sourceTitle: baseName.replace(/\s+/g, ' ').trim(),
-      });
-    });
-  }
 
   if (!fs.existsSync(DOCS_DIR)) {
     return inputs;
@@ -4062,10 +4044,6 @@ function collectPreferredLocalDocumentInputs() {
     }
 
     const baseName = path.parse(file.name).name;
-    if (extension === '.txt' && docssBases.has(baseName)) {
-      return;
-    }
-
     inputs.push({
       dir: DOCS_DIR,
       fileName: file.name,
@@ -4609,8 +4587,7 @@ function rankDocuments(question, docs, limit = 7) {
       const compactScore = compactQuestionVariants.some((variant) => (
         variant && (compactTitle.includes(variant) || compactText.includes(variant))
       )) ? 8 : 0;
-      const localDocBonus = (doc.sourceType === 'local' || doc.sourceType === 'docss') && (titleScore > 0 || phraseScore > 0 || compactScore > 0) ? 3 : 0;
-      const docssBonus = doc.sourceType === 'docss' && (titleScore > 0 || phraseScore > 0 || compactScore > 0 || tokenScore >= 2) ? 5 : 0;
+      const localDocBonus = doc.sourceType === 'local' && (titleScore > 0 || phraseScore > 0 || compactScore > 0) ? 3 : 0;
       const homepageFaqDocBonus = isHomepageFaqDoc(doc) && (
         titleScore > 0
         || titlePhraseScore > 0
@@ -4627,7 +4604,6 @@ function rankDocuments(question, docs, limit = 7) {
         + titlePhraseScore
         + compactScore
         + localDocBonus
-        + docssBonus
         + homepageFaqDocBonus
         + diseaseDocBonus
         + nasalIrrigationDocBonus;

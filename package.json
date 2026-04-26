@@ -4,7 +4,6 @@
   "private": true,
   "description": "Hospital patient AI MVP",
   "scripts": {
-    "build:docss": "node scripts/build_docss.js",
     "sync:doctor-faq": "node scripts/sync_doctor_schedule_faq.js",
     "start": "npm run sync:doctor-faq && node server.js"
   },

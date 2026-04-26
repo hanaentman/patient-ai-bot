@@ -1,13 +1,13 @@
 [
   {
     "question": "이상덕 전문분야 뭐야",
-    "count": 18,
-    "updatedAt": 1777198863941
+    "count": 19,
+    "updatedAt": 1777247055702
   },
   {
     "question": "병동에 가습기 있어?",
-    "count": 8,
-    "updatedAt": 1777198863890
+    "count": 9,
+    "updatedAt": 1777247055757
   },
   {
     "question": "귀 검사시 준비해야될게 있어?",
@@ -15,9 +15,19 @@
     "updatedAt": 1777118961351
   },
   {
+    "question": "셔틀버스 안내해줘",
+    "count": 6,
+    "updatedAt": 1777247055821
+  },
+  {
     "question": "비염수술 얼마야",
+    "count": 6,
+    "updatedAt": 1777247055728
+  },
+  {
+    "question": "의료진",
     "count": 5,
-    "updatedAt": 1777198922053
+    "updatedAt": 1777247055620
   },
   {
     "question": "ㅎㅇ",
@@ -25,14 +35,9 @@
     "updatedAt": 1777198705649
   },
   {
-    "question": "셔틀버스 안내해줘",
-    "count": 5,
-    "updatedAt": 1777118941179
-  },
-  {
-    "question": "의료진",
+    "question": "홈페이지에서 예약할 수 있나요?",
     "count": 4,
-    "updatedAt": 1777198705734
+    "updatedAt": 1777247055801
   },
   {
     "question": "코세척",
@@ -60,9 +65,14 @@
     "updatedAt": 1776381340893
   },
   {
-    "question": "홈페이지에서 예약할 수 있나요?",
+    "question": "입원 준비물 알려줘",
     "count": 3,
-    "updatedAt": 1777198863971
+    "updatedAt": 1777247091438
+  },
+  {
+    "question": "입원준비물",
+    "count": 3,
+    "updatedAt": 1777247091346
   },
   {
     "question": "편도수술 얼마야?",
@@ -103,6 +113,11 @@
     "question": "수술 후 주의사항 알려줘",
     "count": 3,
     "updatedAt": 1776383246672
+  },
+  {
+    "question": "입원 시 준비물은 무엇이 있나요?",
+    "count": 2,
+    "updatedAt": 1777246575940
   },
   {
     "question": "아무거나 이상한 질문",
