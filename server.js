@@ -1630,7 +1630,7 @@ function appendSupportLinks(answer, question) {
 
 function looksLikeBrokenKoreanText(value) {
   const text = String(value || '');
-  return /[\uF900-\uFAFF]|(?:\?[가-힣])|(?:\?{2,})/.test(text);
+  return /[\uF900-\uFAFF]|[\u3400-\u9FFF]{2,}|(?:\?[가-힣])|(?:\?{2,})/.test(text);
 }
 
 function decodeCompatMojibakeToken(token) {
@@ -1648,14 +1648,15 @@ function repairBrokenKoreanText(value) {
   }
 
   if (looksLikeBrokenKoreanText(result)) {
-    result = result.replace(/[\uF900-\uFAFF?-?]{2,}/g, (token) => (
-      /[\uF900-\uFAFF]/.test(token) ? decodeCompatMojibakeToken(token) : token
+    result = result.replace(/[\u3400-\u9FFF\uF900-\uFAFF?]{2,}/g, (token) => (
+      /[\u3400-\u9FFF\uF900-\uFAFF]/.test(token) ? decodeCompatMojibakeToken(token) : token
     ));
   }
 
   return result
     .replace(/\u0000/g, '')
-    .replace(/\s{2,}/g, ' ')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
 
@@ -1762,12 +1763,95 @@ function sanitizeOutgoingPayload(payload) {
   return repaired;
 }
 
+function shouldUseConsultationTone(payload) {
+  const type = String(payload?.type || '');
+  return ![
+    'smalltalk',
+    'welcome',
+    'guided_question',
+    'privacy_warning',
+    'config_error',
+    'emergency',
+    'restricted',
+    'request_blocked',
+    'rate_limited',
+    'error',
+  ].includes(type);
+}
+
+function getConsultationTopicLabel(payload, question) {
+  const type = String(payload?.type || '');
+  const text = String(question || '');
+
+  if (/doctor|medical_staff|의료진|의사|원장/u.test(type) || /(의료진|의사|원장|전문분야|진료과)/u.test(text)) {
+    return '의료진 관련해서';
+  }
+
+  if (/reservation|reception|예약|접수/u.test(type) || /(예약|접수)/u.test(text)) {
+    return '예약과 접수 관련해서';
+  }
+
+  if (/surgery|postop|operation|수술/u.test(type) || /(수술|수술후|수술 후)/u.test(text)) {
+    return '수술 관련해서';
+  }
+
+  if (/fee|cost|nonpay|payment|비용|금액|비급여|수납/u.test(type) || /(비용|금액|얼마|비급여|수납)/u.test(text)) {
+    return '비용 관련해서';
+  }
+
+  if (/exam|test|검사/u.test(type) || /(검사|검진)/u.test(text)) {
+    return '검사 관련해서';
+  }
+
+  if (/inpatient|admission|ward|입원|병동/u.test(type) || /(입원|병동|병실|보호자)/u.test(text)) {
+    return '입원 생활 관련해서';
+  }
+
+  if (/document|receipt|certificate|서류|영수증/u.test(type) || /(서류|영수증|진료비|세부내역|증명서)/u.test(text)) {
+    return '서류 발급 관련해서';
+  }
+
+  if (/shuttle|parking|transport|셔틀|주차/u.test(type) || /(셔틀|주차|오시는 길|교통)/u.test(text)) {
+    return '내원 안내 관련해서';
+  }
+
+  if (/medication|medicine|약/u.test(type) || /(약|복용|중단|금지약)/u.test(text)) {
+    return '약 복용 안내 관련해서';
+  }
+
+  return '문의하신 내용에 대해';
+}
+
+function startsWithConsultationLead(answer) {
+  const text = String(answer || '').trim();
+  return /^(안내드릴게요|안내드립니다|.+관련해서\s+안내드릴게요|문의하신 내용에 대해\s+안내드릴게요)[.!?\n\s]/u.test(text)
+    || /^.+관련해서\s+안내드릴게요[.!?]?$/u.test(text);
+}
+
+function applyConsultationTone(payload, question) {
+  if (!shouldUseConsultationTone(payload) || isEnglishDominantText(question)) {
+    return payload;
+  }
+
+  const answer = String(payload.answer || '').trim();
+  if (!answer || startsWithConsultationLead(answer)) {
+    return payload;
+  }
+
+  const lead = `${getConsultationTopicLabel(payload, question)} 안내드릴게요.`;
+  return {
+    ...payload,
+    answer: `${lead}\n\n${answer}`,
+  };
+}
+
 function enrichResponsePayload(payload, question) {
   if (!payload || typeof payload !== 'object') {
     return payload;
   }
 
   const localizedPayload = repairChatPayloadFields(localizeFixedResponsePayload(payload, question));
+  const consultationPayload = applyConsultationTone(localizedPayload, question);
   const images = Array.isArray(localizedPayload.images) && localizedPayload.images.length > 0
     ? localizedPayload.images
     : findRelevantImages(question);
@@ -1783,10 +1867,10 @@ function enrichResponsePayload(payload, question) {
   ].includes(localizedPayload.type);
 
   return sanitizeOutgoingPayload({
-    ...localizedPayload,
+    ...consultationPayload,
     answer: shouldAppendSupportLinks
-      ? appendSupportLinks(localizedPayload.answer, question)
-      : localizedPayload.answer,
+      ? appendSupportLinks(consultationPayload.answer, question)
+      : consultationPayload.answer,
     images,
   });
 }
@@ -2259,6 +2343,34 @@ function shouldPreferGenerativeDocAnswer(message, directFaqResponse) {
   return isGenerativeFriendlyQuestion(message) || !meta.exactKeywordMatch || meta.isConversationalQuestion;
 }
 
+function isReliableDirectFaqResponse(directFaqResponse) {
+  const meta = directFaqResponse?.matchMeta;
+  if (!meta) {
+    return true;
+  }
+
+  const score = Number(meta.score || 0);
+  const scoreGap = Number(meta.scoreGap || 0);
+
+  if (meta.exactKeywordMatch && score >= 16) {
+    return true;
+  }
+
+  if (score >= 22 && scoreGap >= 6) {
+    return true;
+  }
+
+  if (!meta.isConversationalQuestion && score >= 18 && scoreGap >= 5) {
+    return true;
+  }
+
+  if (meta.category && /doctors_overview|doctor_schedule/i.test(meta.category) && score >= 16 && scoreGap >= 4) {
+    return true;
+  }
+
+  return false;
+}
+
 function findDoctorOverviewResponse(message) {
   const text = String(message || '').trim();
   if (!text) {
@@ -2510,6 +2622,37 @@ function createFallbackNeedsClarificationResponse() {
     type: 'fallback_needs_clarification',
     answer: '질문 범위가 넓어 한 번에 정확히 안내드리기 어렵습니다. 궁금한 항목을 조금만 더 구체적으로 알려주시면 그 내용부터 바로 안내해 드릴게요.',
     followUp: ['수술 종류를 알려주세요', '검사 종류를 알려주세요', '외래인지 입원인지 알려주세요'],
+  };
+}
+
+function createConsultationClarificationResponse(message) {
+  const text = String(message || '');
+  const followUp = [];
+
+  if (/(수술|수술후|수술 후)/u.test(text)) {
+    followUp.push('수술 비용이 궁금해요', '수술 후 주의사항이 궁금해요');
+  }
+
+  if (/(검사|검진)/u.test(text)) {
+    followUp.push('당일 검사 가능 여부가 궁금해요', '검사 전 준비사항이 궁금해요');
+  }
+
+  if (/(입원|병동|병실)/u.test(text)) {
+    followUp.push('입원 준비물이 궁금해요', '병실 비용이 궁금해요');
+  }
+
+  if (/(예약|접수)/u.test(text)) {
+    followUp.push('예약 방법이 궁금해요', '당일 접수가 가능한지 궁금해요');
+  }
+
+  const normalizedFollowUp = followUp.length > 0
+    ? [...new Set(followUp)].slice(0, 3)
+    : ['진료시간이 궁금해요', '의료진 정보가 궁금해요', '서류 발급이 궁금해요'];
+
+  return {
+    type: 'consultation_clarification',
+    answer: '질문 의도는 이해했지만, 비슷한 안내가 여러 개라 바로 단정하면 엉뚱한 답변이 될 수 있습니다. 아래 중 어느 쪽인지 알려주시면 그 기준으로 정확히 안내드릴게요.',
+    followUp: normalizedFollowUp,
   };
 }
 
@@ -3299,6 +3442,16 @@ function normalizeDocLine(line) {
     .trim();
 }
 
+function normalizeHomepageSurgerySectionLine(line) {
+  return normalizeDocLine(line)
+    .replace(/약(?=\d)/g, '약 ')
+    .replace(/실비보험\s*적용가능/g, '실비보험 적용 가능')
+    .replace(/실비보험적용가능/g, '실비보험 적용 가능')
+    .replace(/(\d)박\s*(\d)일/g, '$1박 $2일')
+    .replace(/(\d)주~(\d)주/g, '$1주~$2주')
+    .trim();
+}
+
 function extractHomepageSurgerySectionLines(text, labels, stopLabels) {
   const normalizedLabels = labels.map((label) => normalizeSearchTextSafe(label));
   const normalizedStopLabels = stopLabels.map((label) => normalizeSearchTextSafe(label));
@@ -3331,7 +3484,7 @@ function extractHomepageSurgerySectionLines(text, labels, stopLabels) {
     }
   }
 
-  return collected;
+  return collected.map((line) => normalizeHomepageSurgerySectionLine(line)).filter(Boolean);
 }
 
 function findHomepageSurgeryCostResponse(message) {
@@ -6229,18 +6382,22 @@ async function buildChatResponse(rawMessage, sessionId) {
     ? null
     : findDirectFaqMatch(retrievalMessage);
   if (directFaqResponse) {
-    if (shouldPreferGenerativeDocAnswer(retrievalMessage, directFaqResponse)) {
+    const reliableDirectFaqResponse = isReliableDirectFaqResponse(directFaqResponse);
+    if (reliableDirectFaqResponse && shouldPreferGenerativeDocAnswer(retrievalMessage, directFaqResponse)) {
       // Let document-grounded AI answer broader or more conversational questions
       // so responses feel less templated while keeping source-backed safety.
+    } else if (!reliableDirectFaqResponse) {
+      return enrichResponsePayload(createConsultationClarificationResponse(retrievalMessage), message);
     } else {
       const simplifiedFaqResponse = {
         ...directFaqResponse,
-        answer: appendSupportLinks(applyPatientFriendlyTemplate(directFaqResponse.answer, effectiveMessage), message),
+        answer: applyPatientFriendlyTemplate(directFaqResponse.answer, effectiveMessage),
         followUp: (directFaqResponse.followUp || []).map((item) => applyPatientFriendlyTemplate(item, message)),
         images: findRelevantImages(message),
       };
-      setCachedResponse(retrievalMessage, simplifiedFaqResponse);
-      return simplifiedFaqResponse;
+      const enrichedFaqResponse = enrichResponsePayload(simplifiedFaqResponse, message);
+      setCachedResponse(retrievalMessage, enrichedFaqResponse);
+      return enrichedFaqResponse;
     }
   }
 
@@ -6250,7 +6407,7 @@ async function buildChatResponse(rawMessage, sessionId) {
   }
 
   if (!OPENAI_API_KEY) {
-    return enrichResponsePayload(createApiKeyMissingResponse(), message);
+    return enrichResponsePayload(createFallbackResponse(retrievalMessage, []), message);
   }
 
   const docs = await getDocumentsForRequest();

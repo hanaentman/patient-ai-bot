@@ -1,8 +1,13 @@
 [
   {
     "question": "이상덕 전문분야 뭐야",
-    "count": 16,
-    "updatedAt": 1777119261219
+    "count": 18,
+    "updatedAt": 1777198863941
+  },
+  {
+    "question": "병동에 가습기 있어?",
+    "count": 8,
+    "updatedAt": 1777198863890
   },
   {
     "question": "귀 검사시 준비해야될게 있어?",
@@ -10,9 +15,14 @@
     "updatedAt": 1777118961351
   },
   {
-    "question": "병동에 가습기 있어?",
-    "count": 6,
-    "updatedAt": 1777119261195
+    "question": "비염수술 얼마야",
+    "count": 5,
+    "updatedAt": 1777198922053
+  },
+  {
+    "question": "ㅎㅇ",
+    "count": 5,
+    "updatedAt": 1777198705649
   },
   {
     "question": "셔틀버스 안내해줘",
@@ -20,9 +30,9 @@
     "updatedAt": 1777118941179
   },
   {
-    "question": "ㅎㅇ",
+    "question": "의료진",
     "count": 4,
-    "updatedAt": 1777119261115
+    "updatedAt": 1777198705734
   },
   {
     "question": "코세척",
@@ -50,6 +60,16 @@
     "updatedAt": 1776381340893
   },
   {
+    "question": "홈페이지에서 예약할 수 있나요?",
+    "count": 3,
+    "updatedAt": 1777198863971
+  },
+  {
+    "question": "편도수술 얼마야?",
+    "count": 3,
+    "updatedAt": 1777198863830
+  },
+  {
     "question": "산소치료얼마야",
     "count": 3,
     "updatedAt": 1777118941282
@@ -75,11 +95,6 @@
     "updatedAt": 1777026877740
   },
   {
-    "question": "의료진",
-    "count": 3,
-    "updatedAt": 1777026771096
-  },
-  {
     "question": "수술전 복용 금지약",
     "count": 3,
     "updatedAt": 1776394451791
@@ -88,6 +103,21 @@
     "question": "수술 후 주의사항 알려줘",
     "count": 3,
     "updatedAt": 1776383246672
+  },
+  {
+    "question": "아무거나 이상한 질문",
+    "count": 2,
+    "updatedAt": 1777198864002
+  },
+  {
+    "question": "축농증 수술 얼마야?",
+    "count": 2,
+    "updatedAt": 1777198863798
+  },
+  {
+    "question": "수술",
+    "count": 2,
+    "updatedAt": 1777198705888
   },
   {
     "question": "검사",
@@ -120,19 +150,9 @@
     "updatedAt": 1776394422303
   },
   {
-    "question": "편도수술 얼마야?",
-    "count": 2,
-    "updatedAt": 1776382791849
-  },
-  {
-    "question": "수술",
+    "question": "비중격수술 얼마야?",
     "count": 1,
-    "updatedAt": 1777119014858
-  },
-  {
-    "question": "홈페이지에서 예약할 수 있나요?",
-    "count": 1,
-    "updatedAt": 1777118961278
+    "updatedAt": 1777198863861
   },
   {
     "question": "독감주사얼마야",
@@ -188,16 +208,6 @@
     "question": "산소치료 얼마야?",
     "count": 1,
     "updatedAt": 1776382924692
-  },
-  {
-    "question": "축농증 수술 얼마야?",
-    "count": 1,
-    "updatedAt": 1776382765940
-  },
-  {
-    "question": "비염수술 얼마야",
-    "count": 1,
-    "updatedAt": 1776382765764
   },
   {
     "question": "코수술 비용 알려줘",
