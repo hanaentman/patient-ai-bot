@@ -10,6 +10,16 @@
     "updatedAt": 1777247055757
   },
   {
+    "question": "비염수술 얼마야",
+    "count": 7,
+    "updatedAt": 1777332292168
+  },
+  {
+    "question": "입원준비물",
+    "count": 7,
+    "updatedAt": 1777332291829
+  },
+  {
     "question": "셔틀버스 안내해줘",
     "count": 7,
     "updatedAt": 1777250546730
@@ -20,19 +30,14 @@
     "updatedAt": 1777118961351
   },
   {
-    "question": "입원준비물",
+    "question": "ㅎㅇ",
     "count": 6,
-    "updatedAt": 1777255902735
+    "updatedAt": 1777332291414
   },
   {
     "question": "홈페이지에서 예약할 수 있나요?",
     "count": 6,
     "updatedAt": 1777250546665
-  },
-  {
-    "question": "비염수술 얼마야",
-    "count": 6,
-    "updatedAt": 1777247055728
   },
   {
     "question": "실비보험 적용되나요?",
@@ -43,11 +48,6 @@
     "question": "의료진",
     "count": 5,
     "updatedAt": 1777247055620
-  },
-  {
-    "question": "ㅎㅇ",
-    "count": 5,
-    "updatedAt": 1777198705649
   },
   {
     "question": "면회 되나요?",
@@ -243,6 +243,11 @@
     "question": "입원전 복용하면 안되는 약",
     "count": 2,
     "updatedAt": 1776394422303
+  },
+  {
+    "question": "수술 알려줘",
+    "count": 1,
+    "updatedAt": 1777332292514
   },
   {
     "question": "입원 환자 면회는 가능하나요?",
