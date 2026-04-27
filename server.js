@@ -104,6 +104,13 @@ const sourceTypeWeights = {
   external: 0.2,
   low_trust: 0.1,
 };
+const SEARCH_TOKEN_STOPWORDS = new Set([
+  '안내', '알려줘', '알려주세요', '궁금해요', '궁금합니다', '문의', '질문',
+  '가능', '가능한가요', '가능할까요', '있나요', '있어요', '되나요', '될까요',
+  '어떻게', '어디', '언제', '얼마', '무엇', '뭐야', '뭐예요', '뭐에요',
+  '관련', '자세히', '설명', '좀', '주세요', '하나요', '하나',
+  '병원', '하나이비인후과병원', '하나이비인후과',
+]);
 
 function findExistingDocFilename(candidates) {
   if (!fs.existsSync(DOCS_DIR)) {
@@ -1242,7 +1249,7 @@ function formatPopularQuestionLabel(question) {
 function recordPopularQuestion(message) {
   const question = String(message || '').trim();
   const normalized = normalizeSearchTextSafe(question);
-  if (!normalized) {
+  if (!isGoodPopularQuestion(question)) {
     return;
   }
 
@@ -1257,6 +1264,26 @@ function recordPopularQuestion(message) {
   current.updatedAt = Date.now();
   popularQuestionStats.set(normalized, current);
   savePopularQuestionStats();
+}
+
+function isGoodPopularQuestion(question) {
+  const value = String(question || '').trim();
+  const normalized = normalizeSearchTextSafe(value);
+
+  if (!normalized) {
+    return false;
+  }
+
+  if (getSmallTalkIntent(value)) {
+    return false;
+  }
+
+  if (/^(수술|검사|서류|비용|금액|입원|진료)\s*(알려줘|안내|설명)?$/u.test(value)) {
+    return false;
+  }
+
+  const tokens = getInformativeSearchTokens(value);
+  return value.length >= 4 && tokens.some((token) => !SEARCH_TOKEN_STOPWORDS.has(token));
 }
 
 function buildPopularQuestionLabel(question) {
@@ -1296,6 +1323,7 @@ function getPopularQuestions(limit = POPULAR_QUESTION_LIMIT) {
     .filter((item) => (
       item
       && String(item.question || '').trim()
+      && isGoodPopularQuestion(item.question)
       && Number(item.updatedAt) > 0
       && now - Number(item.updatedAt) <= POPULAR_QUESTION_ACTIVE_WINDOW_MS
     ))
@@ -1818,6 +1846,11 @@ function shouldUseConsultationTone(payload) {
     'request_blocked',
     'rate_limited',
     'error',
+    'fallback_insufficient_evidence',
+    'fallback_needs_clarification',
+    'fallback_inference',
+    'fallback_restricted',
+    'consultation_clarification',
   ].includes(type);
 }
 
@@ -3386,6 +3419,12 @@ function tokenizeSafe(text) {
     .filter((token) => token.length >= 2);
 }
 
+function getInformativeSearchTokens(text) {
+  const tokens = tokenizeSafe(text);
+  const filtered = tokens.filter((token) => !SEARCH_TOKEN_STOPWORDS.has(token));
+  return filtered.length > 0 ? filtered : tokens;
+}
+
 const searchAliasGroups = [
   ['비염', '만성비염', '알레르기비염', '비후성비염'],
   ['축농증', '부비동염', '만성부비동염'],
@@ -4912,6 +4951,7 @@ function rankDocuments(question, docs, limit = 7) {
   const normalizedQuestion = normalizeSearchTextSafe(question);
   const compactQuestion = compactSearchTextSafe(question);
   const tokens = expandedSearchState.tokens;
+  const informativeTokens = getInformativeSearchTokens(normalizedQuestion);
   const normalizedQuestionVariants = expandedSearchState.normalizedVariants;
   const compactQuestionVariants = expandedSearchState.compactVariants;
   const shouldPrioritizeNasalIrrigation = isNasalIrrigationQuestion(question);
@@ -4927,13 +4967,16 @@ function rankDocuments(question, docs, limit = 7) {
       const diseaseDocBonus = normalizedDiseaseName && matchedDiseaseTerms.includes(normalizedDiseaseName) ? 24 : 0;
       const keywordScore = (doc.keywords || []).reduce((score, keyword) => {
         const normalizedKeyword = normalizeSearchTextSafe(keyword);
+        if (!normalizedKeyword) {
+          return score;
+        }
         const matched = normalizedQuestionVariants.some((variant) => variant.includes(normalizedKeyword));
         return matched ? score + 1 : score;
       }, 0);
-      const titleScore = tokens.reduce((score, token) => (
+      const titleScore = informativeTokens.reduce((score, token) => (
         normalizedTitle.includes(token) ? score + 3 : score
       ), 0);
-      const tokenScore = tokens.reduce((score, token) => (
+      const tokenScore = informativeTokens.reduce((score, token) => (
         normalizedText.includes(token) ? score + 1 : score
       ), 0);
       const phraseScore = normalizedQuestionVariants.some((variant) => variant && normalizedText.includes(variant)) ? 10 : 0;
@@ -6505,6 +6548,8 @@ async function callOpenAI(question, history, contextDocs) {
           'local 문서와 FAQ를 가장 우선하고, official 홈페이지 문서를 그 다음 근거로 사용하세요. external 자료는 보조 참고로만 사용하세요.',
           '문서에 없는 병원 정보는 추측하지 말고 확인이 필요하다고 안내하세요.',
           '문서에 있는 사실을 그대로 반복만 하지 말고, 질문 의도에 맞게 정리해서 설명하세요.',
+          '첫 문장은 사용자가 물은 핵심에 바로 답하세요. 불필요한 인사말이나 "문의하신 내용" 같은 일반 선문구로 시작하지 마세요.',
+          '관련 문서가 여러 개일 때는 가장 직접적으로 맞는 문서의 사실을 먼저 쓰고, 보조 문서는 필요한 경우에만 덧붙이세요.',
           '안전한 범위에서는 이유, 절차, 준비사항, 주의사항 같은 맥락 설명을 1~2문장 추가해도 됩니다.',
           '단순 인사, 감사, 재질문 연결 문장은 문서 인용 없이 자연스럽게 답해도 됩니다.',
           '답변 언어는 사용자의 마지막 질문 언어를 그대로 따르세요.',
@@ -6531,7 +6576,7 @@ async function callOpenAI(question, history, contextDocs) {
     throw new Error('OpenAI API returned empty output_text');
   }
 
-  return outputText.trim();
+  return formatAssistantAnswer(outputText);
 }
 
 function parseValidationResult(text) {
