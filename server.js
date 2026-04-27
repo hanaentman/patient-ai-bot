@@ -2118,18 +2118,50 @@ function cleanIntegratedFaqQuestionLine(line) {
     .trim();
 }
 
+function splitIntegratedFaqQuestionAliases(question) {
+  const cleaned = cleanIntegratedFaqQuestionLine(question);
+  if (!cleaned) {
+    return [];
+  }
+
+  const rawAliases = cleaned
+    .split(/\s*,\s*/u)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  const aliases = rawAliases.length > 0 ? rawAliases : [cleaned];
+  const uniqueAliases = [];
+  const seen = new Set();
+
+  aliases.forEach((alias) => {
+    const normalized = normalizeSearchTextSafe(alias);
+    if (!normalized || seen.has(normalized)) {
+      return;
+    }
+    seen.add(normalized);
+    uniqueAliases.push(alias);
+  });
+
+  return uniqueAliases;
+}
+
 function isIntegratedFaqQuestionLine(line) {
   const cleaned = cleanIntegratedFaqQuestionLine(line);
   if (!cleaned || /^\[[^\]]+\]$/u.test(cleaned) || /^-+$/.test(cleaned)) {
     return false;
   }
 
-  const hasQuestionPrefix = /^[•ㆍ·*-]\s*/u.test(line)
+  const hasStructuredQuestionPrefix = /^(q|질문|吏덈Ц)\s*[:.)-]\s*/iu.test(line);
+  const hasQuestionPrefix = hasStructuredQuestionPrefix
+    || /^[•ㆍ·*-]\s*/u.test(line)
     || /^[?？]{1,3}\s*/u.test(line)
-    || /^\d+\s*[.)]\s*/u.test(line)
-    || /^(q|질문|吏덈Ц)\s*[:.)-]\s*/iu.test(line);
+    || /^\d+\s*[.)]\s*/u.test(line);
   const hasQuestionShape = /[?？]$/.test(cleaned)
     || /(가능|되나|되나요|하나요|인가요|있나요|없나요|무엇|뭐|어떻게|어디|언제|얼마|주소|홈페이지|알려|궁금)/u.test(cleaned);
+
+  if (hasStructuredQuestionPrefix) {
+    return cleaned.length <= 140;
+  }
 
   return hasQuestionPrefix && hasQuestionShape && cleaned.length <= 90;
 }
@@ -2157,7 +2189,8 @@ function buildIntegratedFaqCards() {
       return;
     }
 
-    const question = cleanIntegratedFaqQuestionLine(current.question);
+    const aliases = splitIntegratedFaqQuestionAliases(current.question);
+    const question = aliases[0] || cleanIntegratedFaqQuestionLine(current.question);
     const answer = current.answerLines
       .map((line) => cleanIntegratedFaqAnswerLine(line))
       .filter(Boolean)
@@ -2172,6 +2205,9 @@ function buildIntegratedFaqCards() {
         id: `integrated_faq_${cards.length + 1}`,
         category: current.category || '',
         question,
+        aliases,
+        normalizedAliases: aliases.map((alias) => normalizeSearchTextSafe(alias)).filter(Boolean),
+        compactAliases: aliases.map((alias) => compactSearchTextSafe(alias)).filter(Boolean),
         answer,
         normalizedQuestion: normalizeSearchTextSafe(question),
         compactQuestion: compactSearchTextSafe(question),
@@ -2256,25 +2292,40 @@ function scoreIntegratedFaqCard(message, card) {
   const tokens = getIntegratedFaqQueryTokens(message);
   let score = 0;
   let titleTokenHits = 0;
+  let aliasExactMatch = false;
 
   if (!normalizedMessage || !card?.normalizedQuestion) {
-    return { score: 0, titleTokenHits: 0 };
+    return { score: 0, titleTokenHits: 0, aliasExactMatch: false };
   }
 
-  if (compactMessage === card.compactQuestion) {
-    score += 90;
-  } else if (compactMessage.length >= 4 && card.compactQuestion.includes(compactMessage)) {
-    score += 55;
-  } else if (card.compactQuestion.length >= 4 && compactMessage.includes(card.compactQuestion)) {
-    score += 45;
-  }
+  const normalizedCandidates = card.normalizedAliases?.length ? card.normalizedAliases : [card.normalizedQuestion];
+  const compactCandidates = card.compactAliases?.length ? card.compactAliases : [card.compactQuestion];
 
-  if (normalizedMessage.length >= 4 && card.normalizedQuestion.includes(normalizedMessage)) {
-    score += 35;
-  }
+  compactCandidates.forEach((candidate) => {
+    if (!candidate) {
+      return;
+    }
+    if (compactMessage === candidate) {
+      score += 90;
+      aliasExactMatch = true;
+    } else if (compactMessage.length >= 4 && candidate.includes(compactMessage)) {
+      score += 55;
+    } else if (candidate.length >= 4 && compactMessage.includes(candidate)) {
+      score += 45;
+    }
+  });
+
+  normalizedCandidates.forEach((candidate) => {
+    if (!candidate) {
+      return;
+    }
+    if (normalizedMessage.length >= 4 && candidate.includes(normalizedMessage)) {
+      score += 35;
+    }
+  });
 
   tokens.forEach((token) => {
-    if (card.normalizedQuestion.includes(token)) {
+    if (normalizedCandidates.some((candidate) => candidate.includes(token))) {
       score += 14;
       titleTokenHits += 1;
     } else if (card.normalizedAnswer.includes(token)) {
@@ -2286,7 +2337,7 @@ function scoreIntegratedFaqCard(message, card) {
     score += 10;
   }
 
-  return { score, titleTokenHits };
+  return { score, titleTokenHits, aliasExactMatch };
 }
 
 function findIntegratedFaqCardResponse(message) {
@@ -2309,7 +2360,8 @@ function findIntegratedFaqCardResponse(message) {
 
   const [bestMatch, secondMatch] = rankedCards;
   const scoreGap = secondMatch ? bestMatch.score - secondMatch.score : bestMatch.score;
-  const reliable = bestMatch.score >= 34
+  const reliable = bestMatch.aliasExactMatch
+    || bestMatch.score >= 34
     || (bestMatch.titleTokenHits >= 2 && bestMatch.score >= 24 && scoreGap >= 4)
     || (bestMatch.titleTokenHits >= 1 && bestMatch.score >= 22 && scoreGap >= 10);
 
