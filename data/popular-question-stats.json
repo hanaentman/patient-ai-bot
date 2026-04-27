@@ -75,6 +75,11 @@
     "updatedAt": 1776381340893
   },
   {
+    "question": "보호자 면회 가능해?",
+    "count": 3,
+    "updatedAt": 1777254396233
+  },
+  {
     "question": "편도수술 얼마야?",
     "count": 3,
     "updatedAt": 1777198863830
@@ -113,6 +118,26 @@
     "question": "수술 후 주의사항 알려줘",
     "count": 3,
     "updatedAt": 1776383246672
+  },
+  {
+    "question": "상주 보호자 교대 가능한가요?",
+    "count": 2,
+    "updatedAt": 1777254396494
+  },
+  {
+    "question": "보호자가 같이 있을 수 있나요?",
+    "count": 2,
+    "updatedAt": 1777254396431
+  },
+  {
+    "question": "면회 되나요?",
+    "count": 2,
+    "updatedAt": 1777254396380
+  },
+  {
+    "question": "입원 환자 면회 가능하나요?",
+    "count": 2,
+    "updatedAt": 1777254396351
   },
   {
     "question": "진료시 검사 가능한가요?",
@@ -173,6 +198,11 @@
     "question": "입원전 복용하면 안되는 약",
     "count": 2,
     "updatedAt": 1776394422303
+  },
+  {
+    "question": "보호자 면회가 안되는데 수술 진행 과정은 어떻게 알 수 있나요?",
+    "count": 1,
+    "updatedAt": 1777254396462
   },
   {
     "question": "수술 후 출혈",

@@ -382,6 +382,17 @@ const guardianShiftPatterns = [
   /보호자.{0,8}교체/u,
 ];
 
+const guardianVisitPatterns = [
+  /면회/u,
+  /면회객/u,
+  /방문객/u,
+  /보호자.{0,12}(면회|방문|출입|들어|입실)/u,
+  /(입원|병동|수술).{0,12}(면회|보호자|방문객)/u,
+  /보호자.{0,12}(같이|함께|상주|있을|계실|머물)/u,
+  /보호자.{0,12}(문자|연락|진행|상태|알림)/u,
+  /수술.{0,12}(진행|상태).{0,12}(문자|연락|알림|보호자)/u,
+];
+
 const wifiPatterns = [
   /와이파이/u,
   /wifi/i,
@@ -2644,6 +2655,39 @@ function createComplaintGuideResponse() {
 
 function createGuardianShiftResponse() {
   return buildReinitializedIntentResponse('guardian_shift', '') || null;
+}
+
+function buildGuardianVisitResponse(message) {
+  const text = String(message || '');
+  const sources = [
+    buildIntegratedFaqDocSource(),
+    buildLocalDocSource('홈페이지-입퇴원 안내', '홈페이지-입퇴원 안내.txt'),
+  ];
+
+  if (/(문자|연락|진행|상태|알림|어떻게\s*알)/u.test(text)) {
+    return {
+      type: 'guardian_visit',
+      answer: '보호자 면회가 제한되는 경우에도 수술 진행 상황은 입원 시 원무과에 등록한 보호자 연락처로 안내 문자가 발송됩니다. 문서는 병동에서 수술실로 올라갈 때, 수술 종료 후, 회복실 퇴실 후 병동 도착 시점에 총 3회 문자가 발송된다고 안내합니다. 병동 도착 문자 이후에는 환자분과 통화가 가능하고, 수술 경과는 집도의 회진 후 환자분께 직접 설명됩니다.',
+      followUp: ['보호자 연락처가 정확히 등록되어 있는지 입원 수속 시 확인해 주세요.', '대표전화 02-6925-1111'],
+      sources,
+    };
+  }
+
+  if (/(같이|함께|상주|있을|계실|머물|병실|입실|출입)/u.test(text)) {
+    return {
+      type: 'guardian_visit',
+      answer: '하나이비인후과병원은 간호간병통합서비스 병동으로, 보호자 상주는 원칙적으로 어렵습니다. 다만 소아 환자(15세 이하)이거나 의료진이 환자 안전과 정서적 지지가 필요하다고 판단하는 경우에는 예외적으로 보호자 상주가 안내될 수 있습니다.',
+      followUp: ['출입증을 소지한 보호자 또는 환자 본인만 병동 출입이 가능합니다.', '세부 운영은 입원 전 병동 또는 대표전화 02-6925-1111로 확인해 주세요.'],
+      sources,
+    };
+  }
+
+  return {
+    type: 'guardian_visit',
+    answer: '입원 환자 면회는 환자 안전관리와 감염병 예방을 위해 전면 금지로 안내되어 있습니다. 면회가 필요한 경우에도 병실 면회가 아니라 다른 환자의 안정과 쾌유를 위해 1층 또는 2층 대기실 이용으로 안내됩니다. 소아 환자(15세 이하)는 보호자 한 분이 계실 수 있습니다.',
+    followUp: ['보호자 상주 가능 여부는 환자 상태와 의료진 판단에 따라 달라질 수 있습니다.', '대표전화 02-6925-1111'],
+    sources,
+  };
 }
 
 function createWifiResponse() {
@@ -5061,6 +5105,10 @@ function classifyUserIntent(message) {
     return { type: 'guardian_shift' };
   }
 
+  if (matchesAnyPattern(text, guardianVisitPatterns)) {
+    return { type: 'guardian_visit' };
+  }
+
   if (matchesAnyPattern(text, wifiPatterns)) {
     return { type: 'wifi_info' };
   }
@@ -5557,6 +5605,8 @@ function buildReinitializedIntentResponse(intentType, message) {
           buildIntegratedFaqDocSource(),
         ],
       };
+    case 'guardian_visit':
+      return buildGuardianVisitResponse(message);
     case 'wifi_info':
       return {
         type: 'wifi_info',
