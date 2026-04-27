@@ -486,6 +486,7 @@ function createRuntimeData() {
 
   return {
     faqEntries,
+    integratedFaqCards: buildIntegratedFaqCards(),
     faqDocuments: buildFaqDocuments(faqEntries),
     localDocuments,
     certificateFeeEntries: buildCertificateFeeEntries(),
@@ -2102,6 +2103,221 @@ function findRelevantImages(message, contextDocs = []) {
     .sort((a, b) => b.score - a.score)
     .slice(0, 2)
     .map(({ title, description, display, url }) => ({ title, description, display, url }));
+}
+
+function getIntegratedFaqDocPath() {
+  return path.join(DOCS_DIR, INTEGRATED_FAQ_DOC_FILENAME);
+}
+
+function cleanIntegratedFaqQuestionLine(line) {
+  return normalizeDocLine(line)
+    .replace(/^[?？]{1,3}\s*/u, '')
+    .replace(/^[•ㆍ·*-]\s*/u, '')
+    .replace(/^\d+\s*[.)]\s*/u, '')
+    .replace(/^(q|질문)\s*[:.)-]\s*/iu, '')
+    .trim();
+}
+
+function isIntegratedFaqQuestionLine(line) {
+  const cleaned = cleanIntegratedFaqQuestionLine(line);
+  if (!cleaned || /^\[[^\]]+\]$/u.test(cleaned) || /^-+$/.test(cleaned)) {
+    return false;
+  }
+
+  const hasQuestionPrefix = /^[•ㆍ·*-]\s*/u.test(line)
+    || /^[?？]{1,3}\s*/u.test(line)
+    || /^\d+\s*[.)]\s*/u.test(line)
+    || /^(q|질문)\s*[:.)-]\s*/iu.test(line);
+  const hasQuestionShape = /[?？]$/.test(cleaned)
+    || /(가능|되나|되나요|하나요|인가요|있나요|없나요|무엇|뭐|어떻게|어디|언제|얼마|주소|홈페이지|알려|궁금)/u.test(cleaned);
+
+  return hasQuestionPrefix && hasQuestionShape && cleaned.length <= 90;
+}
+
+function cleanIntegratedFaqAnswerLine(line) {
+  return normalizeDocLine(line)
+    .replace(/^답변\s*[:.)-]\s*/u, '')
+    .replace(/^a\s*[:.)-]\s*/iu, '')
+    .trim();
+}
+
+function buildIntegratedFaqCards() {
+  const faqPath = getIntegratedFaqDocPath();
+  if (!fs.existsSync(faqPath)) {
+    return [];
+  }
+
+  const text = repairBrokenKoreanText(fs.readFileSync(faqPath, 'utf8'));
+  const cards = [];
+  let current = null;
+
+  const pushCurrent = () => {
+    if (!current) {
+      return;
+    }
+
+    const question = cleanIntegratedFaqQuestionLine(current.question);
+    const answer = current.answerLines
+      .map((line) => cleanIntegratedFaqAnswerLine(line))
+      .filter(Boolean)
+      .join(' ')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+
+    if (question && answer) {
+      const questionTokens = tokenizeSafe(question);
+      const answerTokens = tokenizeSafe(answer);
+      cards.push({
+        id: `integrated_faq_${cards.length + 1}`,
+        question,
+        answer,
+        normalizedQuestion: normalizeSearchTextSafe(question),
+        compactQuestion: compactSearchTextSafe(question),
+        normalizedAnswer: normalizeSearchTextSafe(answer),
+        tokens: [...new Set([...questionTokens, ...answerTokens])],
+      });
+    }
+
+    current = null;
+  };
+
+  text.split(/\r?\n/).forEach((rawLine) => {
+    const line = normalizeDocLine(rawLine);
+
+    if (!line) {
+      if (current?.answerLines?.length > 0) {
+        pushCurrent();
+      }
+      return;
+    }
+
+    if (isIntegratedFaqQuestionLine(line)) {
+      pushCurrent();
+      current = {
+        question: line,
+        answerLines: [],
+      };
+      return;
+    }
+
+    if (current) {
+      current.answerLines.push(line);
+    }
+  });
+
+  pushCurrent();
+  return cards;
+}
+
+function getIntegratedFaqQueryTokens(message) {
+  const tokens = new Set(tokenizeSafe(message));
+  const text = String(message || '');
+
+  if (/(되나|되나요|가능|할\s*수|있나요)/u.test(text)) {
+    tokens.add('가능');
+  }
+  if (/(보험|실비|실손|적용)/u.test(text)) {
+    tokens.add('보험');
+    tokens.add('실비보험');
+    tokens.add('적용');
+  }
+  if (/(면회|방문객|보호자\s*방문)/u.test(text)) {
+    tokens.add('면회');
+  }
+  if (/(준비물|챙겨|가져|준비해야)/u.test(text)) {
+    tokens.add('준비물');
+  }
+  if (/(예약|접수)/u.test(text)) {
+    tokens.add('예약');
+  }
+  if (/(검사|검진)/u.test(text)) {
+    tokens.add('검사');
+  }
+  if (/(영수증|세부내역|상세내역|서류|발급)/u.test(text)) {
+    tokens.add('서류');
+  }
+
+  return [...tokens].filter((token) => !['알려줘', '알려주세요', '궁금해요', '문의'].includes(token));
+}
+
+function scoreIntegratedFaqCard(message, card) {
+  const normalizedMessage = normalizeSearchTextSafe(message);
+  const compactMessage = compactSearchTextSafe(message);
+  const tokens = getIntegratedFaqQueryTokens(message);
+  let score = 0;
+  let titleTokenHits = 0;
+
+  if (!normalizedMessage || !card?.normalizedQuestion) {
+    return { score: 0, titleTokenHits: 0 };
+  }
+
+  if (compactMessage === card.compactQuestion) {
+    score += 90;
+  } else if (compactMessage.length >= 4 && card.compactQuestion.includes(compactMessage)) {
+    score += 55;
+  } else if (card.compactQuestion.length >= 4 && compactMessage.includes(card.compactQuestion)) {
+    score += 45;
+  }
+
+  if (normalizedMessage.length >= 4 && card.normalizedQuestion.includes(normalizedMessage)) {
+    score += 35;
+  }
+
+  tokens.forEach((token) => {
+    if (card.normalizedQuestion.includes(token)) {
+      score += 14;
+      titleTokenHits += 1;
+    } else if (card.normalizedAnswer.includes(token)) {
+      score += 3;
+    }
+  });
+
+  if (titleTokenHits >= 2) {
+    score += 10;
+  }
+
+  return { score, titleTokenHits };
+}
+
+function findIntegratedFaqCardResponse(message) {
+  const cards = runtimeData?.integratedFaqCards || [];
+  if (!cards.length || !normalizeSearchTextSafe(message)) {
+    return null;
+  }
+
+  const rankedCards = cards
+    .map((card) => ({
+      card,
+      ...scoreIntegratedFaqCard(message, card),
+    }))
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  if (!rankedCards.length) {
+    return null;
+  }
+
+  const [bestMatch, secondMatch] = rankedCards;
+  const scoreGap = secondMatch ? bestMatch.score - secondMatch.score : bestMatch.score;
+  const reliable = bestMatch.score >= 34
+    || (bestMatch.titleTokenHits >= 2 && bestMatch.score >= 24 && scoreGap >= 4)
+    || (bestMatch.titleTokenHits >= 1 && bestMatch.score >= 22 && scoreGap >= 10);
+
+  if (!reliable) {
+    return null;
+  }
+
+  return {
+    type: 'integrated_faq',
+    answer: bestMatch.card.answer,
+    followUp: [],
+    sources: [buildIntegratedFaqDocSource()],
+    matchMeta: {
+      score: bestMatch.score,
+      scoreGap,
+      question: bestMatch.card.question,
+    },
+  };
 }
 
 function findDirectFaqMatch(message) {
@@ -6419,6 +6635,11 @@ async function buildChatResponse(rawMessage, sessionId) {
     return enrichResponsePayload(preRetrievalLooseTopicResponse, message);
   }
 
+  const preRetrievalIntegratedFaqResponse = findIntegratedFaqCardResponse(intentProbeMessage);
+  if (preRetrievalIntegratedFaqResponse) {
+    return enrichResponsePayload(preRetrievalIntegratedFaqResponse, message);
+  }
+
   const retrievalMessage = await buildKoreanRetrievalQuery(intentProbeMessage, history);
   const intent = classifyUserIntent(retrievalMessage);
 
@@ -6435,6 +6656,13 @@ async function buildChatResponse(rawMessage, sessionId) {
   const retrievalLooseTopicResponse = findLooseTopicResponse(retrievalMessage);
   if (retrievalLooseTopicResponse) {
     return enrichResponsePayload(retrievalLooseTopicResponse, message);
+  }
+
+  const integratedFaqResponse = findIntegratedFaqCardResponse(retrievalMessage);
+  if (integratedFaqResponse) {
+    const enrichedIntegratedFaqResponse = enrichResponsePayload(integratedFaqResponse, message);
+    setCachedResponse(retrievalMessage, enrichedIntegratedFaqResponse);
+    return enrichedIntegratedFaqResponse;
   }
 
   const smallTalkIntent = getSmallTalkIntent(retrievalMessage);

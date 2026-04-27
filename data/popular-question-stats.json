@@ -20,6 +20,11 @@
     "updatedAt": 1777118961351
   },
   {
+    "question": "입원준비물",
+    "count": 6,
+    "updatedAt": 1777255902735
+  },
+  {
     "question": "홈페이지에서 예약할 수 있나요?",
     "count": 6,
     "updatedAt": 1777250546665
@@ -30,11 +35,6 @@
     "updatedAt": 1777247055728
   },
   {
-    "question": "입원준비물",
-    "count": 5,
-    "updatedAt": 1777250546478
-  },
-  {
     "question": "의료진",
     "count": 5,
     "updatedAt": 1777247055620
@@ -43,6 +43,16 @@
     "question": "ㅎㅇ",
     "count": 5,
     "updatedAt": 1777198705649
+  },
+  {
+    "question": "면회 되나요?",
+    "count": 4,
+    "updatedAt": 1777256038345
+  },
+  {
+    "question": "실비보험 적용되나요?",
+    "count": 4,
+    "updatedAt": 1777256038162
   },
   {
     "question": "입원 준비물 알려줘",
@@ -73,6 +83,16 @@
     "question": "입원전 복용중단 약물 리스트알려줘",
     "count": 4,
     "updatedAt": 1776381340893
+  },
+  {
+    "question": "홈페이지 주소 알려줘",
+    "count": 3,
+    "updatedAt": 1777255998555
+  },
+  {
+    "question": "서류를 팩스로 받을 수 있나요?",
+    "count": 3,
+    "updatedAt": 1777255998469
   },
   {
     "question": "보호자 면회 가능해?",
@@ -120,6 +140,16 @@
     "updatedAt": 1776383246672
   },
   {
+    "question": "수면다원검사 건강보험 적용기준은 어떻게 되나요?",
+    "count": 2,
+    "updatedAt": 1777256038300
+  },
+  {
+    "question": "미리 찍은 CT 가져가도 되나요?",
+    "count": 2,
+    "updatedAt": 1777255998512
+  },
+  {
     "question": "상주 보호자 교대 가능한가요?",
     "count": 2,
     "updatedAt": 1777254396494
@@ -128,11 +158,6 @@
     "question": "보호자가 같이 있을 수 있나요?",
     "count": 2,
     "updatedAt": 1777254396431
-  },
-  {
-    "question": "면회 되나요?",
-    "count": 2,
-    "updatedAt": 1777254396380
   },
   {
     "question": "입원 환자 면회 가능하나요?",
@@ -198,6 +223,26 @@
     "question": "입원전 복용하면 안되는 약",
     "count": 2,
     "updatedAt": 1776394422303
+  },
+  {
+    "question": "실손보험 되나요?",
+    "count": 1,
+    "updatedAt": 1777256038256
+  },
+  {
+    "question": "당일 예약 가능한가요?",
+    "count": 1,
+    "updatedAt": 1777255946918
+  },
+  {
+    "question": "진료시간은 어떻게 되나요?",
+    "count": 1,
+    "updatedAt": 1777255946878
+  },
+  {
+    "question": "2가지 질환 각각 진료 가능한가요?",
+    "count": 1,
+    "updatedAt": 1777255902655
   },
   {
     "question": "보호자 면회가 안되는데 수술 진행 과정은 어떻게 알 수 있나요?",
