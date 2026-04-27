@@ -28,6 +28,14 @@ const POPULAR_QUESTIONS_PATH = path.join(PERSISTENT_DATA_DIR, 'popular-question-
 const CHAT_LOGS_PATH = path.join(PERSISTENT_DATA_DIR, 'chat-logs.json');
 const CHAT_LOGS_DB_PATH = path.join(PERSISTENT_DATA_DIR, 'chat-logs.db');
 const DOCS_DIR = path.join(__dirname, 'docs');
+const INTEGRATED_FAQ_DOC_FILENAME = findExistingDocFilename([
+  '통합-FAQ.txt',
+  '통합-faq.txt',
+  '홈페이지-FAQ.txt',
+  '병동-FAQ.txt',
+  '원무-FAQ.txt',
+]) || '통합-FAQ.txt';
+const INTEGRATED_FAQ_DOC_TITLE = path.parse(INTEGRATED_FAQ_DOC_FILENAME).name;
 const DOCTOR_LIST_DOC_FILENAME = '외래-의료진 명단.txt';
 const DOCTOR_INFO_DOC_FILENAME = '홈페이지-의료진 정보.txt';
 const DOCTOR_SPECIALTY_DOC_PATH = path.join(DOCS_DIR, DOCTOR_INFO_DOC_FILENAME);
@@ -96,6 +104,23 @@ const sourceTypeWeights = {
   external: 0.2,
   low_trust: 0.1,
 };
+
+function findExistingDocFilename(candidates) {
+  if (!fs.existsSync(DOCS_DIR)) {
+    return '';
+  }
+
+  const actualNames = fs.readdirSync(DOCS_DIR, { withFileTypes: true })
+    .filter((entry) => entry.isFile())
+    .map((entry) => entry.name);
+  const lowerNameMap = new Map(actualNames.map((name) => [name.toLowerCase(), name]));
+
+  return (candidates || [])
+    .map((name) => String(name || '').trim())
+    .filter(Boolean)
+    .map((name) => lowerNameMap.get(name.toLowerCase()) || '')
+    .find(Boolean) || '';
+}
 const NASAL_IRRIGATION_QUERY_PATTERNS = [
   /코\s*세척/u,
   /비강\s*세척/u,
@@ -154,6 +179,13 @@ const PREP_BROAD_PATTERNS = [
   /수술.*챙기/u,
 ];
 const PREP_DETAIL_PATTERNS = [/준비물/u, /주차/u, /보호자/u, /검사/u, /약/u, /금식/u, /퇴원/u];
+const ADMISSION_PREP_ITEMS_PATTERNS = [
+  /입원\s*준비물/u,
+  /입원\s*시\s*준비물/u,
+  /입원\s*전\s*준비물/u,
+  /입원.*(챙겨|챙길|가져|준비해야|준비할)/u,
+  /(준비물|챙겨야|가져가야).{0,12}입원/u,
+];
 
 const emergencyPatterns = [
   /응급/u,
@@ -3930,7 +3962,7 @@ function buildFaqDocuments(entries) {
 
 function readLocalDocumentText(filePath, extension) {
   if (extension === '.txt') {
-    return fs.readFileSync(filePath, 'utf8');
+    return repairBrokenKoreanText(fs.readFileSync(filePath, 'utf8'));
   }
 
   if (extension === '.xls' || extension === '.xlsx') {
@@ -4447,7 +4479,7 @@ function isHomepageFaqDoc(doc) {
   const compactTitle = compactSearchTextSafe(`${doc?.title || ''} ${doc?.sourceTitle || ''}`);
   const normalizedUrl = normalizeSearchTextSafe(String(doc?.url || ''));
   const compactUrl = compactSearchTextSafe(String(doc?.url || ''));
-  const candidates = ['홈페이지-FAQ', '홈페이지 FAQ', 'homepage-faq'];
+  const candidates = ['통합-FAQ', '통합 FAQ', '통합-faq', '홈페이지-FAQ', '홈페이지 FAQ', 'homepage-faq'];
 
   return candidates.some((name) => {
     const normalizedName = normalizeSearchTextSafe(name);
@@ -4933,6 +4965,10 @@ function classifyUserIntent(message) {
     return { type: 'same_day_exam_availability' };
   }
 
+  if (matchesAnyPattern(text, ADMISSION_PREP_ITEMS_PATTERNS)) {
+    return { type: 'admission_prep_items' };
+  }
+
   if (findExamPreparationResponse(text)) {
     return { type: 'exam_preparation' };
   }
@@ -5053,6 +5089,10 @@ function buildLocalDocSource(title, filename) {
     title,
     url: `local://docs/${encodeURIComponent(filename)}`,
   };
+}
+
+function buildIntegratedFaqDocSource() {
+  return buildLocalDocSource(INTEGRATED_FAQ_DOC_TITLE, INTEGRATED_FAQ_DOC_FILENAME);
 }
 
 function cleanIntentPayload(payload) {
@@ -5267,7 +5307,7 @@ function buildCleanPostOpCareResponse(message) {
 function buildCleanInpatientAmenityResponse(message) {
   const text = String(message || '');
   const sources = [
-    buildLocalDocSource('병동-FAQ', '병동-FAQ.txt'),
+    buildIntegratedFaqDocSource(),
     buildLocalDocSource('입원-입원생활안내문', '입원-입원생활안내문.txt'),
   ];
 
@@ -5334,7 +5374,7 @@ function buildReinitializedIntentResponse(intentType, message) {
         answer: '영수증과 진료상세내역 같은 서류는 외래에서는 원무과에서 본인 확인 후 발급받으시면 됩니다. 입원 환자는 퇴원 하루 전 병동에 미리 신청하고, 퇴원 수납 시 원무과에서 받는 방식으로 안내됩니다.',
         followUp: ['퇴원 후에는 외래 방문 시 다시 신청할 수 있습니다.', '대리 발급은 동의서와 신분증 사본 등 추가 서류가 필요할 수 있습니다.', '대표전화 02-6925-1111'],
         sources: [
-          buildLocalDocSource('홈페이지-FAQ', '홈페이지-FAQ.txt'),
+          buildIntegratedFaqDocSource(),
           buildLocalDocSource('홈페이지-입퇴원 안내', '홈페이지-입퇴원 안내.txt'),
         ],
       };
@@ -5343,7 +5383,17 @@ function buildReinitializedIntentResponse(intentType, message) {
         type: 'same_day_exam_availability',
         answer: '대부분 검사는 진료 당일 진행하고 결과까지 확인하는 흐름으로 안내됩니다. 다만 검사 종류와 당일 상황에 따라 예약 검사로 전환될 수 있습니다.',
         followUp: ['귀 검사와 청력·전정기능 검사는 상황에 따라 예약으로 안내될 수 있습니다.', '코골이·수면무호흡 검사는 1박 2일 입원 검사입니다.', '대표전화 02-6925-1111'],
-        sources: [buildLocalDocSource('홈페이지-FAQ', '홈페이지-FAQ.txt')],
+        sources: [buildIntegratedFaqDocSource()],
+      };
+    case 'admission_prep_items':
+      return {
+        type: 'admission_prep_items',
+        answer: '입원 준비물은 병실 종류에 따라 조금 다릅니다. 1인실은 환자용 세면도구(치약, 칫솔, 비누, 수건, 티슈)가 제공되며, 개인컵, 화장품, 드라이기, 샴푸, 린스 등 개인 물품은 지참하셔야 합니다. 2인실과 4인실은 세면도구와 개인용품(티슈, 수건, 개인컵, 슬리퍼, 화장품, 드라이기, 샴푸, 린스 등)을 모두 챙겨오셔야 합니다.',
+        followUp: ['수술 종류나 병실 배정에 따라 추가 준비물이 있을 수 있어 입원 전 안내를 함께 확인해 주세요.', '대표전화 02-6925-1111'],
+        sources: [
+          buildIntegratedFaqDocSource(),
+          buildLocalDocSource('입원-입원생활안내문', '입원-입원생활안내문.txt'),
+        ],
       };
     case 'exam_preparation':
       if (/(수면|코골이|수면무호흡|수면다원|수면내시경)/u.test(message)) {
@@ -5351,7 +5401,7 @@ function buildReinitializedIntentResponse(intentType, message) {
           type: 'exam_preparation',
           answer: '수면검사는 1박 2일 입원으로 진행됩니다. 기본 침구는 병동에 준비되어 있고, 개인 세면도구 정도 챙기시면 됩니다.',
           followUp: ['금식이나 마취 관련 안내는 검사 전 병원에서 다시 확인해 주세요.', '대표전화 02-6925-1111'],
-          sources: [buildLocalDocSource('홈페이지-FAQ', '홈페이지-FAQ.txt')],
+          sources: [buildIntegratedFaqDocSource()],
         };
       }
       if (/(귀|청력|어지럼|전정)/u.test(message)) {
@@ -5359,21 +5409,21 @@ function buildReinitializedIntentResponse(intentType, message) {
           type: 'exam_preparation',
           answer: '귀 검사 전 특별히 챙길 준비물은 없습니다. 검사 시간이 길 수 있어 가능한 한 일찍 내원하시는 편이 좋습니다.',
           followUp: ['청력검사와 전정기능검사는 당일 검사와 결과 상담이 가능하지만 상황에 따라 예약 검사로 전환될 수 있습니다.', '약 복용 중이거나 급성 심한 어지러움이 있으면 검사 시점이 달라질 수 있습니다.'],
-          sources: [buildLocalDocSource('홈페이지-FAQ', '홈페이지-FAQ.txt')],
+          sources: [buildIntegratedFaqDocSource()],
         };
       }
       return {
         type: 'exam_preparation',
         answer: '검사 전 특별한 준비물이 필요한 경우는 많지 않지만, 검사 종류에 따라 예외가 있을 수 있습니다.',
         followUp: ['코 검사인지 귀 검사인지, 수면검사인지 알려주시면 더 정확히 안내해 드릴게요.', '대표전화 02-6925-1111'],
-        sources: [buildLocalDocSource('홈페이지-FAQ', '홈페이지-FAQ.txt')],
+        sources: [buildIntegratedFaqDocSource()],
       };
     case 'medication_stop':
       return {
         type: 'medication_stop',
         answer: '입원 전이나 수술 전에 복용을 중단해야 하는 약은 별도 리스트로 안내됩니다. 복용 중인 약이 있다면 입원 전 복용중단 약물 리스트를 먼저 확인해 주세요.',
         followUp: ['리스트에 없는 약이거나 중단 여부가 애매하면 대표전화 02-6925-1111로 확인해 주세요.'],
-        sources: [buildLocalDocSource('병동-FAQ', '병동-FAQ.txt')],
+        sources: [buildIntegratedFaqDocSource()],
         images: [{
           title: '입원 전 복용 중단 약물 리스트',
           description: '입원 전에 중단이 필요한 약물 안내 이미지입니다.',
@@ -5423,7 +5473,7 @@ function buildReinitializedIntentResponse(intentType, message) {
         type: 'surgery_schedule',
         answer: '수술 시작 시간은 수술 동의와 설명 과정에서 안내되지만, 당일 상황과 환자 상태에 따라 변경될 수 있습니다.',
         followUp: ['정확한 시간은 입원 후 병동 또는 수술 안내 과정에서 다시 확인해 주세요.', '대표전화 02-6925-1111'],
-        sources: [buildLocalDocSource('병동-FAQ', '병동-FAQ.txt')],
+        sources: [buildIntegratedFaqDocSource()],
       };
     case 'surgery_duration':
       return {
@@ -5431,7 +5481,7 @@ function buildReinitializedIntentResponse(intentType, message) {
         answer: '수술 소요시간은 수술 종류와 환자 상태에 따라 달라집니다. 수술실 입실 후 준비 시간과 회복실 회복 시간까지 포함하면 실제 체감 시간은 더 길 수 있습니다.',
         followUp: ['코 수술은 국소마취 후 효과를 기다리는 시간이 있어 대기시간이 더 길 수 있습니다.', '정확한 예상 시간은 수술 설명 시 다시 확인해 주세요.'],
         sources: [
-          buildLocalDocSource('병동-FAQ', '병동-FAQ.txt'),
+          buildIntegratedFaqDocSource(),
           buildLocalDocSource('입원-입원생활안내문', '입원-입원생활안내문.txt'),
         ],
       };
@@ -5452,7 +5502,7 @@ function buildReinitializedIntentResponse(intentType, message) {
         type: 'late_arrival',
         answer: '예약 후 늦을 것 같으면 먼저 02-6925-1111로 연락해 주세요. 도착 예정 시간과 외래 대기 상황에 따라 방문 접수 또는 재예약으로 안내될 수 있습니다.',
         followUp: ['1시간 이상 늦는 경우에는 먼저 전화로 확인하는 편이 안전합니다.'],
-        sources: [buildLocalDocSource('홈페이지-FAQ', '홈페이지-FAQ.txt')],
+        sources: [buildIntegratedFaqDocSource()],
       };
     case 'inpatient_amenity':
       return buildCleanInpatientAmenityResponse(message);
@@ -5463,7 +5513,7 @@ function buildReinitializedIntentResponse(intentType, message) {
         followUp: ['식사시간은 보통 아침 8시, 점심 12시, 저녁 5시 30분으로 안내됩니다.', '세부 운영은 병동에 다시 확인해 주세요.'],
         sources: [
           buildLocalDocSource('입원-입원생활안내문', '입원-입원생활안내문.txt'),
-          buildLocalDocSource('병동-FAQ', '병동-FAQ.txt'),
+          buildIntegratedFaqDocSource(),
         ],
       };
     case 'inpatient_outing':
@@ -5471,7 +5521,7 @@ function buildReinitializedIntentResponse(intentType, message) {
         type: 'inpatient_outing',
         answer: '입원 중 외출과 외박은 특별한 사유가 없는 한 제한됩니다. 꼭 필요한 경우에는 요청서를 작성하고 주치의 또는 담당 의료진의 승인을 받아야 합니다.',
         followUp: ['승인된 시간 안에 복귀하셔야 합니다.', '무단 외출·외박은 인정되지 않습니다.'],
-        sources: [buildLocalDocSource('병동-FAQ', '병동-FAQ.txt')],
+        sources: [buildIntegratedFaqDocSource()],
       };
     case 'shuttle_bus':
       return {
@@ -5504,7 +5554,7 @@ function buildReinitializedIntentResponse(intentType, message) {
         followUp: ['세부 운영은 병동에 먼저 확인해 주세요.', '대표전화 02-6925-1111'],
         sources: [
           buildLocalDocSource('입원-입원생활안내문', '입원-입원생활안내문.txt'),
-          buildLocalDocSource('병동-FAQ', '병동-FAQ.txt'),
+          buildIntegratedFaqDocSource(),
         ],
       };
     case 'wifi_info':
@@ -5532,7 +5582,7 @@ function buildReinitializedIntentResponse(intentType, message) {
         answer: '예약은 온라인 예약, 전화 예약, 방문 예약으로 가능합니다. 처음 내원하시는 경우에는 신분증을 지참하고 1층 접수 데스크에서 등록 후 진료실로 안내됩니다.',
         followUp: ['예약 변경은 대표전화 02-6925-1111로 문의해 주세요.', '온라인 예약은 병원 홈페이지에서 요청 후 상담 확인 절차로 진행됩니다.'],
         sources: [
-          buildLocalDocSource('홈페이지-FAQ', '홈페이지-FAQ.txt'),
+          buildIntegratedFaqDocSource(),
           buildLocalDocSource('홈페이지-외래진료안내', '홈페이지-외래진료안내.txt'),
         ],
       };
@@ -6787,3 +6837,4 @@ server.listen(PORT, () => {
   watchDocsDirectory();
   warmupKnowledgeDocuments();
 });
+

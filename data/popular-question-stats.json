@@ -10,19 +10,29 @@
     "updatedAt": 1777247055757
   },
   {
+    "question": "셔틀버스 안내해줘",
+    "count": 7,
+    "updatedAt": 1777250546730
+  },
+  {
     "question": "귀 검사시 준비해야될게 있어?",
     "count": 7,
     "updatedAt": 1777118961351
   },
   {
-    "question": "셔틀버스 안내해줘",
+    "question": "홈페이지에서 예약할 수 있나요?",
     "count": 6,
-    "updatedAt": 1777247055821
+    "updatedAt": 1777250546665
   },
   {
     "question": "비염수술 얼마야",
     "count": 6,
     "updatedAt": 1777247055728
+  },
+  {
+    "question": "입원준비물",
+    "count": 5,
+    "updatedAt": 1777250546478
   },
   {
     "question": "의료진",
@@ -35,9 +45,9 @@
     "updatedAt": 1777198705649
   },
   {
-    "question": "홈페이지에서 예약할 수 있나요?",
+    "question": "입원 준비물 알려줘",
     "count": 4,
-    "updatedAt": 1777247055801
+    "updatedAt": 1777250546583
   },
   {
     "question": "코세척",
@@ -63,16 +73,6 @@
     "question": "입원전 복용중단 약물 리스트알려줘",
     "count": 4,
     "updatedAt": 1776381340893
-  },
-  {
-    "question": "입원 준비물 알려줘",
-    "count": 3,
-    "updatedAt": 1777247091438
-  },
-  {
-    "question": "입원준비물",
-    "count": 3,
-    "updatedAt": 1777247091346
   },
   {
     "question": "편도수술 얼마야?",
@@ -113,6 +113,16 @@
     "question": "수술 후 주의사항 알려줘",
     "count": 3,
     "updatedAt": 1776383246672
+  },
+  {
+    "question": "진료시 검사 가능한가요?",
+    "count": 2,
+    "updatedAt": 1777250546703
+  },
+  {
+    "question": "입원전 복용중단 약물 리스트 알려줘",
+    "count": 2,
+    "updatedAt": 1777250546632
   },
   {
     "question": "입원 시 준비물은 무엇이 있나요?",
@@ -163,6 +173,11 @@
     "question": "입원전 복용하면 안되는 약",
     "count": 2,
     "updatedAt": 1776394422303
+  },
+  {
+    "question": "수술 후 출혈",
+    "count": 1,
+    "updatedAt": 1777250488696
   },
   {
     "question": "비중격수술 얼마야?",
