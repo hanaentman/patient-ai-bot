@@ -2114,7 +2114,7 @@ function cleanIntegratedFaqQuestionLine(line) {
     .replace(/^[?？]{1,3}\s*/u, '')
     .replace(/^[•ㆍ·*-]\s*/u, '')
     .replace(/^\d+\s*[.)]\s*/u, '')
-    .replace(/^(q|질문)\s*[:.)-]\s*/iu, '')
+    .replace(/^(q|질문|吏덈Ц)\s*[:.)-]\s*/iu, '')
     .trim();
 }
 
@@ -2127,7 +2127,7 @@ function isIntegratedFaqQuestionLine(line) {
   const hasQuestionPrefix = /^[•ㆍ·*-]\s*/u.test(line)
     || /^[?？]{1,3}\s*/u.test(line)
     || /^\d+\s*[.)]\s*/u.test(line)
-    || /^(q|질문)\s*[:.)-]\s*/iu.test(line);
+    || /^(q|질문|吏덈Ц)\s*[:.)-]\s*/iu.test(line);
   const hasQuestionShape = /[?？]$/.test(cleaned)
     || /(가능|되나|되나요|하나요|인가요|있나요|없나요|무엇|뭐|어떻게|어디|언제|얼마|주소|홈페이지|알려|궁금)/u.test(cleaned);
 
@@ -2150,6 +2150,7 @@ function buildIntegratedFaqCards() {
   const text = repairBrokenKoreanText(fs.readFileSync(faqPath, 'utf8'));
   const cards = [];
   let current = null;
+  let currentCategory = '';
 
   const pushCurrent = () => {
     if (!current) {
@@ -2169,6 +2170,7 @@ function buildIntegratedFaqCards() {
       const answerTokens = tokenizeSafe(answer);
       cards.push({
         id: `integrated_faq_${cards.length + 1}`,
+        category: current.category || '',
         question,
         answer,
         normalizedQuestion: normalizeSearchTextSafe(question),
@@ -2191,10 +2193,18 @@ function buildIntegratedFaqCards() {
       return;
     }
 
+    const categoryMatch = line.match(/^\[([^\]]+)\]$/u);
+    if (categoryMatch) {
+      pushCurrent();
+      currentCategory = categoryMatch[1].trim();
+      return;
+    }
+
     if (isIntegratedFaqQuestionLine(line)) {
       pushCurrent();
       current = {
         question: line,
+        category: currentCategory,
         answerLines: [],
       };
       return;
@@ -6582,6 +6592,11 @@ async function buildChatResponse(rawMessage, sessionId) {
   const looseTopicResponse = findLooseTopicResponse(message);
   if (looseTopicResponse) {
     return enrichResponsePayload(looseTopicResponse, message);
+  }
+
+  const directIntegratedFaqResponse = findIntegratedFaqCardResponse(message);
+  if (directIntegratedFaqResponse) {
+    return enrichResponsePayload(directIntegratedFaqResponse, message);
   }
 
   if (/(예약|접수)/u.test(message) && rawIntent.type === 'reservation_or_reception') {

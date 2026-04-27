@@ -35,6 +35,11 @@
     "updatedAt": 1777247055728
   },
   {
+    "question": "실비보험 적용되나요?",
+    "count": 5,
+    "updatedAt": 1777256782852
+  },
+  {
     "question": "의료진",
     "count": 5,
     "updatedAt": 1777247055620
@@ -48,11 +53,6 @@
     "question": "면회 되나요?",
     "count": 4,
     "updatedAt": 1777256038345
-  },
-  {
-    "question": "실비보험 적용되나요?",
-    "count": 4,
-    "updatedAt": 1777256038162
   },
   {
     "question": "입원 준비물 알려줘",
@@ -83,6 +83,11 @@
     "question": "입원전 복용중단 약물 리스트알려줘",
     "count": 4,
     "updatedAt": 1776381340893
+  },
+  {
+    "question": "진료시간은 어떻게 되나요?",
+    "count": 3,
+    "updatedAt": 1777256811207
   },
   {
     "question": "홈페이지 주소 알려줘",
@@ -138,6 +143,21 @@
     "question": "수술 후 주의사항 알려줘",
     "count": 3,
     "updatedAt": 1776383246672
+  },
+  {
+    "question": "귀 검사 시 준비해야 할 사항이 있나요?",
+    "count": 2,
+    "updatedAt": 1777256811240
+  },
+  {
+    "question": "당일 예약 가능한가요?",
+    "count": 2,
+    "updatedAt": 1777256811178
+  },
+  {
+    "question": "접수시간은 어떻게 되나요?",
+    "count": 2,
+    "updatedAt": 1777256811116
   },
   {
     "question": "수면다원검사 건강보험 적용기준은 어떻게 되나요?",
@@ -225,19 +245,19 @@
     "updatedAt": 1776394422303
   },
   {
+    "question": "입원 환자 면회는 가능하나요?",
+    "count": 1,
+    "updatedAt": 1777256811293
+  },
+  {
+    "question": "코 검사 시 준비해야 될 사항이 있나요?",
+    "count": 1,
+    "updatedAt": 1777256782905
+  },
+  {
     "question": "실손보험 되나요?",
     "count": 1,
     "updatedAt": 1777256038256
-  },
-  {
-    "question": "당일 예약 가능한가요?",
-    "count": 1,
-    "updatedAt": 1777255946918
-  },
-  {
-    "question": "진료시간은 어떻게 되나요?",
-    "count": 1,
-    "updatedAt": 1777255946878
   },
   {
     "question": "2가지 질환 각각 진료 가능한가요?",
