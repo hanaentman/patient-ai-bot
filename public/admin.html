@@ -117,6 +117,20 @@
         padding: 16px;
       }
 
+      .card.review-normal {
+        border-left: 6px solid #2f9e71;
+      }
+
+      .card.review-needs-review {
+        border-left: 6px solid var(--warn);
+        background: #fffaf3;
+      }
+
+      .card.review-missing {
+        border-left: 6px solid var(--danger);
+        background: #fff6f6;
+      }
+
       .row {
         display: flex;
         flex-wrap: wrap;
@@ -179,6 +193,21 @@
         font-weight: 700;
         background: #e8f4fd;
         color: var(--primary);
+      }
+
+      .badge.review-normal {
+        background: #e7f7ef;
+        color: #237a55;
+      }
+
+      .badge.review-needs-review {
+        background: #fff0d9;
+        color: #a15b12;
+      }
+
+      .badge.review-missing {
+        background: #fde8e8;
+        color: #b42318;
       }
 
       .badge.needs_review {
@@ -416,6 +445,29 @@
         });
       }
 
+      function hasReviewNoteContent(reviewNote) {
+        return Boolean(
+          String(reviewNote.expectedIntent || '').trim()
+          || String(reviewNote.expectedSource || '').trim()
+          || String(reviewNote.expectedAnswerHint || '').trim()
+          || String(reviewNote.adminNote || '').trim()
+        );
+      }
+
+      function getReviewDisplayStatus(flag, reviewNote) {
+        if (flag === 'needs_review') {
+          return hasReviewNoteContent(reviewNote)
+            ? { label: '수정필요', className: 'review-needs-review' }
+            : { label: '미입력', className: 'review-missing' };
+        }
+
+        if (flag === 'normal') {
+          return { label: '정상', className: 'review-normal' };
+        }
+
+        return { label: formatFlagLabel(flag), className: 'important' };
+      }
+
       async function updateFlag(id, card) {
         const flag = card.querySelector('.flag-select').value;
         const note = stringifyReviewNote(card);
@@ -466,13 +518,14 @@
         logList.innerHTML = groupedItems.map((group) => {
           const item = group.head;
           const reviewNote = parseReviewNote(item.note || '');
+          const reviewStatus = getReviewDisplayStatus(item.flag || group.displayFlag || 'normal', reviewNote);
           return `
-          <article class="card" data-id="${escapeHtml(item.id)}" data-group-id="${escapeHtml(group.id)}">
+          <article class="card ${escapeHtml(reviewStatus.className)}" data-id="${escapeHtml(item.id)}" data-group-id="${escapeHtml(group.id)}">
             <div class="row">
               <span>${escapeHtml(group.latestTimestamp || item.timestamp)}</span>
               <span>세션: ${escapeHtml(item.sessionId || '-')}</span>
               <span>유형: ${escapeHtml(item.type || '-')}</span>
-              <span class="badge ${escapeHtml(group.displayFlag || 'normal')}">${escapeHtml(formatFlagLabel(group.displayFlag))}</span>
+              <span class="badge ${escapeHtml(reviewStatus.className)}">${escapeHtml(reviewStatus.label)}</span>
               <span>후속 ${escapeHtml(group.followUpCount)}건</span>
             </div>
 
