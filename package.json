@@ -5,6 +5,7 @@
   "description": "Hospital patient AI MVP",
   "scripts": {
     "sync:doctor-faq": "node scripts/sync_doctor_schedule_faq.js",
+    "intent:check": "node scripts/intent_check.js",
     "semantic:check": "node scripts/semantic_search_check.js",
     "start": "npm run sync:doctor-faq && node server.js"
   },

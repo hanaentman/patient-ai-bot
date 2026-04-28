@@ -7,6 +7,7 @@ const { DatabaseSync } = require('node:sqlite');
 const XLSX = require('xlsx');
 const CPEXCEL = require('xlsx/dist/cpexcel.js');
 const { createSemanticSearchService } = require('./lib/semantic-search');
+const { classifyIntentMeaning } = require('./lib/intent-classifier');
 
 const PORT = process.env.PORT || 3000;
 const IS_RENDER = Boolean(process.env.RENDER || process.env.RENDER_SERVICE_ID);
@@ -1859,6 +1860,8 @@ function shouldUseConsultationTone(payload) {
     'parking_info',
     'nasal_irrigation_surgery',
     'nasal_irrigation_general',
+    'network_hospital_info',
+    'guardian_meal',
   ].includes(type);
 }
 
@@ -3093,6 +3096,74 @@ function buildParkingInfoResponse(message) {
     ],
     sources,
   };
+}
+
+function buildNetworkHospitalInfoResponse() {
+  return {
+    type: 'network_hospital_info',
+    answer: '하나이비인후과는 전국 네트워크 구축을 통해 지역별 전국 43개소 네트워크를 구성하고 있습니다. 하나라는 브랜드를 사용하여 국내 최대 이비인후과 네트워크로 풍부한 경험을 바탕으로 진료의 표준화와 전문화를 추구합니다.',
+    followUp: [
+      '네트워크 병원 위치나 이용 가능 여부는 시점에 따라 달라질 수 있어 대표전화 02-6925-1111로 확인해 주세요.',
+    ],
+    sources: [buildIntegratedFaqDocSource()],
+  };
+}
+
+function buildGuardianMealResponse() {
+  const matchedLine = readNonpayDocLines().find((line) => (
+    compactSearchTextSafe(line).includes(compactSearchTextSafe('보호자 식대'))
+  ));
+  const price = extractPriceText(matchedLine);
+
+  return {
+    type: 'guardian_meal',
+    answer: price
+      ? `비급여비용 문서에 보호자 식대 ${price} 항목이 있어 보호자 식사가 제공되거나 신청 가능한 운영일 가능성이 높습니다. 다만 문서에 신청 방법이나 제공 기준이 직접 적혀 있지는 않아 정확한 운영 방식은 병동 또는 대표전화 02-6925-1111로 확인해 주세요.`
+      : '비급여비용 문서에 보호자 식대 항목이 있어 보호자 식사가 제공되거나 신청 가능한 운영일 가능성이 높습니다. 다만 신청 방법이나 제공 기준은 문서에 직접 적혀 있지 않아 병동 또는 대표전화 02-6925-1111로 확인해 주세요.',
+    followUp: [
+      matchedLine ? `문서 근거: ${matchedLine}` : '기준 문서는 기타-비급여비용입니다.',
+      '이 답변은 문서의 간접 근거를 바탕으로 한 추정입니다.',
+      '정확한 신청 방법이나 제공 기준은 병동 또는 대표전화 02-6925-1111로 확인해 주세요.',
+    ],
+    sources: [buildLocalDocSource('기타-비급여비용', path.basename(CERTIFICATE_FEES_DOC_PATH || '기타-비급여비용.txt'))],
+  };
+}
+
+function resolveMeaningIntentResponse(meaning, message, sessionId) {
+  const intent = String(meaning?.intent || '');
+
+  switch (intent) {
+    case 'network_hospital_info':
+      return buildNetworkHospitalInfoResponse();
+    case 'parking_info':
+      return buildParkingInfoResponse(message);
+    case 'nasal_irrigation_surgery':
+      clearConversationState(sessionId);
+      return createNasalIrrigationResponse('surgery');
+    case 'nasal_irrigation_general':
+      clearConversationState(sessionId);
+      return createNasalIrrigationResponse('general');
+    case 'nasal_irrigation':
+      if (meaning.needsClarification) {
+        setConversationState(sessionId, {
+          topic: 'nasal_irrigation',
+          originalMessage: message,
+        });
+        return createGuidedQuestionResponse(
+          meaning.clarificationQuestion || '코세척은 수술 후 코세척인지 일반 코세척인지 먼저 확인이 필요합니다.',
+          meaning.options?.length ? meaning.options : ['수술 후 코세척이에요', '일반 코세척이에요']
+        );
+      }
+      return null;
+    case 'guardian_meal':
+      return buildGuardianMealResponse();
+    case 'medication_stop':
+      return createMedicationStopResponse();
+    case 'admission_prep_items':
+      return buildReinitializedIntentResponse('admission_prep_items', message);
+    default:
+      return null;
+  }
 }
 
 function createFallbackInsufficientEvidenceResponse(contextTitles) {
@@ -6789,9 +6860,15 @@ async function buildChatResponse(rawMessage, sessionId) {
   const history = getSessionHistory(sessionId);
   let effectiveMessage = message;
   const rawIntent = classifyUserIntent(buildIntentProbeMessage(message));
+  const meaningIntent = classifyIntentMeaning(message);
 
   if (!message) {
     return enrichResponsePayload(createWelcomeResponse(), message);
+  }
+
+  const meaningIntentResponse = resolveMeaningIntentResponse(meaningIntent, message, sessionId);
+  if (meaningIntentResponse) {
+    return enrichResponsePayload(meaningIntentResponse, message);
   }
 
   const directDoctorSpecialtyResponse = buildCleanDoctorSpecialtyResponse(message);
