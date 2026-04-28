@@ -2087,6 +2087,7 @@ function shouldUseConsultationTone(payload) {
     'nasal_irrigation_general',
     'network_hospital_info',
     'guardian_meal',
+    'referral_document',
     'pharmacy_location',
   ].includes(type);
 }
@@ -7593,11 +7594,6 @@ async function buildChatResponse(rawMessage, sessionId) {
     return enrichResponsePayload(directReferralDocumentResponse, message);
   }
 
-  const directHospitalLocationResponse = buildHospitalLocationResponse(message);
-  if (directHospitalLocationResponse) {
-    return enrichResponsePayload(directHospitalLocationResponse, message);
-  }
-
   const directDoctorScheduleImageResponse = buildDoctorScheduleImageResponse(message);
   if (directDoctorScheduleImageResponse) {
     return enrichResponsePayload(directDoctorScheduleImageResponse, message);
@@ -7621,6 +7617,11 @@ async function buildChatResponse(rawMessage, sessionId) {
   const directAccessibilityResponse = buildAccessibilityResponse(message);
   if (directAccessibilityResponse) {
     return enrichResponsePayload(directAccessibilityResponse, message);
+  }
+
+  const directHospitalLocationResponse = buildHospitalLocationResponse(message);
+  if (directHospitalLocationResponse) {
+    return enrichResponsePayload(directHospitalLocationResponse, message);
   }
 
   const directClinicHoursNightWeekendResponse = buildClinicHoursNightWeekendResponse(message);
