@@ -249,6 +249,7 @@
         <input id="start-date" type="date" />
         <input id="end-date" type="date" />
         <button id="refresh-button" type="button">새로고침</button>
+        <button id="normal-export-button" type="button">정상 JSON</button>
         <button id="export-button" type="button">수정필요 JSON</button>
       </section>
 
@@ -263,6 +264,7 @@
       const startDateInput = document.getElementById('start-date');
       const endDateInput = document.getElementById('end-date');
       const refreshButton = document.getElementById('refresh-button');
+      const normalExportButton = document.getElementById('normal-export-button');
       const exportButton = document.getElementById('export-button');
       const logoutButton = document.getElementById('logout-button');
       const stats = document.getElementById('stats');
@@ -291,6 +293,7 @@
       }
 
       function formatFlagLabel(flag) {
+        if (!flag) return '미선택';
         if (flag === 'needs_review') return '수정 필요';
         if (flag === 'important') return '중요';
         return '정상';
@@ -336,6 +339,7 @@
       function getFlagPriority(flag) {
         if (flag === 'important') return 2;
         if (flag === 'needs_review') return 1;
+        if (flag === 'normal') return 1;
         return 0;
       }
 
@@ -380,7 +384,7 @@
             items: group.items,
             latestTimestamp: latestItem.timestamp || group.head.timestamp,
             followUpCount: Math.max(group.items.length - 1, 0),
-            displayFlag: strongestFlagItem.flag || group.head.flag || 'normal',
+            displayFlag: strongestFlagItem.flag || group.head.flag || '',
           };
         }).sort((a, b) => {
           const timeDiff = new Date(b.latestTimestamp || 0).getTime() - new Date(a.latestTimestamp || 0).getTime();
@@ -455,6 +459,10 @@
       }
 
       function getReviewDisplayStatus(flag, reviewNote) {
+        if (!flag) {
+          return { label: '미선택', className: 'review-missing' };
+        }
+
         if (flag === 'needs_review') {
           return hasReviewNoteContent(reviewNote)
             ? { label: '수정필요', className: 'review-needs-review' }
@@ -518,7 +526,7 @@
         logList.innerHTML = groupedItems.map((group) => {
           const item = group.head;
           const reviewNote = parseReviewNote(item.note || '');
-          const reviewStatus = getReviewDisplayStatus(item.flag || group.displayFlag || 'normal', reviewNote);
+          const reviewStatus = getReviewDisplayStatus(item.flag || group.displayFlag || '', reviewNote);
           return `
           <article class="card ${escapeHtml(reviewStatus.className)}" data-id="${escapeHtml(item.id)}" data-group-id="${escapeHtml(group.id)}">
             <div class="row">
@@ -548,6 +556,7 @@
 
             <section class="review">
               <select class="flag-select">
+                <option value="" ${!item.flag ? 'selected' : ''}>미선택</option>
                 <option value="normal" ${item.flag === 'normal' ? 'selected' : ''}>정상</option>
                 <option value="needs_review" ${item.flag === 'needs_review' ? 'selected' : ''}>수정 필요</option>
                 <option value="important" ${item.flag === 'important' ? 'selected' : ''}>중요</option>
@@ -603,9 +612,9 @@
         }
       }
 
-      async function downloadNeedsReviewLogs() {
+      async function downloadReviewLogs(flag, fallbackFileName) {
         const params = new URLSearchParams();
-        params.set('flag', 'needs_review');
+        params.set('flag', flag);
         if (searchInput.value.trim()) params.set('q', searchInput.value.trim());
         if (startDateInput.value) params.set('startAt', toDateRangeIso(startDateInput.value, false));
         if (endDateInput.value) params.set('endAt', toDateRangeIso(endDateInput.value, true));
@@ -623,7 +632,7 @@
           const disposition = response.headers.get('Content-Disposition') || '';
           const match = disposition.match(/filename="([^"]+)"/);
           link.href = url;
-          link.download = match ? match[1] : 'wrong-answer-notes.json';
+          link.download = match ? match[1] : fallbackFileName;
           document.body.appendChild(link);
           link.click();
           link.remove();
@@ -634,7 +643,8 @@
       }
 
       refreshButton.addEventListener('click', loadLogs);
-      exportButton.addEventListener('click', downloadNeedsReviewLogs);
+      normalExportButton.addEventListener('click', () => downloadReviewLogs('normal', 'seed-questions.json'));
+      exportButton.addEventListener('click', () => downloadReviewLogs('needs_review', 'wrong-answers.json'));
       logoutButton.addEventListener('click', async () => {
         await fetch('/api/admin/logout', { method: 'POST' });
         window.location.href = '/admin/login';

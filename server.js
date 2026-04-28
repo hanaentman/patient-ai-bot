@@ -929,7 +929,7 @@ function mapChatLogRow(row) {
     answerFull: repairBrokenKoreanText(row.answer_full || row.answer || ''),
     type: row.type || 'unknown',
     sources,
-    flag: row.flag || 'normal',
+    flag: row.flag === 'normal' && !row.reviewed_at ? '' : (row.flag || ''),
     note: repairBrokenKoreanText(row.note || ''),
     reviewedAt: row.reviewed_at || '',
   };
@@ -1025,7 +1025,7 @@ function syncAdminReviewToEvalFiles(logItem) {
   }
 
   const question = String(logItem.question || '').trim();
-  const flag = String(logItem.flag || 'normal');
+  const flag = String(logItem.flag || '');
   const reviewNote = parseAdminReviewNote(logItem.note);
   const note = reviewNote.adminNote || reviewNote.expectedAnswerHint || String(logItem.note || '').trim();
   const answerFull = String(logItem.answerFull || logItem.answer || '').trim();
@@ -1087,9 +1087,9 @@ function updateChatLogFlag(logId, flag, note = '') {
     SET flag = ?, note = ?, reviewed_at = ?
     WHERE id = ?
   `).run(
-    String(flag || 'normal'),
+    String(flag || ''),
     String(note || '').trim(),
-    new Date().toISOString(),
+    flag ? new Date().toISOString() : null,
     String(logId)
   );
 
@@ -1116,6 +1116,9 @@ function getChatLogsForAdmin(query, options = {}) {
   if (flag) {
     conditions.push('flag = ?');
     params.push(flag);
+    if (flag === 'normal') {
+      conditions.push('reviewed_at IS NOT NULL');
+    }
   }
 
   if (search) {
@@ -1161,6 +1164,9 @@ function getChatLogCount(query) {
   if (flag) {
     conditions.push('flag = ?');
     params.push(flag);
+    if (flag === 'normal') {
+      conditions.push('reviewed_at IS NOT NULL');
+    }
   }
 
   if (search) {
@@ -1242,6 +1248,59 @@ function buildWrongAnswerExportRows(query) {
   }));
 }
 
+function buildSeedQuestionExportRows(query) {
+  return buildSeedQuestionEvalRows(query).map((row) => ({
+    question: row.question,
+    ...row.entry,
+  }));
+}
+
+function buildSeedQuestionEvalRows(query) {
+  const exportQuery = new URLSearchParams();
+  const getQueryValue = (key) => (typeof query?.get === 'function' ? query.get(key) : query?.[key]);
+  const search = String(getQueryValue('q') || '').trim();
+  const startAt = String(getQueryValue('startAt') || '').trim();
+  const endAt = String(getQueryValue('endAt') || '').trim();
+
+  exportQuery.set('flag', 'normal');
+  if (search) {
+    exportQuery.set('q', search);
+  }
+  if (startAt) {
+    exportQuery.set('startAt', startAt);
+  }
+  if (endAt) {
+    exportQuery.set('endAt', endAt);
+  }
+
+  return getChatLogsForAdmin(exportQuery, { disableLimit: true })
+    .map((item) => {
+      const question = String(item.question || '').trim();
+      if (!question || !item.reviewedAt) {
+        return null;
+      }
+
+      const reviewNote = parseAdminReviewNote(item.note);
+      const answerFull = String(item.answerFull || item.answer || '').trim();
+      const sourceTitles = (Array.isArray(item.sources) ? item.sources : [])
+        .map((source) => String(source?.title || source?.url || '').trim())
+        .filter(Boolean);
+
+      return {
+        question,
+        entry: {
+          caseType: 'admin_normal',
+          expectedIntent: reviewNote.expectedIntent || String(item.type || '').trim() || '',
+          expectedSource: reviewNote.expectedSource || sourceTitles.join(' / ') || '',
+          expectedAnswerHint: reviewNote.expectedAnswerHint || reviewNote.adminNote || answerFull.slice(0, 500),
+          adminNote: reviewNote.adminNote || '',
+          reviewedLogId: item.id || '',
+        },
+      };
+    })
+    .filter(Boolean);
+}
+
 function buildWrongAnswerEvalRows(query) {
   const exportQuery = new URLSearchParams();
   const getQueryValue = (key) => (typeof query?.get === 'function' ? query.get(key) : query?.[key]);
@@ -1303,6 +1362,24 @@ function saveWrongAnswerEvalRows(query) {
     wrongAnswersPath: WRONG_ANSWERS_PATH,
     seedQuestionsPath: SEED_QUESTIONS_PATH,
     wrongAnswersCount: readJsonArray(WRONG_ANSWERS_PATH).length,
+    timestamp: new Date().toISOString(),
+  };
+}
+
+function saveSeedQuestionEvalRows(query) {
+  const rows = buildSeedQuestionEvalRows(query);
+
+  rows.forEach((row) => {
+    upsertEvalCase(SEED_QUESTIONS_PATH, row.question, row.entry);
+    removeEvalCaseByQuestion(WRONG_ANSWERS_PATH, row.question);
+  });
+
+  return {
+    ok: true,
+    savedCount: rows.length,
+    seedQuestionsPath: SEED_QUESTIONS_PATH,
+    wrongAnswersPath: WRONG_ANSWERS_PATH,
+    seedQuestionsCount: readJsonArray(SEED_QUESTIONS_PATH).length,
     timestamp: new Date().toISOString(),
   };
 }
@@ -8107,7 +8184,7 @@ async function handleApiChat(req, res) {
         ].filter(Boolean).join('\n'),
         type: response.type || 'unknown',
         sources: response.sources || [],
-        flag: 'normal',
+        flag: '',
         note: '',
       });
       sendJson(res, 200, response);
@@ -8146,8 +8223,12 @@ async function handleApiAdminLogFlag(req, res) {
 }
 
 function handleApiAdminLogsExport(req, res, requestUrl) {
-  const items = buildWrongAnswerExportRows(requestUrl.searchParams);
-  const fileName = 'wrong-answers.json';
+  const exportFlag = String(requestUrl.searchParams.get('flag') || '').trim();
+  const isNormalExport = exportFlag === 'normal';
+  const items = isNormalExport
+    ? buildSeedQuestionExportRows(requestUrl.searchParams)
+    : buildWrongAnswerExportRows(requestUrl.searchParams);
+  const fileName = isNormalExport ? 'seed-questions.json' : 'wrong-answers.json';
   const payload = JSON.stringify(items, null, 2);
 
   res.writeHead(200, {
@@ -8160,9 +8241,12 @@ function handleApiAdminLogsExport(req, res, requestUrl) {
 
 function handleApiAdminLogsExportSave(req, res, requestUrl) {
   try {
-    sendJson(res, 200, saveWrongAnswerEvalRows(requestUrl.searchParams));
+    const exportFlag = String(requestUrl.searchParams.get('flag') || '').trim();
+    sendJson(res, 200, exportFlag === 'normal'
+      ? saveSeedQuestionEvalRows(requestUrl.searchParams)
+      : saveWrongAnswerEvalRows(requestUrl.searchParams));
   } catch (error) {
-    console.error('[wrong-answer-save-error]', error);
+    console.error('[eval-export-save-error]', error);
     sendJson(res, 500, {
       ok: false,
       error: error.message,
