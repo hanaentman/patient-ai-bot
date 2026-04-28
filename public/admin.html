@@ -144,6 +144,19 @@
         align-items: start;
       }
 
+      .review-fields {
+        display: grid;
+        gap: 8px;
+      }
+
+      .review-fields label {
+        display: grid;
+        gap: 4px;
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 700;
+      }
+
       .badge {
         display: inline-flex;
         align-items: center;
@@ -345,9 +358,51 @@
         return [...bySession.values()].flatMap((sessionItems) => groupSessionLogItems(sessionItems));
       }
 
+      function parseReviewNote(value) {
+        const text = String(value || '').trim();
+        if (!text) {
+          return {
+            expectedIntent: '',
+            expectedSource: '',
+            expectedAnswerHint: '',
+            adminNote: '',
+          };
+        }
+
+        try {
+          const parsed = JSON.parse(text);
+          if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+            throw new Error('Invalid review note');
+          }
+
+          return {
+            expectedIntent: parsed.expectedIntent || '',
+            expectedSource: parsed.expectedSource || '',
+            expectedAnswerHint: parsed.expectedAnswerHint || '',
+            adminNote: parsed.adminNote || '',
+          };
+        } catch (error) {
+          return {
+            expectedIntent: '',
+            expectedSource: '',
+            expectedAnswerHint: text,
+            adminNote: text,
+          };
+        }
+      }
+
+      function stringifyReviewNote(card) {
+        return JSON.stringify({
+          expectedIntent: card.querySelector('.expected-intent-input').value.trim(),
+          expectedSource: card.querySelector('.expected-source-input').value.trim(),
+          expectedAnswerHint: card.querySelector('.expected-answer-hint-input').value.trim(),
+          adminNote: card.querySelector('.admin-note-input').value.trim(),
+        });
+      }
+
       async function updateFlag(id, card) {
         const flag = card.querySelector('.flag-select').value;
-        const note = card.querySelector('.note-input').value;
+        const note = stringifyReviewNote(card);
         const response = await fetch('/api/admin/logs/flag', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -373,6 +428,7 @@
 
         logList.innerHTML = groupedItems.map((group) => {
           const item = group.head;
+          const reviewNote = parseReviewNote(item.note || '');
           return `
           <article class="card" data-id="${escapeHtml(item.id)}" data-group-id="${escapeHtml(group.id)}">
             <div class="row">
@@ -406,7 +462,24 @@
                 <option value="needs_review" ${item.flag === 'needs_review' ? 'selected' : ''}>수정 필요</option>
                 <option value="important" ${item.flag === 'important' ? 'selected' : ''}>중요</option>
               </select>
-              <textarea class="note-input" rows="2" placeholder="메모">${escapeHtml(item.note || '')}</textarea>
+              <div class="review-fields">
+                <label>
+                  expectedIntent
+                  <input class="expected-intent-input" type="text" placeholder="예: 청력검사 진행 안내" value="${escapeHtml(reviewNote.expectedIntent || '')}" />
+                </label>
+                <label>
+                  expectedSource
+                  <input class="expected-source-input" type="text" placeholder="예: 청력검사 또는 귀 검사 안내 문서" value="${escapeHtml(reviewNote.expectedSource || '')}" />
+                </label>
+                <label>
+                  expectedAnswerHint
+                  <textarea class="expected-answer-hint-input" rows="2" placeholder="기대 답변 방향">${escapeHtml(reviewNote.expectedAnswerHint || '')}</textarea>
+                </label>
+                <label>
+                  adminNote
+                  <textarea class="admin-note-input" rows="2" placeholder="추가 메모">${escapeHtml(reviewNote.adminNote || '')}</textarea>
+                </label>
+              </div>
               <button type="button" class="save-button">저장</button>
             </section>
           </article>

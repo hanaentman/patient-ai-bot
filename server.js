@@ -957,6 +957,40 @@ function upsertEvalCase(filePath, question, entry) {
   writeJsonArray(filePath, items);
 }
 
+function parseAdminReviewNote(value) {
+  const text = String(value || '').trim();
+  const empty = {
+    expectedIntent: '',
+    expectedSource: '',
+    expectedAnswerHint: '',
+    adminNote: '',
+  };
+
+  if (!text) {
+    return empty;
+  }
+
+  try {
+    const parsed = JSON.parse(text);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return { ...empty, adminNote: text };
+    }
+
+    return {
+      expectedIntent: String(parsed.expectedIntent || '').trim(),
+      expectedSource: String(parsed.expectedSource || '').trim(),
+      expectedAnswerHint: String(parsed.expectedAnswerHint || '').trim(),
+      adminNote: String(parsed.adminNote || '').trim(),
+    };
+  } catch (error) {
+    return {
+      ...empty,
+      expectedAnswerHint: text,
+      adminNote: text,
+    };
+  }
+}
+
 function syncAdminReviewToEvalFiles(logItem) {
   if (!logItem || !String(logItem.question || '').trim()) {
     return;
@@ -964,7 +998,8 @@ function syncAdminReviewToEvalFiles(logItem) {
 
   const question = String(logItem.question || '').trim();
   const flag = String(logItem.flag || 'normal');
-  const note = String(logItem.note || '').trim();
+  const reviewNote = parseAdminReviewNote(logItem.note);
+  const note = reviewNote.adminNote || reviewNote.expectedAnswerHint || String(logItem.note || '').trim();
   const answerFull = String(logItem.answerFull || logItem.answer || '').trim();
   const sourceTitles = (Array.isArray(logItem.sources) ? logItem.sources : [])
     .map((source) => String(source?.title || source?.url || '').trim())
@@ -974,10 +1009,10 @@ function syncAdminReviewToEvalFiles(logItem) {
     if (flag === 'normal') {
       upsertEvalCase(SEED_QUESTIONS_PATH, question, {
         caseType: 'admin_normal',
-        expectedIntent: String(logItem.type || '').trim() || undefined,
-        expectedSource: sourceTitles.join(' / ') || undefined,
-        expectedAnswerHint: note || answerFull.slice(0, 500),
-        adminNote: note,
+        expectedIntent: reviewNote.expectedIntent || String(logItem.type || '').trim() || undefined,
+        expectedSource: reviewNote.expectedSource || sourceTitles.join(' / ') || undefined,
+        expectedAnswerHint: reviewNote.expectedAnswerHint || note || answerFull.slice(0, 500),
+        adminNote: reviewNote.adminNote || '',
         reviewedLogId: logItem.id || '',
       });
       removeEvalCaseByQuestion(WRONG_ANSWERS_PATH, question);
@@ -988,10 +1023,10 @@ function syncAdminReviewToEvalFiles(logItem) {
       upsertEvalCase(WRONG_ANSWERS_PATH, question, {
         caseType: 'actual_wrong_answer',
         wrongAnswer: answerFull,
-        expectedIntent: '',
-        expectedSource: sourceTitles.join(' / ') || '',
-        expectedAnswerHint: note || '관리자 메모에 기대 답변 방향을 적어 주세요.',
-        adminNote: note,
+        expectedIntent: reviewNote.expectedIntent || '',
+        expectedSource: reviewNote.expectedSource || sourceTitles.join(' / ') || '',
+        expectedAnswerHint: reviewNote.expectedAnswerHint || note || '관리자 메모에 기대 답변 방향을 적어 주세요.',
+        adminNote: reviewNote.adminNote || '',
         reviewedLogId: logItem.id || '',
       });
       removeEvalCaseByQuestion(SEED_QUESTIONS_PATH, question);
