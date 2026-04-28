@@ -50,6 +50,11 @@
     "updatedAt": 1777247055620
   },
   {
+    "question": "코세척 방법 알려줘",
+    "count": 4,
+    "updatedAt": 1777338119152
+  },
+  {
     "question": "주차가능해?",
     "count": 4,
     "updatedAt": 1777337944001
@@ -90,9 +95,14 @@
     "updatedAt": 1776381340893
   },
   {
-    "question": "코세척 방법 알려줘",
+    "question": "보호자 밥 신청할 수 있어?",
     "count": 3,
-    "updatedAt": 1777337944099
+    "updatedAt": 1777338119214
+  },
+  {
+    "question": "네트워크 병원이 뭐야?",
+    "count": 3,
+    "updatedAt": 1777338118997
   },
   {
     "question": "진료시간은 어떻게 되나요?",
@@ -153,16 +163,6 @@
     "question": "수술 후 주의사항 알려줘",
     "count": 3,
     "updatedAt": 1776383246672
-  },
-  {
-    "question": "보호자 밥 신청할 수 있어?",
-    "count": 2,
-    "updatedAt": 1777337993931
-  },
-  {
-    "question": "네트워크 병원이 뭐야?",
-    "count": 2,
-    "updatedAt": 1777337993784
   },
   {
     "question": "일반 코세척 방법",
@@ -283,6 +283,16 @@
     "question": "입원전 복용하면 안되는 약",
     "count": 2,
     "updatedAt": 1776394422303
+  },
+  {
+    "question": "아스피린 먹고 있는데 수술해도 돼?",
+    "count": 1,
+    "updatedAt": 1777338119280
+  },
+  {
+    "question": "주차 가능해?",
+    "count": 1,
+    "updatedAt": 1777338119081
   },
   {
     "question": "수술 전에 먹으면 안 되는 약 있어?",

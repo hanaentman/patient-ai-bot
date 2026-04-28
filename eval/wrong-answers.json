@@ -6,5 +6,13 @@
     "expectedIntent": "network_hospital_info",
     "expectedSource": "하나이비인후과 네트워크 병원 안내",
     "expectedAnswerHint": "하나이비인후과 전국네트워크 구축, 지역별 전국 43개소 네트워크 구성. 하나라는 브랜드를 사용하여 국내 최대 이비인후과 네트워크로 풍부한 경험을 통해 진료 표준화와 전문화를 추구한다고 안내"
+  },
+  {
+    "caseType": "actual_wrong_answer",
+    "question": "청력검사는 어떻게 진행되나요?",
+    "wrongAnswer": "수면검사 안내로 답변함. 수면다원검사와 상기도수면내시경검사 설명이 나옴",
+    "expectedIntent": "청력검사 진행 안내",
+    "expectedSource": "청력검사 또는 귀 검사 안내 문서",
+    "expectedAnswerHint": "청력검사 절차와 당일 검사 가능 여부, 결과 상담 가능 여부를 안내해야 하며 수면검사 안내로 가면 안 됨"
   }
 ]
