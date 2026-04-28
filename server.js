@@ -29,7 +29,10 @@ const IMAGE_GUIDES_PATH = path.join(__dirname, 'data', 'image-guides.json');
 const POPULAR_QUESTIONS_PATH = path.join(PERSISTENT_DATA_DIR, 'popular-question-stats.json');
 const CHAT_LOGS_PATH = path.join(PERSISTENT_DATA_DIR, 'chat-logs.json');
 const CHAT_LOGS_DB_PATH = path.join(PERSISTENT_DATA_DIR, 'chat-logs.db');
-const EVAL_DIR = path.join(__dirname, 'eval');
+const EVAL_SOURCE_DIR = path.join(__dirname, 'eval');
+const EVAL_DIR = process.env.EVAL_DATA_DIR
+  ? path.resolve(process.env.EVAL_DATA_DIR)
+  : (IS_RENDER ? path.join(PERSISTENT_DATA_DIR, 'eval') : EVAL_SOURCE_DIR);
 const SEED_QUESTIONS_PATH = path.join(EVAL_DIR, 'seed-questions.json');
 const WRONG_ANSWERS_PATH = path.join(EVAL_DIR, 'wrong-answers.json');
 const DOCS_DIR = path.join(__dirname, 'docs');
@@ -455,6 +458,7 @@ const sessionDailyRateWindow = new Map();
 let warmupStarted = false;
 const MAX_CHAT_LOG_ENTRIES = 5000;
 ensurePersistentDataDir();
+ensureEvalDataFiles();
 warnIfRenderPersistenceIsMisconfigured();
 const chatLogDb = createChatLogDatabase();
 let docsWatchDebounceTimer = null;
@@ -481,6 +485,22 @@ function writeJsonArray(filePath, items) {
 
 function ensurePersistentDataDir() {
   fs.mkdirSync(PERSISTENT_DATA_DIR, { recursive: true });
+}
+
+function ensureEvalDataFiles() {
+  fs.mkdirSync(EVAL_DIR, { recursive: true });
+
+  if (path.resolve(EVAL_DIR) === path.resolve(EVAL_SOURCE_DIR)) {
+    return;
+  }
+
+  ['seed-questions.json', 'wrong-answers.json'].forEach((fileName) => {
+    const targetPath = path.join(EVAL_DIR, fileName);
+    const sourcePath = path.join(EVAL_SOURCE_DIR, fileName);
+    if (!fs.existsSync(targetPath) && fs.existsSync(sourcePath)) {
+      fs.copyFileSync(sourcePath, targetPath);
+    }
+  });
 }
 
 function warnIfRenderPersistenceIsMisconfigured() {
@@ -7472,8 +7492,7 @@ function handleApiAdminLogFlag(req, res) {
 
 function handleApiAdminLogsExport(req, res, requestUrl) {
   const items = buildWrongAnswerExportRows(requestUrl.searchParams);
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const fileName = `wrong-answer-notes-${timestamp}.json`;
+  const fileName = 'wrong-answers.json';
   const payload = JSON.stringify(items, null, 2);
 
   res.writeHead(200, {

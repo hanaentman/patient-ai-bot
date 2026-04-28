@@ -239,6 +239,8 @@
       const stats = document.getElementById('stats');
       const evalStatus = document.getElementById('eval-status');
       const logList = document.getElementById('log-list');
+      let lastEvalStatus = null;
+      const localWrongAnswersPath = 'C:\\Users\\OCSEMR\\patient-ai-bot\\eval\\wrong-answers.json';
 
       function toDateRangeIso(value, isEnd) {
         if (!value) return '';
@@ -440,10 +442,16 @@
           }
 
           const data = await response.json();
+          lastEvalStatus = data;
           evalStatus.textContent = `Eval 저장 위치: 정상 ${data.seedQuestionsCount}개 -> ${data.seedQuestionsPath} / 수정필요 ${data.wrongAnswersCount}개 -> ${data.wrongAnswersPath}`;
         } catch (error) {
+          lastEvalStatus = null;
           evalStatus.textContent = 'Eval 저장 위치를 확인하지 못했습니다. 로컬 patient-ai-bot 서버에서 열린 어드민인지 확인해 주세요.';
         }
+      }
+
+      function isLocalAdminPage() {
+        return ['127.0.0.1', 'localhost', '::1'].includes(window.location.hostname);
       }
 
       function renderLogs(items, total) {
@@ -542,7 +550,7 @@
         }
       }
 
-      async function saveNeedsReviewLogs() {
+      async function downloadNeedsReviewLogs() {
         const params = new URLSearchParams();
         params.set('flag', 'needs_review');
         if (searchInput.value.trim()) params.set('q', searchInput.value.trim());
@@ -550,24 +558,30 @@
         if (endDateInput.value) params.set('endAt', toDateRangeIso(endDateInput.value, true));
 
         try {
-          const response = await fetch(`/api/admin/logs/export/save?${params.toString()}`, {
-            method: 'POST',
-          });
+          const response = await fetch(`/api/admin/logs/export?${params.toString()}`);
           if (!response.ok) {
             alert('JSON 내보내기에 실패했습니다.');
             return;
           }
 
-          const data = await response.json();
-          await loadEvalStatus();
-          alert(`수정필요 ${data.savedCount}건을 저장했습니다.\n${data.wrongAnswersPath}`);
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          const disposition = response.headers.get('Content-Disposition') || '';
+          const match = disposition.match(/filename="([^"]+)"/);
+          link.href = url;
+          link.download = match ? match[1] : 'wrong-answer-notes.json';
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          URL.revokeObjectURL(url);
         } catch (error) {
           alert('JSON 내보내기에 실패했습니다.');
         }
       }
 
       refreshButton.addEventListener('click', loadLogs);
-      exportButton.addEventListener('click', saveNeedsReviewLogs);
+      exportButton.addEventListener('click', downloadNeedsReviewLogs);
       logoutButton.addEventListener('click', async () => {
         await fetch('/api/admin/logout', { method: 'POST' });
         window.location.href = '/admin/login';
