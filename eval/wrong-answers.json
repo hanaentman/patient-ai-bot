@@ -1,177 +1,92 @@
 [
   {
-    "timestamp": "2026-04-28T02:18:15.095Z",
-    "session_id": "session-c7538c28-a943-4e38-bbc9-c3e48d46c627",
     "question": "청력검사는 어떻게 진행 되?>",
-    "actual_answer": "검사 관련해서 안내드릴게요.\n\n수면검사는 크게 수면다원검사와 상기도수면내시경검사로 나뉩니다. 수면다원검사는 코골이나 수면무호흡의 심한 정도를 파악하는 검사입니다. 수면다원검사의 경우 1박 2일 입원하에 진행되며, 하룻밤 자면서 검사를 시행합니다. 몸에 각종 센서를 부착해 자는 동안 호흡 정도와 몸의 움직임, 긴장도, 심전도, 뇌파, 산소포화도 등을 측정합니다. 상기도 수면내시경검사의 경우 수면을 유도하는 약물을 주사해 환자를 수면으로 유도하게 되며, 다음날 오전에 시행하게 됩니다. 이 검사를 통해서 어느 곳이 좁아지거나 막혀 증상이 발생하는지 파악할 수 있습니다.",
-    "status": "수정필요",
-    "flag": "needs_review",
-    "type": "integrated_faq",
-    "question_note": "{\"expectedIntent\":\"청력검사\",\"expectedSource\":\"홈페이지-어지럼증, 홈페이지-난청\",\"expectedAnswerHint\":\"청력검사에 대해 물어봤는데 수면검사라는 잘못된 답변이 나옴\",\"adminNote\":\"\"}",
-    "session_flag": "normal",
-    "session_note": "",
-    "reviewed_at": "2026-04-28T02:22:46.900Z",
-    "session_reviewed_at": "",
-    "sources": [
-      {
-        "title": "통합-FAQ",
-        "url": "local://docs/%ED%86%B5%ED%95%A9-FAQ.txt"
-      }
-    ]
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "검사 관련해서 안내드릴게요.\n\n수면검사는 크게 수면다원검사와 상기도수면내시경검사로 나뉩니다. 수면다원검사는 코골이나 수면무호흡의 심한 정도를 파악하는 검사입니다. 수면다원검사의 경우 1박 2일 입원하에 진행되며, 하룻밤 자면서 검사를 시행합니다. 몸에 각종 센서를 부착해 자는 동안 호흡 정도와 몸의 움직임, 긴장도, 심전도, 뇌파, 산소포화도 등을 측정합니다. 상기도 수면내시경검사의 경우 수면을 유도하는 약물을 주사해 환자를 수면으로 유도하게 되며, 다음날 오전에 시행하게 됩니다. 이 검사를 통해서 어느 곳이 좁아지거나 막혀 증상이 발생하는지 파악할 수 있습니다.",
+    "expectedIntent": "청력검사",
+    "expectedSource": "홈페이지-어지럼증, 홈페이지-난청",
+    "expectedAnswerHint": "청력검사에 대해 물어봤는데 수면검사라는 잘못된 답변이 나옴",
+    "adminNote": "",
+    "reviewedLogId": "log-1777342695095-qh4c5f"
   },
   {
-    "timestamp": "2026-04-28T01:53:08.490Z",
-    "session_id": "session-01380f95-5cce-4beb-acfe-f6bd338e3b94",
     "question": "편도 절제 수술은 언제 필요한가요?",
-    "actual_answer": "수술 관련해서 안내드릴게요.\n\n수술 시 전신마취를 통해 진행하기 때문에 전신마취의 위험성이 줄어드는 신체조건이 되어야 합니다. 일반적으로는 아이의 나이가 만 3 세 이상, 몸무게가 15kg 이상 되면 전신마취 수술이 크게 위험하지 않다고 판단하며, 수술을 진행하게 됩니다.",
-    "status": "수정필요",
-    "flag": "needs_review",
-    "type": "integrated_faq",
-    "question_note": "{\"expectedIntent\":\"편도 절제 수술\",\"expectedSource\":\"홈페이지-편도\",\"expectedAnswerHint\":\"편도수술에 관련되 내용이 나와야함\",\"adminNote\":\"\"}",
-    "session_flag": "normal",
-    "session_note": "",
-    "reviewed_at": "2026-04-28T01:55:03.685Z",
-    "session_reviewed_at": "",
-    "sources": [
-      {
-        "title": "통합-FAQ",
-        "url": "local://docs/%ED%86%B5%ED%95%A9-FAQ.txt"
-      }
-    ]
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "수술 관련해서 안내드릴게요.\n\n수술 시 전신마취를 통해 진행하기 때문에 전신마취의 위험성이 줄어드는 신체조건이 되어야 합니다. 일반적으로는 아이의 나이가 만 3 세 이상, 몸무게가 15kg 이상 되면 전신마취 수술이 크게 위험하지 않다고 판단하며, 수술을 진행하게 됩니다.",
+    "expectedIntent": "편도 절제 수술",
+    "expectedSource": "홈페이지-편도",
+    "expectedAnswerHint": "편도수술에 관련되 내용이 나와야함",
+    "adminNote": "",
+    "reviewedLogId": "log-1777341188490-tjrvhu"
   },
   {
-    "timestamp": "2026-04-28T01:50:57.787Z",
-    "session_id": "session-01380f95-5cce-4beb-acfe-f6bd338e3b94",
     "question": "동헌종 경력 알려주세요",
-    "actual_answer": "의료진 관련해서 안내드릴게요.\n\n동헌종 의료진의 전문분야는 부비동 내시경수술, 코물혹, 비중격만곡증, 알레르기 비염 입니다.\n- 진료 일정은 외래 진료표와 당일 상황에 따라 달라질 수 있습니다.",
-    "status": "수정필요",
-    "flag": "needs_review",
-    "type": "doctor_specialty",
-    "question_note": "{\"expectedIntent\":\"의료진 정보, 동헌종\",\"expectedSource\":\"홈페이지-의료진 정보\",\"expectedAnswerHint\":\"답변은 맞으나 추가적인 정보가 더 들어가면 좋음\",\"adminNote\":\"\"}",
-    "session_flag": "normal",
-    "session_note": "",
-    "reviewed_at": "2026-04-28T02:23:46.153Z",
-    "session_reviewed_at": "",
-    "sources": [
-      {
-        "title": "홈페이지-의료진 정보",
-        "url": "local://docs/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-%EC%9D%98%EB%A3%8C%EC%A7%84%20%EC%A0%95%EB%B3%B4.txt"
-      }
-    ]
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "의료진 관련해서 안내드릴게요.\n\n동헌종 의료진의 전문분야는 부비동 내시경수술, 코물혹, 비중격만곡증, 알레르기 비염 입니다.\n- 진료 일정은 외래 진료표와 당일 상황에 따라 달라질 수 있습니다.",
+    "expectedIntent": "의료진 정보, 동헌종",
+    "expectedSource": "홈페이지-의료진 정보",
+    "expectedAnswerHint": "답변은 맞으나 추가적인 정보가 더 들어가면 좋음",
+    "adminNote": "",
+    "reviewedLogId": "log-1777341057787-ecfpyk"
   },
   {
-    "timestamp": "2026-04-28T01:21:07.867Z",
-    "session_id": "session-d35a54a1-8ca4-45d3-944d-6a964a8b6747",
     "question": "편도수술",
-    "actual_answer": "수술 관련해서 안내드릴게요.\n\n수술 시 전신마취를 통해 진행하기 때문에 전신마취의 위험성이 줄어드는 신체조건이 되어야 합니다. 일반적으로는 아이의 나이가 만 3 세 이상, 몸무게가 15kg 이상 되면 전신마취 수술이 크게 위험하지 않다고 판단하며, 수술을 진행하게 됩니다.",
-    "status": "수정필요",
-    "flag": "needs_review",
-    "type": "integrated_faq",
-    "question_note": "{\"expectedIntent\":\"편도수술\",\"expectedSource\":\"홈페이지-편도.txt\",\"expectedAnswerHint\":\"편도수술에 관련된 내용이 나와야 하는데 수술 관련 전신마취 내용으로 잘못된 내용이 나옴\",\"adminNote\":\"\"}",
-    "session_flag": "normal",
-    "session_note": "",
-    "reviewed_at": "2026-04-28T01:34:47.914Z",
-    "session_reviewed_at": "",
-    "sources": [
-      {
-        "title": "통합-FAQ",
-        "url": "local://docs/%ED%86%B5%ED%95%A9-FAQ.txt"
-      }
-    ]
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "수술 관련해서 안내드릴게요.\n\n수술 시 전신마취를 통해 진행하기 때문에 전신마취의 위험성이 줄어드는 신체조건이 되어야 합니다. 일반적으로는 아이의 나이가 만 3 세 이상, 몸무게가 15kg 이상 되면 전신마취 수술이 크게 위험하지 않다고 판단하며, 수술을 진행하게 됩니다.",
+    "expectedIntent": "편도수술",
+    "expectedSource": "홈페이지-편도.txt",
+    "expectedAnswerHint": "편도수술에 관련된 내용이 나와야 하는데 수술 관련 전신마취 내용으로 잘못된 내용이 나옴",
+    "adminNote": "",
+    "reviewedLogId": "log-1777339267867-8q9jcw"
   },
   {
-    "timestamp": "2026-04-28T01:21:00.654Z",
-    "session_id": "session-d35a54a1-8ca4-45d3-944d-6a964a8b6747",
     "question": "청력검사는 어떻게 진행되?",
-    "actual_answer": "검사 관련해서 안내드릴게요.\n\n수면검사는 크게 수면다원검사와 상기도수면내시경검사로 나뉩니다. 수면다원검사는 코골이나 수면무호흡의 심한 정도를 파악하는 검사입니다. 수면다원검사의 경우 1박 2일 입원하에 진행되며, 하룻밤 자면서 검사를 시행합니다. 몸에 각종 센서를 부착해 자는 동안 호흡 정도와 몸의 움직임, 긴장도, 심전도, 뇌파, 산소포화도 등을 측정합니다. 상기도 수면내시경검사의 경우 수면을 유도하는 약물을 주사해 환자를 수면으로 유도하게 되며, 다음날 오전에 시행하게 됩니다. 이 검사를 통해서 어느 곳이 좁아지거나 막혀 증상이 발생하는지 파악할 수 있습니다.",
-    "status": "수정필요",
-    "flag": "needs_review",
-    "type": "integrated_faq",
-    "question_note": "청력감사에 ㅐ한 내용이 나와야 하는데 수면검사에 대해 잘못된 답변이 나옴",
-    "session_flag": "normal",
-    "session_note": "",
-    "reviewed_at": "2026-04-28T01:23:16.002Z",
-    "session_reviewed_at": "",
-    "sources": [
-      {
-        "title": "통합-FAQ",
-        "url": "local://docs/%ED%86%B5%ED%95%A9-FAQ.txt"
-      }
-    ]
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "검사 관련해서 안내드릴게요.\n\n수면검사는 크게 수면다원검사와 상기도수면내시경검사로 나뉩니다. 수면다원검사는 코골이나 수면무호흡의 심한 정도를 파악하는 검사입니다. 수면다원검사의 경우 1박 2일 입원하에 진행되며, 하룻밤 자면서 검사를 시행합니다. 몸에 각종 센서를 부착해 자는 동안 호흡 정도와 몸의 움직임, 긴장도, 심전도, 뇌파, 산소포화도 등을 측정합니다. 상기도 수면내시경검사의 경우 수면을 유도하는 약물을 주사해 환자를 수면으로 유도하게 되며, 다음날 오전에 시행하게 됩니다. 이 검사를 통해서 어느 곳이 좁아지거나 막혀 증상이 발생하는지 파악할 수 있습니다.",
+    "expectedIntent": "",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "청력감사에 ㅐ한 내용이 나와야 하는데 수면검사에 대해 잘못된 답변이 나옴",
+    "adminNote": "청력감사에 ㅐ한 내용이 나와야 하는데 수면검사에 대해 잘못된 답변이 나옴",
+    "reviewedLogId": "log-1777339260654-a0613p"
   },
   {
-    "timestamp": "2026-04-28T01:07:54.030Z",
-    "session_id": "session-01380f95-5cce-4beb-acfe-f6bd338e3b94",
     "question": "편도 절제 수술은 언제 필요한가요?",
-    "actual_answer": "수술 관련해서 안내드릴게요.\n\n수술 시 전신마취를 통해 진행하기 때문에 전신마취의 위험성이 줄어드는 신체조건이 되어야 합니다. 일반적으로는 아이의 나이가 만 3 세 이상, 몸무게가 15kg 이상 되면 전신마취 수술이 크게 위험하지 않다고 판단하며, 수술을 진행하게 됩니다.",
-    "status": "수정필요",
-    "flag": "needs_review",
-    "type": "integrated_faq",
-    "question_note": "{\"expectedIntent\":\"편도수술, 편도절제술\",\"expectedSource\":\"홈페이지-편도\",\"expectedAnswerHint\":\"편도\\n목 질환 센터 편도\\n성인편도\\n소아편도\\n“성인의 경우 주로 감염으로 인한 편도염이 발생됩니다.”\\n\\n검사\\n\\n성인 정상 편도\\n\\n성인 편도비대\\n진단\\n비수술 치료\\n진단\\n급성 편도염\\n원인\\n주로 세균이나 바이러스 감염에 의한 발생\\n수술치료\\n진단\\n만성 편도염\\n원인\\n급성 편도염의 잦은 재발로 인한 질환\\n치료\\n급성 편도염\\n증상치료 또는\\n항생제 치료\\n \\n만성 편도염\\n항생제 치료 또는\\n편도절제술 시행\\n \\n편도절제술\\n편도절제술을 고려하는 경우\\n1년에 3번 이상 고열을 동반한 편도선염을 앓을 때\\n편도결석이 반복적으로 생겨 불편함이 있을 때\\n편도비대로 코골이나 수면무호흡증이 심할 때\\n HANA ENT   HOSPITAL\\n“성인 편도 자주묻는 질문 영상”\\n\\n\\n하나이비인후과병원 편도절제술\\n수술비용\\n성인 90만원\\n소아 130만원\\n(실비보험 적용가능)\\n수술시간\\n약20분~30분\\n마취방법\\n전신마취\\n입원기간\\n2박 3일\\n내원치료\\n수술 후 2~3회\\n회복기간\\n약 2주~3주\\n하나이비인후과병원 편도절제술 장점\\n풍부한 임상경험의 실력있는 의료진\\n마취과 전문의의 안전한 마취, 통증 완화\\n최첨단 의료장비\",\"adminNote\":\"\"}",
-    "session_flag": "normal",
-    "session_note": "",
-    "reviewed_at": "2026-04-28T02:27:20.411Z",
-    "session_reviewed_at": "",
-    "sources": [
-      {
-        "title": "통합-FAQ",
-        "url": "local://docs/%ED%86%B5%ED%95%A9-FAQ.txt"
-      }
-    ]
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "수술 관련해서 안내드릴게요.\n\n수술 시 전신마취를 통해 진행하기 때문에 전신마취의 위험성이 줄어드는 신체조건이 되어야 합니다. 일반적으로는 아이의 나이가 만 3 세 이상, 몸무게가 15kg 이상 되면 전신마취 수술이 크게 위험하지 않다고 판단하며, 수술을 진행하게 됩니다.",
+    "expectedIntent": "편도수술, 편도절제술",
+    "expectedSource": "홈페이지-편도",
+    "expectedAnswerHint": "편도\n목 질환 센터 편도\n성인편도\n소아편도\n“성인의 경우 주로 감염으로 인한 편도염이 발생됩니다.”\n\n검사\n\n성인 정상 편도\n\n성인 편도비대\n진단\n비수술 치료\n진단\n급성 편도염\n원인\n주로 세균이나 바이러스 감염에 의한 발생\n수술치료\n진단\n만성 편도염\n원인\n급성 편도염의 잦은 재발로 인한 질환\n치료\n급성 편도염\n증상치료 또는\n항생제 치료\n \n만성 편도염\n항생제 치료 또는\n편도절제술 시행\n \n편도절제술\n편도절제술을 고려하는 경우\n1년에 3번 이상 고열을 동반한 편도선염을 앓을 때\n편도결석이 반복적으로 생겨 불편함이 있을 때\n편도비대로 코골이나 수면무호흡증이 심할 때\n HANA ENT   HOSPITAL\n“성인 편도 자주묻는 질문 영상”\n\n\n하나이비인후과병원 편도절제술\n수술비용\n성인 90만원\n소아 130만원\n(실비보험 적용가능)\n수술시간\n약20분~30분\n마취방법\n전신마취\n입원기간\n2박 3일\n내원치료\n수술 후 2~3회\n회복기간\n약 2주~3주\n하나이비인후과병원 편도절제술 장점\n풍부한 임상경험의 실력있는 의료진\n마취과 전문의의 안전한 마취, 통증 완화\n최첨단 의료장비",
+    "adminNote": "",
+    "reviewedLogId": "log-1777338474030-guogk3"
   },
   {
-    "timestamp": "2026-04-17T09:41:19.385Z",
-    "session_id": "session-0c62d4bc-e7e0-4860-83fa-1e695377ab22",
     "question": "검사 종류",
-    "actual_answer": "수술 전 검사는 수술 가능 여부와 전반적인 건강 상태를 확인하기 위한 검사입니다. 문서에는 혈액검사, 소변검사, 심전도, 흉부 X선 촬영 등이 포함되며 수술 1주일 전까지 받아야 한다고 안내되어 있습니다.\n- 코 질환은 6개월 이상, 목 질환은 3개월 이상 지난 검사 결과의 경우 재검사가 필요할 수 있다고 되어 있습니다.",
-    "status": "수정필요",
-    "flag": "needs_review",
-    "type": "faq",
-    "question_note": "검사 종류에 대해 물어보는데 수술전 검사에 대한 답변이 나옴",
-    "session_flag": "normal",
-    "session_note": "",
-    "reviewed_at": "2026-04-17T23:47:52.256Z",
-    "session_reviewed_at": "",
-    "sources": [
-      {
-        "title": "입퇴원안내",
-        "url": "https://www.hanaent.co.kr/info/info03.html"
-      }
-    ]
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "수술 전 검사는 수술 가능 여부와 전반적인 건강 상태를 확인하기 위한 검사입니다. 문서에는 혈액검사, 소변검사, 심전도, 흉부 X선 촬영 등이 포함되며 수술 1주일 전까지 받아야 한다고 안내되어 있습니다.\n- 코 질환은 6개월 이상, 목 질환은 3개월 이상 지난 검사 결과의 경우 재검사가 필요할 수 있다고 되어 있습니다.",
+    "expectedIntent": "",
+    "expectedSource": "입퇴원안내",
+    "expectedAnswerHint": "검사 종류에 대해 물어보는데 수술전 검사에 대한 답변이 나옴",
+    "adminNote": "검사 종류에 대해 물어보는데 수술전 검사에 대한 답변이 나옴",
+    "reviewedLogId": "log-1776418879385-cnqjrv"
   },
   {
-    "timestamp": "2026-04-17T07:56:38.294Z",
-    "session_id": "session-911b1caa-256e-4226-9d26-22c80b8dcd3e",
     "question": "편도수술 떄 검사 뭐있어",
-    "actual_answer": "편도 수술 안내드립니다. 수술비용은 성인 90만원(소아 130만원, 실비보험 적용가능)입니다. 수술시간은 약20분~30분입니다. 마취방법은 전신마취입니다. 입원기간은 2박 3일입니다. 수술 후 내원치료는 수술 후 2~3회입니다. 회복기간은 약 2주~3주입니다. 정확한 수술 적응증과 방법은 진찰과 검사 후 결정되니 자세한 상담이나 예약은 대표전화 02-6925-1111로 문의해 주세요.\n- 궁금한 수술을 더 구체적으로 말씀해 주시면 비용, 입원기간, 회복기간 기준으로 다시 안내해 드릴 수 있습니다.\n- 보험 적용 여부와 실제 비용은 질환 상태와 검사 결과에 따라 달라질 수 있습니다.",
-    "status": "수정필요",
-    "flag": "needs_review",
-    "type": "homepage_surgery_info",
-    "question_note": "코진료 후 목진료도 가능해 대신 첫번째 진료 후 진료실 안에서 직원에게 말씀해 주셔야 해",
-    "session_flag": "needs_review",
-    "session_note": "코진료 후 목진료도 가능해 대신 첫번째 진료 후 진료실 안에서 직원에게 말씀해 주셔야 해",
-    "reviewed_at": "2026-04-17T08:01:31.286Z",
-    "session_reviewed_at": "2026-04-17T07:59:48.032Z",
-    "sources": [
-      {
-        "title": "홈페이지-편도",
-        "url": "local://docs/%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80-%ED%8E%B8%EB%8F%84.txt"
-      }
-    ]
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "편도 수술 안내드립니다. 수술비용은 성인 90만원(소아 130만원, 실비보험 적용가능)입니다. 수술시간은 약20분~30분입니다. 마취방법은 전신마취입니다. 입원기간은 2박 3일입니다. 수술 후 내원치료는 수술 후 2~3회입니다. 회복기간은 약 2주~3주입니다. 정확한 수술 적응증과 방법은 진찰과 검사 후 결정되니 자세한 상담이나 예약은 대표전화 02-6925-1111로 문의해 주세요.\n- 궁금한 수술을 더 구체적으로 말씀해 주시면 비용, 입원기간, 회복기간 기준으로 다시 안내해 드릴 수 있습니다.\n- 보험 적용 여부와 실제 비용은 질환 상태와 검사 결과에 따라 달라질 수 있습니다.",
+    "expectedIntent": "",
+    "expectedSource": "홈페이지-편도",
+    "expectedAnswerHint": "코진료 후 목진료도 가능해 대신 첫번째 진료 후 진료실 안에서 직원에게 말씀해 주셔야 해",
+    "adminNote": "코진료 후 목진료도 가능해 대신 첫번째 진료 후 진료실 안에서 직원에게 말씀해 주셔야 해",
+    "reviewedLogId": "log-1776412598294-q528cc"
   },
   {
-    "timestamp": "2026-04-17T07:32:36.309Z",
-    "session_id": "session-911b1caa-256e-4226-9d26-22c80b8dcd3e",
     "question": "외래 비염검사 뭐가 있나요?",
-    "actual_answer": "현재 확인된 홈페이지 내용만으로는 정확한 안내가 어렵습니다. 대표전화 02-6925-1111로 확인해 주세요.\n\n비염 관련 영상 보기: https://www.youtube.com/watch?v=qqeKjEeTjIE\n- 코 질환 센터\n- 의료진 소개",
-    "status": "수정필요",
-    "flag": "needs_review",
-    "type": "fallback_insufficient_evidence",
-    "question_note": "피부반응알러지검사가 있어",
-    "session_flag": "needs_review",
-    "session_note": "코진료 후 목진료도 가능해 대신 첫번째 진료 후 진료실 안에서 직원에게 말씀해 주셔야 해",
-    "reviewed_at": "2026-04-17T08:06:52.127Z",
-    "session_reviewed_at": "2026-04-17T07:59:48.032Z",
-    "sources": []
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "현재 확인된 홈페이지 내용만으로는 정확한 안내가 어렵습니다. 대표전화 02-6925-1111로 확인해 주세요.\n\n비염 관련 영상 보기: https://www.youtube.com/watch?v=qqeKjEeTjIE\n- 코 질환 센터\n- 의료진 소개",
+    "expectedIntent": "",
+    "expectedSource": "",
+    "expectedAnswerHint": "피부반응알러지검사가 있어",
+    "adminNote": "피부반응알러지검사가 있어",
+    "reviewedLogId": "log-1776411156309-mc3q1l"
   }
 ]

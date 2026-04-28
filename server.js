@@ -2147,6 +2147,11 @@ function enrichResponsePayload(payload, question) {
     'config_error',
     'emergency',
     'restricted',
+    'hearing_test_process',
+    'tonsillectomy_info',
+    'rhinitis_exam_info',
+    'exam_type_clarification',
+    'doctor_career',
   ].includes(localizedPayload.type);
 
   return sanitizeOutgoingPayload({
@@ -3322,6 +3327,108 @@ function buildGuardianMealResponse() {
       '정확한 신청 방법이나 제공 기준은 병동 또는 대표전화 02-6925-1111로 확인해 주세요.',
     ],
     sources: [buildLocalDocSource('기타-비급여비용', path.basename(CERTIFICATE_FEES_DOC_PATH || '기타-비급여비용.txt'))],
+  };
+}
+
+function buildHearingTestProcessResponse(message) {
+  const text = String(message || '');
+  if (!/(청력|난청|귀\s*검사|귀검사)/u.test(text) || !/(검사|진행|어떻게|방법|종류)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'hearing_test_process',
+    answer: '청력검사는 문진과 진료 후 필요한 검사로 청력 상태와 난청의 정도, 종류를 확인하는 과정입니다. 홈페이지 난청 안내 기준으로 순음청력검사, 어음청력검사, 임피던스청력검사, 이음향방사검사, 청성뇌간반응청력검사 등이 청력검사 종류에 포함됩니다. 어지럼증이 함께 있으면 청력검사와 전정기능검사, 필요 시 영상검사까지 함께 검토될 수 있습니다.',
+    followUp: [
+      '수면검사와는 다른 귀/난청 관련 검사입니다.',
+      '검사 종류와 소요시간은 증상과 진료 결과에 따라 달라질 수 있습니다.',
+      '정확한 검사 안내는 진료 후 의료진이 결정합니다.',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-난청', '홈페이지-난청.txt'),
+      buildLocalDocSource('홈페이지-어지러움증', '홈페이지-어지러움증.txt'),
+    ],
+  };
+}
+
+function buildTonsillectomyInfoResponse(message) {
+  const text = String(message || '');
+  const isTonsil = /(편도|편도선|편도절제|편도\s*절제|편도수술|편도\s*수술)/u.test(text);
+  if (!isTonsil) {
+    return null;
+  }
+
+  if (/(후|주의|출혈|피|음식|식사|통증)/u.test(text)) {
+    return null;
+  }
+
+  const asksIndication = /(언제|필요|해야|하나요|하는가|고려|적응증|대상)/u.test(text);
+  const asksGeneral = /^(편도|편도수술|편도\s*수술|편도절제|편도\s*절제)$/u.test(text.trim());
+  const asksExam = /(검사|뭐\s*있|무슨\s*검사)/u.test(text);
+  const asksCost = /(비용|금액|가격|얼마)/u.test(text);
+  const asksStay = /(입원|며칠|기간|회복|수술시간|마취)/u.test(text);
+
+  if (!(asksIndication || asksGeneral || asksExam || asksCost || asksStay)) {
+    return null;
+  }
+
+  const answerParts = [
+    '편도절제술은 홈페이지 편도 안내 기준으로 1년에 3번 이상 고열을 동반한 편도선염을 앓는 경우, 편도결석이 반복되어 불편한 경우, 편도비대로 코골이나 수면무호흡증이 심한 경우 고려할 수 있습니다.',
+    '하나이비인후과병원 안내에는 편도절제술 수술시간은 약 20~30분, 마취방법은 전신마취, 입원기간은 2박 3일, 회복기간은 약 2~3주로 안내되어 있습니다.',
+  ];
+
+  if (asksExam) {
+    answerParts.push('편도수술 전 어떤 검사가 필요한지는 진료와 환자 상태에 따라 결정됩니다. 문서에는 편도수술의 적응증과 수술 정보가 중심으로 안내되어 있어, 개별 검사 항목은 진료 후 안내를 받으시는 것이 정확합니다.');
+  }
+
+  return {
+    type: 'tonsillectomy_info',
+    answer: answerParts.join('\n\n'),
+    followUp: [
+      '성인 편도절제술 수술비용은 문서 기준 90만원으로 안내되어 있습니다.',
+      '소아 편도절제술은 130만원으로 안내되어 있습니다.',
+      '실제 수술 여부는 진찰과 검사 후 의료진 판단이 필요합니다.',
+    ],
+    sources: [buildLocalDocSource('홈페이지-편도', '홈페이지-편도.txt')],
+  };
+}
+
+function buildRhinitisExamResponse(message) {
+  const text = String(message || '');
+  if (!/(비염|알레르기비염|알러지|알레르기)/u.test(text) || !/(검사|외래|진단|뭐|종류)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'rhinitis_exam_info',
+    answer: '외래 비염 검사로는 홈페이지 알레르기비염 안내 기준 문진, 코내시경, 알레르기 피부반응검사, 비강통기도검사, X-ray 또는 CT 검사가 안내되어 있습니다. 특히 알레르기 원인 확인이 필요한 경우 알레르기 피부반응검사를 시행할 수 있습니다.',
+    followUp: [
+      '검사 항목은 증상과 진료 결과에 따라 달라질 수 있습니다.',
+      '코막힘이나 축농증 의심 여부에 따라 영상검사가 함께 검토될 수 있습니다.',
+    ],
+    sources: [buildLocalDocSource('홈페이지-알레르기비염', '홈페이지-알레르기비염.txt')],
+  };
+}
+
+function buildExamTypeClarificationResponse(message) {
+  const text = String(message || '').trim();
+  if (!/^(검사\s*종류|검사종류|검사\s*안내|검사)$/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'exam_type_clarification',
+    answer: '검사는 진료 분야에 따라 종류가 달라서 먼저 어느 검사를 말씀하시는지 확인이 필요합니다. 예를 들어 귀/난청은 청력검사, 어지럼증은 전정기능검사, 비염은 코내시경·알레르기 피부반응검사·비강통기도검사, 수면무호흡은 수면다원검사로 나뉩니다.',
+    followUp: [
+      '청력검사 종류 알려줘',
+      '외래 비염검사 뭐가 있나요?',
+      '수면검사는 어떻게 하나요?',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-난청', '홈페이지-난청.txt'),
+      buildLocalDocSource('홈페이지-알레르기비염', '홈페이지-알레르기비염.txt'),
+      buildIntegratedFaqDocSource(),
+    ],
   };
 }
 
@@ -6001,6 +6108,60 @@ function buildCleanDoctorSpecialtyResponse(message) {
   };
 }
 
+function buildDoctorCareerResponse(message) {
+  const text = String(message || '').trim();
+  const doctorName = extractDoctorName(text);
+  if (!doctorName || !/(경력|학력|이력|프로필|약력)/u.test(text)) {
+    return null;
+  }
+
+  if (!fs.existsSync(DOCTOR_SPECIALTY_DOC_PATH)) {
+    return null;
+  }
+
+  const docText = repairBrokenKoreanText(fs.readFileSync(DOCTOR_SPECIALTY_DOC_PATH, 'utf8'));
+  const startIndex = docText.indexOf(`이름: ${doctorName}`);
+  if (startIndex < 0) {
+    return null;
+  }
+
+  const nextDoctorIndex = docText.indexOf('\n\n이름:', startIndex + doctorName.length);
+  const body = docText.slice(startIndex, nextDoctorIndex > startIndex ? nextDoctorIndex : undefined);
+  const specialtyMatch = body.match(/전문분야\s+(.+)/u);
+  const careerStart = body.indexOf('경력');
+  if (careerStart < 0) {
+    return null;
+  }
+
+  const careerEndCandidates = ['논문&연구실적', '주간 진료 시간표']
+    .map((marker) => body.indexOf(marker, careerStart + 2))
+    .filter((index) => index > careerStart)
+    .sort((a, b) => a - b);
+  const careerEnd = careerEndCandidates[0] || body.length;
+  const careerLines = body
+    .slice(careerStart, careerEnd)
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line && line !== '경력')
+    .slice(0, 14);
+
+  if (!careerLines.length) {
+    return null;
+  }
+
+  const specialtyText = specialtyMatch ? specialtyMatch[1].trim() : '';
+  const intro = specialtyText
+    ? `${doctorName} 의료진의 전문분야는 ${specialtyText}입니다. 주요 경력은 다음과 같습니다.`
+    : `${doctorName} 의료진의 주요 경력은 다음과 같습니다.`;
+
+  return {
+    type: 'doctor_career',
+    answer: `${intro}\n\n${careerLines.map((line) => `- ${line}`).join('\n')}`,
+    followUp: ['진료 일정은 외래 진료표와 당일 상황에 따라 달라질 수 있습니다.'],
+    sources: [buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt')],
+  };
+}
+
 function buildCleanPostOpCareResponse(message) {
   const source = [buildLocalDocSource('입원-수술 후 주의사항', '입원-수술 후 주의사항.txt')];
   const text = String(message || '');
@@ -7065,6 +7226,31 @@ async function buildChatResponse(rawMessage, sessionId) {
   const meaningIntentResponse = resolveMeaningIntentResponse(meaningIntent, message, sessionId);
   if (meaningIntentResponse) {
     return enrichResponsePayload(meaningIntentResponse, message);
+  }
+
+  const directHearingTestResponse = buildHearingTestProcessResponse(message);
+  if (directHearingTestResponse) {
+    return enrichResponsePayload(directHearingTestResponse, message);
+  }
+
+  const directTonsillectomyResponse = buildTonsillectomyInfoResponse(message);
+  if (directTonsillectomyResponse) {
+    return enrichResponsePayload(directTonsillectomyResponse, message);
+  }
+
+  const directRhinitisExamResponse = buildRhinitisExamResponse(message);
+  if (directRhinitisExamResponse) {
+    return enrichResponsePayload(directRhinitisExamResponse, message);
+  }
+
+  const directExamTypeClarificationResponse = buildExamTypeClarificationResponse(message);
+  if (directExamTypeClarificationResponse) {
+    return enrichResponsePayload(directExamTypeClarificationResponse, message);
+  }
+
+  const directDoctorCareerResponse = buildDoctorCareerResponse(message);
+  if (directDoctorCareerResponse) {
+    return enrichResponsePayload(directDoctorCareerResponse, message);
   }
 
   const directDoctorSpecialtyResponse = buildCleanDoctorSpecialtyResponse(message);
