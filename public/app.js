@@ -337,7 +337,7 @@ function showPendingMessage() {
 
   const body = document.createElement('p');
   body.className = 'pending-text';
-  body.textContent = '답변을 준비하고 있습니다...';
+  body.textContent = '답변을 준비하고 있습니다... 답변하는 데 최대 30초 정도 걸릴 수 있습니다.';
   wrapper.appendChild(body);
 
   const dots = document.createElement('span');
