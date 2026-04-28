@@ -7588,6 +7588,21 @@ async function buildChatResponse(rawMessage, sessionId) {
     return enrichResponsePayload(directFirstReturnVisitResponse, message);
   }
 
+  const directReferralDocumentResponse = buildReferralDocumentResponse(message);
+  if (directReferralDocumentResponse) {
+    return enrichResponsePayload(directReferralDocumentResponse, message);
+  }
+
+  const directHospitalLocationResponse = buildHospitalLocationResponse(message);
+  if (directHospitalLocationResponse) {
+    return enrichResponsePayload(directHospitalLocationResponse, message);
+  }
+
+  const directDoctorScheduleImageResponse = buildDoctorScheduleImageResponse(message);
+  if (directDoctorScheduleImageResponse) {
+    return enrichResponsePayload(directDoctorScheduleImageResponse, message);
+  }
+
   const directWaitingTimeResponse = buildWaitingTimeResponse(message);
   if (directWaitingTimeResponse) {
     return enrichResponsePayload(directWaitingTimeResponse, message);
