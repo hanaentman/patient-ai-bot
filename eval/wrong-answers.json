@@ -1,5 +1,85 @@
 [
   {
+    "question": "의료진 전체 경력",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "의료진 관련해서 안내드릴게요.\n\n하나이비인후과병원 홈페이지 기준으로 현재 의료진 정보를 확인할 수 있습니다. 대표 의료진으로는 동헌종 대표원장, 이상덕 병원장, 정도광 원장, 남순열 두경부 센터장, 주형로 원장, 장선오 귀질환 센터장, 장정훈 원장, 김태현 부원장, 정종인 진료부장, 김종세 과장 등이 있습니다.\n- 코 질환 의사: 동헌종, 이상덕, 정도광, 김태현, 정종인, 장규선, 김병길\n- 목·두경부·수면클리닉: 남순열, 주형로, 장규선\n- 귀 질환 의사: 장선오, 장정훈, 김종세\n- 내과: 이영미\n- 세부 일정은 내원 전 대표전화 02-6925-1111로 확인해 주세요.",
+    "expectedIntent": "의료진 전체경력",
+    "expectedSource": "홈페이지-의료진 정보.txt",
+    "expectedAnswerHint": "하단에 특정 의료진 경력은 의료진 이름과 경력을 입력해주세요 라고 표시해 줬으면 좋겠어",
+    "adminNote": "",
+    "reviewedLogId": "log-1777410945408-d23j47"
+  },
+  {
+    "question": "감기기운 있는데 진료 가능해?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "문의하신 내용에 대해 안내드릴게요.\n\n진료시간은 평일 오전 9시부터 오후 6시까지이며, 토요일은 오전 9시부터 오후 1시 30분까지입니다. 일요일과 공휴일은 휴진으로 안내되어 있고, 별도 야간진료는 문서에 안내되어 있지 않습니다.\n- 평일 접수 마감은 오후 5시 30분입니다.\n- 토요일 접수 마감은 오후 1시입니다.\n- 응급수술 등 진료 상황에 따라 접수가 조기 마감될 수 있어 내원 전 확인해 주세요.",
+    "expectedIntent": "증상",
+    "expectedSource": "홈페이지-의료진 정보.txt, 홈페이지-외래진료안내.txt",
+    "expectedAnswerHint": "진료시간 안내와 의료진 소개",
+    "adminNote": "",
+    "reviewedLogId": "log-1777369744939-0fstdo"
+  },
+  {
+    "question": "편도 수술 후 목에 출혈이ㅡ있어",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "수술 관련해서 안내드릴게요.\n\n수술 시 전신마취를 통해 진행하기 때문에 전신마취의 위험성이 줄어드는 신체조건이 되어야 합니다. 일반적으로는 아이의 나이가 만 3 세 이상, 몸무게가 15kg 이상 되면 전신마취 수술이 크게 위험하지 않다고 판단하며, 수술을 진행하게 됩니다.",
+    "expectedIntent": "편도수술 출혈",
+    "expectedSource": "통합-FAQ.txt",
+    "expectedAnswerHint": "수술후 출혈에 대한 안내",
+    "adminNote": "",
+    "reviewedLogId": "log-1777369647476-dp5ylk"
+  },
+  {
+    "question": "편도 수술 후 목에 출혈이ㅡ있어",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "수술 관련해서 안내드릴게요.\n\n수술 시 전신마취를 통해 진행하기 때문에 전신마취의 위험성이 줄어드는 신체조건이 되어야 합니다. 일반적으로는 아이의 나이가 만 3 세 이상, 몸무게가 15kg 이상 되면 전신마취 수술이 크게 위험하지 않다고 판단하며, 수술을 진행하게 됩니다.",
+    "expectedIntent": "편도수술 출혈",
+    "expectedSource": "통합-FAQ.txt",
+    "expectedAnswerHint": "수술후 출혈에 대한 안내",
+    "adminNote": "",
+    "reviewedLogId": "log-1777369631967-j27or2"
+  },
+  {
+    "question": "마운자로",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "현재 확인된 병원 문서만으로는 정확히 안내드리기 어렵습니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.\n- 입퇴원안내",
+    "expectedIntent": "약제, 비급여",
+    "expectedSource": "기타-비급여비용.txt",
+    "expectedAnswerHint": "비급여 비용 안내",
+    "adminNote": "",
+    "reviewedLogId": "log-1777364377577-c4lqwa"
+  },
+  {
+    "question": "코성형 가능해?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "문의하신 내용에 대해 안내드릴게요.\n\n소아환자(15세 이하)의 경우, 의료진이 환자안전증진 및 정서적지지가 필요하다고 판단하는 경우 1인실에 한하여 보호자 상주를 요청할 수 있습니다.",
+    "expectedIntent": "코성형",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "정종인 의료진 진료 후에 판단",
+    "adminNote": "",
+    "reviewedLogId": "log-1777363933612-g5dcru"
+  },
+  {
+    "question": "비중격수술하면서 성형수술 같이 하나요?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "수술 관련해서 안내드릴게요.\n\n비중격만곡증 수술 안내드립니다. 수술비용은 약 150~200만원(실비보험 적용 가능)입니다. 수술시간은 약 30분입니다. 마취방법은 수면마취+국소마취입니다. 입원기간은 1박 2일 또는 2박 3일입니다. 수술 후 내원치료는 수술 후 8~12회입니다. 회복기간은 약 3주~4주 하나이비인후과병원 비중격만곡증 수술 장점 부작용 최소화 비중격교정술입니다. 정확한 수술 적응증과 방법은 진료와 검사 후 결정되므로 자세한 상담이나 예약은 대표전화 02-6925-1111로 문의해 주세요.\n\n비중격만곡증 관련 영상 보기: https://www.youtube.com/watch?v=vpwYbln5tLE\n- 원하시는 수술명을 구체적으로 말씀해 주시면 비용, 입원기간, 회복기간 기준으로 다시 안내해 드릴게요.\n- 보험 적용 여부와 실제 비용은 질환 상태와 검사 결과에 따라 달라질 수 있습니다.",
+    "expectedIntent": "비중격만곡증, 성형",
+    "expectedSource": "통합FAQ.TXT",
+    "expectedAnswerHint": "정종인 진료부장 진료시 환자분의 상태에 따라 코성형 여부 결정함",
+    "adminNote": "",
+    "reviewedLogId": "log-1777363632968-p04txs"
+  },
+  {
+    "question": "흡연하고 싶어",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "현재 확인된 병원 문서만으로는 정확히 안내드리기 어렵습니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.\n- 귀 질환 센터",
+    "expectedIntent": "흡연장소, 금연",
+    "expectedSource": "통합-FAQ.txt",
+    "expectedAnswerHint": "병원건물에는 흡연장소가 없음, 금연을 권고해야 함",
+    "adminNote": "",
+    "reviewedLogId": "log-1777362880703-gxzxmv"
+  },
+  {
     "question": "4인실 병실비용",
     "caseType": "actual_wrong_answer",
     "wrongAnswer": "비용 관련해서 안내드릴게요.\n\n실비보험은 대부분 적용 가능하나 가입하신 보험사 약관에 따라서 차이가 있을 수 있습니다. 가입하신 보험사의 약관을 확인한 후 직접 보험 회사에 문의해보시기 바랍니다.",

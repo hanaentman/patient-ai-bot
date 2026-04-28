@@ -2166,6 +2166,11 @@ function shouldUseConsultationTone(payload) {
     'guardian_meal',
     'referral_document',
     'pharmacy_location',
+    'mounjaro_fee',
+    'representative_nonpay',
+    'rhinoplasty_consult',
+    'smoking_policy',
+    'tonsil_postop_bleeding',
   ].includes(type);
 }
 
@@ -2283,6 +2288,11 @@ function enrichResponsePayload(payload, question) {
     'result_notification',
     'infection_prevention',
     'additional_consultation',
+    'mounjaro_fee',
+    'representative_nonpay',
+    'rhinoplasty_consult',
+    'smoking_policy',
+    'tonsil_postop_bleeding',
   ].includes(localizedPayload.type);
 
   return sanitizeOutgoingPayload({
@@ -3008,13 +3018,14 @@ function buildDynamicDoctorOverviewResponse() {
   if (internalDoctors.length > 0) {
     followUp.push(`내과: ${formatNames(internalDoctors)}`);
   }
+  followUp.push('특정 의료진의 자세한 경력이 궁금하시면 “의료진 이름 + 경력”으로 입력해 주세요.');
   followUp.push('세부 일정은 내원 전 대표전화 02-6925-1111로 확인해 주세요.');
 
   return {
     type: 'doctor_overview',
     answer: representativeDoctors.length > 0
-      ? `하나이비인후과병원 홈페이지 기준으로 현재 의료진 정보를 확인할 수 있습니다. 대표 의료진으로는 ${representativeDoctors.join(', ')} 등이 있습니다.`
-      : '하나이비인후과병원 홈페이지 기준으로 현재 의료진 정보를 확인할 수 있습니다.',
+      ? `하나이비인후과병원 홈페이지 기준으로 현재 의료진 정보를 확인할 수 있습니다. 대표 의료진으로는 ${representativeDoctors.join(', ')} 등이 있습니다. 특정 의료진의 자세한 경력이 궁금하시면 “의료진 이름 + 경력”으로 입력해 주세요.`
+      : '하나이비인후과병원 홈페이지 기준으로 현재 의료진 정보를 확인할 수 있습니다. 특정 의료진의 자세한 경력이 궁금하시면 “의료진 이름 + 경력”으로 입력해 주세요.',
     followUp,
     sources: [{
       title: '홈페이지-의료진 정보',
@@ -3461,6 +3472,105 @@ function buildGuardianMealResponse() {
   };
 }
 
+function buildMounjaroFeeResponse(message) {
+  const text = String(message || '');
+  if (!/(마운자로|Mounjaro|터제파타이드|tirzepatide)/iu.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'mounjaro_fee',
+    answer: '비급여비용 문서 기준으로 마운자로프리필드펜주는 용량별 비용이 다르게 안내되어 있습니다. 2.5mg/0.5mL는 340,000원, 5mg/0.5mL는 440,000원, 7.5mg/0.5mL는 580,000원입니다.',
+    followUp: [
+      '약제 처방 가능 여부와 실제 적용 용량은 진료 후 의료진 판단이 필요합니다.',
+      '비급여 금액은 변경될 수 있어 내원 전 대표전화 02-6925-1111로 확인해 주세요.',
+      `비급여 안내 페이지: ${NONPAY_PAGE_URL}`,
+    ],
+    sources: [buildLocalDocSource('기타-비급여비용', '기타-비급여비용.txt')],
+  };
+}
+
+function buildRepresentativeNonpayResponse(message) {
+  const text = String(message || '');
+  if (!/(대표|주요|자주|종류|항목).{0,12}(비급여|비급여\s*항목)|비급여.{0,12}(대표|주요|종류|항목)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'representative_nonpay',
+    answer: '대표적인 비급여 항목으로는 상급병실차액, 미용 목적 비성형술, 발음·발성 검사, 이관 풍선 확장술, 수액치료, 일부 약제비, 제증명 수수료 등이 있습니다.',
+    followUp: [
+      '예시 금액은 1인실 상급병실차액 350,000원, 비성형술(미용목적) 2,000,000원~3,000,000원, 발음·발성검사 80,000원~300,000원, 이관 풍선 확장술 550,000원 등으로 안내되어 있습니다.',
+      '항목과 금액은 변경될 수 있어 정확한 비용은 비급여 안내 페이지나 대표전화 02-6925-1111로 확인해 주세요.',
+      `비급여 안내 페이지: ${NONPAY_PAGE_URL}`,
+    ],
+    sources: [buildLocalDocSource('기타-비급여비용', '기타-비급여비용.txt')],
+  };
+}
+
+function buildRhinoplastyConsultResponse(message) {
+  const text = String(message || '');
+  const asksRhinoplasty = /(코\s*성형|코성형|비성형|기능적\s*코성형|성형\s*수술|성형수술|정종인.{0,8}성형|성형.{0,8}정종인)/u.test(text);
+  const hasSeptoplasty = /(비중격|비중격만곡|비중격\s*수술)/u.test(text);
+  if (!asksRhinoplasty && !hasSeptoplasty) {
+    return null;
+  }
+
+  return {
+    type: 'rhinoplasty_consult',
+    answer: hasSeptoplasty
+      ? '비중격수술과 코성형을 함께 할 수 있는지는 정종인 진료부장 진료 시 환자분의 상태를 확인한 뒤 결정합니다. 문서상 정종인 진료부장은 기능적코성형과 비중격만곡증을 전문분야로 안내하고 있습니다.'
+      : '코성형 가능 여부는 정종인 진료부장 진료 시 환자분의 상태를 확인한 뒤 결정합니다. 문서상 정종인 진료부장은 기능적코성형, 비중격만곡증, 부비동내시경수술 등을 전문분야로 안내하고 있습니다.',
+    followUp: [
+      '미용 목적 또는 기능적 목적에 따라 상담 내용과 비용이 달라질 수 있습니다.',
+      '정확한 가능 여부와 일정은 진료 예약 후 상담하거나 대표전화 02-6925-1111로 확인해 주세요.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt'),
+      buildLocalDocSource('기타-비급여비용', '기타-비급여비용.txt'),
+    ],
+  };
+}
+
+function buildSmokingPolicyResponse(message) {
+  const text = String(message || '');
+  if (!/(흡연|담배|금연\s*구역|금연구역|흡연\s*구역|흡연구역)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'smoking_policy',
+    answer: '병원은 금연 구역입니다. 병원 건물 내에는 흡연 장소가 없는 것으로 안내되어 있어 금연을 권고드립니다.',
+    followUp: [
+      '흡연 장소 확인이 꼭 필요하시면 접수나 병동 직원에게 문의해 주세요.',
+      '수술 전후에는 회복과 출혈 예방을 위해 금연이 특히 중요합니다.',
+    ],
+    sources: [buildIntegratedFaqDocSource()],
+  };
+}
+
+function buildTonsilPostopBleedingResponse(message) {
+  const text = String(message || '');
+  if (!/(편도|편도선|편도절제|편도\s*절제|편도수술|편도\s*수술)/u.test(text) || !/(출혈|피|피가|피섞|피\s*섞|목에\s*피|피나요)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'tonsil_postop_bleeding',
+    answer: '편도절제술 후 침에 피가 조금 섞이는 정도라면 시원한 얼음물로 20~30분 정도 가글해 볼 수 있습니다. 다만 출혈이 지속되거나 양이 많으면 대표전화 02-6925-1111로 바로 연락하시고, 진료를 받으셔야 합니다.',
+    followUp: [
+      '문서 기준으로 편도 수술 후 출혈은 수술 후 5~10일까지 있을 수 있습니다.',
+      '즉시 내원이 어렵거나 원거리인 경우에는 이비인후과 의사가 상주하는 가까운 응급실로 내원하는 것을 권장합니다.',
+      '빨대 사용이나 무리한 활동은 출혈 예방을 위해 피해주세요.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('입원-수술 후 주의사항', '입원-수술 후 주의사항.txt'),
+    ],
+  };
+}
+
 function buildPaymentMethodResponse(message) {
   const text = String(message || '');
   if (!/(결제|수납|진료비)/u.test(text) || !/(카드|현금)/u.test(text)) {
@@ -3521,7 +3631,7 @@ function buildWaitingTimeResponse(message) {
 
 function buildClinicHoursNightWeekendResponse(message) {
   const text = String(message || '');
-  if (!/(야간|주말|토요일|일요일|공휴일|진료시간|진료\s*가능)/u.test(text)) {
+  if (!/(야간|주말|토요일|일요일|공휴일|진료시간|진료\s*가능|진료\s*잉정|진료잉정)/u.test(text)) {
     return null;
   }
 
@@ -3628,6 +3738,29 @@ function buildSymptomVisitGuidanceResponse(message) {
   const asksVisitToday = /(진료|진료보|진료\s*보|내원|오늘|가능|접수|예약)/u.test(text);
   if (!asksVisitToday) {
     return null;
+  }
+
+  if (/(감기|감기기운|몸살|기침|콧물|목감기)/u.test(text)) {
+    return {
+      type: 'symptom_visit_guidance',
+      answer: '감기기운이나 호흡기 증상이 있어도 이비인후과 진료는 가능합니다. 당일 방문 진료도 가능하지만 대기시간이 발생할 수 있고, 실제 진료 가능 여부는 접수 마감 시간과 당일 진료 상황에 따라 달라질 수 있습니다.',
+      followUp: [
+        '평일 접수 마감은 오후 5시 30분, 토요일 접수 마감은 오후 1시입니다.',
+        '감기나 인플루엔자 등 호흡기 증상이 있는 경우 병원 내 감염 예방 안내에 따라 마스크 착용과 직원 안내를 따라 주세요.',
+        '아래 진료일정표 이미지를 참고해 주세요.',
+      ],
+      images: [{
+        title: '진료일정 안내',
+        description: '의료진 외래 진료일정표입니다.',
+        display: 'document',
+        url: resolvePublicImagePath('/images/%EC%A7%84%EB%A3%8C%EC%9D%BC%EC%A0%95%EC%A0%84%EC%B2%B4.png'),
+      }],
+      sources: [
+        buildLocalDocSource('홈페이지-외래진료안내', '홈페이지-외래진료안내.txt'),
+        buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt'),
+        buildIntegratedFaqDocSource(),
+      ],
+    };
   }
 
   if (/(코막힘|코\s*막힘|코막혀|코\s*막혀|비염|축농증|부비동염|코질환|코\s*질환)/u.test(text)) {
@@ -3965,7 +4098,7 @@ function buildHearingTestProcessResponse(message) {
 
 function buildTonsillectomyInfoResponse(message) {
   const text = String(message || '');
-  const isTonsil = /(편도|편도선|편도절제|편도\s*절제|편도수술|편도\s*수술)/u.test(text);
+  const isTonsil = /(편도|편도선|편도절제|편도\s*절제|편도수술|편도\s*수술|편도수숙)/u.test(text);
   if (!isTonsil) {
     return null;
   }
@@ -3975,7 +4108,7 @@ function buildTonsillectomyInfoResponse(message) {
   }
 
   const asksIndication = /(언제|필요|해야|하나요|하는가|고려|적응증|대상)/u.test(text);
-  const asksGeneral = /^(편도|편도수술|편도\s*수술|편도절제|편도\s*절제)$/u.test(text.trim());
+  const asksGeneral = /^(편도|편도수술|편도\s*수술|편도절제|편도\s*절제|편도수숙)$/u.test(text.trim());
   const asksExam = /(검사|뭐\s*있|무슨\s*검사)/u.test(text);
   const asksCost = /(비용|금액|가격|얼마)/u.test(text);
   const asksStay = /(입원|며칠|기간|회복|수술시간|마취)/u.test(text);
@@ -7838,6 +7971,31 @@ async function buildChatResponse(rawMessage, sessionId) {
   const meaningIntentResponse = resolveMeaningIntentResponse(meaningIntent, message, sessionId);
   if (meaningIntentResponse) {
     return enrichResponsePayload(meaningIntentResponse, message);
+  }
+
+  const directRepresentativeNonpayResponse = buildRepresentativeNonpayResponse(message);
+  if (directRepresentativeNonpayResponse) {
+    return enrichResponsePayload(directRepresentativeNonpayResponse, message);
+  }
+
+  const directMounjaroFeeResponse = buildMounjaroFeeResponse(message);
+  if (directMounjaroFeeResponse) {
+    return enrichResponsePayload(directMounjaroFeeResponse, message);
+  }
+
+  const directRhinoplastyConsultResponse = buildRhinoplastyConsultResponse(message);
+  if (directRhinoplastyConsultResponse) {
+    return enrichResponsePayload(directRhinoplastyConsultResponse, message);
+  }
+
+  const directSmokingPolicyResponse = buildSmokingPolicyResponse(message);
+  if (directSmokingPolicyResponse) {
+    return enrichResponsePayload(directSmokingPolicyResponse, message);
+  }
+
+  const directTonsilPostopBleedingResponse = buildTonsilPostopBleedingResponse(message);
+  if (directTonsilPostopBleedingResponse) {
+    return enrichResponsePayload(directTonsilPostopBleedingResponse, message);
   }
 
   const directPaymentMethodResponse = buildPaymentMethodResponse(message);
