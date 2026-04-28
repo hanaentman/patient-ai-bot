@@ -1228,46 +1228,10 @@ function updateSessionNoteForAdmin(sessionId, flag, note = '') {
 }
 
 function buildWrongAnswerExportRows(query) {
-  const exportQuery = new URLSearchParams();
-  const getQueryValue = (key) => (typeof query?.get === 'function' ? query.get(key) : query?.[key]);
-  const search = String(getQueryValue('q') || '').trim();
-  const startAt = String(getQueryValue('startAt') || '').trim();
-  const endAt = String(getQueryValue('endAt') || '').trim();
-
-  exportQuery.set('flag', 'needs_review');
-  if (search) {
-    exportQuery.set('q', search);
-  }
-  if (startAt) {
-    exportQuery.set('startAt', startAt);
-  }
-  if (endAt) {
-    exportQuery.set('endAt', endAt);
-  }
-
-  return getChatLogsForAdmin(exportQuery, { disableLimit: true }).map((item) => {
-    const sessionNote = getSessionNoteForAdmin(item.sessionId);
-    return {
-    timestamp: item.timestamp || '',
-    session_id: item.sessionId || '',
-    question: item.question || '',
-    actual_answer: item.answerFull || item.answer || '',
-    status: '수정필요',
-    flag: item.flag || 'needs_review',
-    type: item.type || 'unknown',
-    question_note: item.note || '',
-    session_flag: sessionNote.flag || 'normal',
-    session_note: sessionNote.note || '',
-    reviewed_at: item.reviewedAt || '',
-    session_reviewed_at: sessionNote.reviewedAt || '',
-    sources: Array.isArray(item.sources)
-      ? item.sources.map((source) => ({
-          title: source?.title || '',
-          url: source?.url || '',
-        }))
-      : [],
-    };
-  });
+  return buildWrongAnswerEvalRows(query).map((row) => ({
+    question: row.question,
+    ...row.entry,
+  }));
 }
 
 function buildWrongAnswerEvalRows(query) {
