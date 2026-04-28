@@ -2190,6 +2190,9 @@ function enrichResponsePayload(payload, question) {
     'referral_document',
     'hospital_location',
     'doctor_schedule_image',
+    'center_doctor_list',
+    'sinusitis_care',
+    'throat_mass_care',
     'discharge_time',
     'facility_location',
     'anti_aging_clinic_location',
@@ -3517,6 +3520,88 @@ function buildDoctorScheduleImageResponse(message) {
       url: resolvePublicImagePath('/images/%EC%A7%84%EB%A3%8C%EC%9D%BC%EC%A0%95%EC%A0%84%EC%B2%B4.png'),
     }],
     sources: [buildLocalDocSource('진료일정', '진료일정전체.png')],
+  };
+}
+
+function buildCenterDoctorListResponse(message) {
+  const text = String(message || '');
+  const asksDoctor = /(의료진|의사|원장|선생|명단|누구|소개)/u.test(text);
+
+  if (/(코\s*진료|코센터|코\s*센터|코질환|코\s*질환)/u.test(text) && asksDoctor) {
+    return {
+      type: 'center_doctor_list',
+      answer: '코진료는 코센터 의료진 기준으로 안내드릴 수 있습니다. 외래 의료진 명단 기준 코센터 의료진은 동헌종 대표원장, 이상덕 병원장, 정도광 원장, 김태현 부원장, 정종인 진료부장, 장규선 과장, 김병길 과장입니다.',
+      followUp: [
+        '의료진별 진료일정은 외래 진료표와 당일 상황에 따라 달라질 수 있습니다.',
+        '비염, 축농증, 비중격만곡증, 코물혹 등 코 질환 문의는 코센터 기준으로 안내됩니다.',
+      ],
+      sources: [buildLocalDocSource('외래-의료진 명단', DOCTOR_LIST_DOC_FILENAME)],
+    };
+  }
+
+  if (/(목\s*진료|목센터|목\s*센터|두경부센터|두경부\s*센터|목질환|목\s*질환)/u.test(text) && asksDoctor) {
+    return {
+      type: 'center_doctor_list',
+      answer: '목진료는 목센터 또는 두경부센터 의료진 기준으로 안내드릴 수 있습니다. 외래 의료진 명단 기준 목센터 의료진은 남순열 두경부 센터장, 주형로 원장입니다.',
+      followUp: ['의료진별 진료일정은 외래 진료표와 당일 상황에 따라 달라질 수 있습니다.'],
+      sources: [buildLocalDocSource('외래-의료진 명단', DOCTOR_LIST_DOC_FILENAME)],
+    };
+  }
+
+  if (/(귀\s*진료|귀센터|귀\s*센터|귀질환|귀\s*질환)/u.test(text) && asksDoctor) {
+    return {
+      type: 'center_doctor_list',
+      answer: '귀진료는 귀센터 의료진 기준으로 안내드릴 수 있습니다. 외래 의료진 명단 기준 귀센터 의료진은 장선오 귀질환 센터장, 장정훈 원장, 김종세 과장입니다.',
+      followUp: ['의료진별 진료일정은 외래 진료표와 당일 상황에 따라 달라질 수 있습니다.'],
+      sources: [buildLocalDocSource('외래-의료진 명단', DOCTOR_LIST_DOC_FILENAME)],
+    };
+  }
+
+  return null;
+}
+
+function buildSinusitisCareResponse(message) {
+  const text = String(message || '');
+  if (!/(부비동염|축농증)/u.test(text) || !/(진료|가능|치료|검사|수술|봐|보나요|보는지)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'sinusitis_care',
+    answer: '부비동염은 축농증과 같은 코 질환으로, 하나이비인후과병원 코 질환 센터에서 진료 가능합니다. 홈페이지 축농증 안내 기준으로 문진, 내시경검사, X-ray 또는 CT 검사 등을 통해 상태를 확인하고, 급성 축농증은 약물치료와 코세척을 우선 고려하며 만성 축농증은 상태에 따라 부비동 내시경 수술을 시행할 수 있습니다.',
+    followUp: [
+      '부비동염 진료 의료진은 코센터 기준으로 확인하시면 됩니다.',
+      '정확한 치료 방향은 진료와 검사 후 의료진이 결정합니다.',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-축농증', '홈페이지-축농증.txt'),
+      buildLocalDocSource('외래-의료진 명단', DOCTOR_LIST_DOC_FILENAME),
+    ],
+  };
+}
+
+function buildThroatMassCareResponse(message) {
+  const text = String(message || '');
+  if (!/(성대\s*물혹|성대물혹|목의\s*혹|목\s*혹|후두\s*혹|후두혹|성대\s*혹|성대혹)/u.test(text)) {
+    return null;
+  }
+
+  const asksSurgery = /(수술|제거|절제|시술)/u.test(text);
+  const answer = asksSurgery
+    ? '성대물혹이나 목의 혹은 진료 가능합니다. 홈페이지 목의 혹 안내 기준으로 문진과 함께 후두내시경검사, 혈액검사, 초음파검사, 방사선검사, CT검사 등을 통해 혹의 위치와 원인을 확인할 수 있습니다. 수술이나 시술이 필요한지는 검사 결과와 의료진 판단에 따라 결정됩니다.'
+    : '성대물혹이나 목의 혹은 진료 가능합니다. 홈페이지 목의 혹 안내 기준으로 환자 나이, 혹의 위치, 발생 시기, 크기, 통증 여부 등을 확인하고 후두내시경검사, 혈액검사, 초음파검사, 방사선검사, CT검사 등을 시행할 수 있습니다.';
+
+  return {
+    type: 'throat_mass_care',
+    answer,
+    followUp: [
+      '성대물혹 관련 진료는 목질환센터 또는 두경부센터 의료진 기준으로 확인해 주세요.',
+      '검사와 치료 방향은 진료 후 의료진이 결정합니다.',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-목의 혹', '홈페이지-목의 혹.txt'),
+      buildLocalDocSource('외래-의료진 명단', DOCTOR_LIST_DOC_FILENAME),
+    ],
   };
 }
 
@@ -7597,6 +7682,21 @@ async function buildChatResponse(rawMessage, sessionId) {
   const directDoctorScheduleImageResponse = buildDoctorScheduleImageResponse(message);
   if (directDoctorScheduleImageResponse) {
     return enrichResponsePayload(directDoctorScheduleImageResponse, message);
+  }
+
+  const directCenterDoctorListResponse = buildCenterDoctorListResponse(message);
+  if (directCenterDoctorListResponse) {
+    return enrichResponsePayload(directCenterDoctorListResponse, message);
+  }
+
+  const directSinusitisCareResponse = buildSinusitisCareResponse(message);
+  if (directSinusitisCareResponse) {
+    return enrichResponsePayload(directSinusitisCareResponse, message);
+  }
+
+  const directThroatMassCareResponse = buildThroatMassCareResponse(message);
+  if (directThroatMassCareResponse) {
+    return enrichResponsePayload(directThroatMassCareResponse, message);
   }
 
   const directWaitingTimeResponse = buildWaitingTimeResponse(message);
