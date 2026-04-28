@@ -2087,6 +2087,7 @@ function shouldUseConsultationTone(payload) {
     'nasal_irrigation_general',
     'network_hospital_info',
     'guardian_meal',
+    'pharmacy_location',
   ].includes(type);
 }
 
@@ -2185,6 +2186,9 @@ function enrichResponsePayload(payload, question) {
     'first_return_visit_process',
     'waiting_time_visit',
     'clinic_hours_night_weekend',
+    'referral_document',
+    'hospital_location',
+    'doctor_schedule_image',
     'discharge_time',
     'facility_location',
     'anti_aging_clinic_location',
@@ -3449,6 +3453,69 @@ function buildClinicHoursNightWeekendResponse(message) {
       buildLocalDocSource('홈페이지-외래진료안내', '홈페이지-외래진료안내.txt'),
       buildIntegratedFaqDocSource(),
     ],
+  };
+}
+
+function buildReferralDocumentResponse(message) {
+  const text = String(message || '');
+  if (!/(진료\s*의뢰|진료의뢰|의뢰서|요양급여\s*의뢰서|타병원\s*CD|소견서|전자의뢰)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'referral_document',
+    answer: '진료의뢰서가 있으시면 내원 후 접수하실 때 미리 제출해 주세요. 타병원 CD나 소견서를 가지고 오신 경우에도 접수 시 함께 제출해 주시면 됩니다. 전자의뢰인 경우에는 접수 직원에게 전자의뢰가 되어 있다고 알려 주세요.',
+    followUp: [
+      '진료의뢰환자는 전용 접수창구를 이용하면 빠르고 편리하게 접수할 수 있습니다.',
+      '진료협력센터 담당자 연락처는 문서 기준 010-3661-8998입니다.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('홈페이지-외래진료안내', '홈페이지-외래진료안내.txt'),
+    ],
+  };
+}
+
+function buildHospitalLocationResponse(message) {
+  const text = String(message || '');
+  if (!/(병원\s*위치|병원위치|병원\s*주소|주소|어디\s*있|어디에\s*있|오시는\s*길|찾아\s*가|건물\s*주소)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'hospital_location',
+    answer: '하나이비인후과병원 주소는 서울특별시 강남구 역삼로 245입니다. 대중교통은 2호선 역삼역 1번 출구를 이용하시면 되고, 역삼역 1번 출구에서 병원 셔틀버스도 이용할 수 있습니다. 자동차로 오실 때는 내비게이션에 “서울특별시 강남구 역삼로 245” 또는 “하나이비인후과병원”을 입력하시면 됩니다.',
+    followUp: [
+      '역삼역 1번 출구에서 도보 약 10분 거리로 안내되어 있습니다.',
+      '버스는 동영문화센터, 개나리아파트, 신한은행 전산센터 정류장 하차 안내가 있습니다.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('홈페이지-셔틀버스 및 오시는길', '홈페이지-셔틀버스 및 오시는길.txt'),
+    ],
+  };
+}
+
+function buildDoctorScheduleImageResponse(message) {
+  const text = String(message || '');
+  if (!/(오늘.{0,12}(진료|의료진|의사|원장)|외래\s*진료표|외래진료표|진료\s*일정|진료일정|진료표|의료진\s*일정)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'doctor_schedule_image',
+    answer: '의료진 진료일정은 외래 진료표 기준으로 확인하시면 됩니다. 다만 오늘 실제 진료 가능 여부는 당일 수술, 휴진, 대기 상황에 따라 달라질 수 있어 내원 전 대표전화 02-6925-1111로 확인해 주세요.',
+    followUp: [
+      '아래 진료일정표 이미지를 참고해 주세요.',
+      '특정 의료진 이름을 알려주시면 해당 의료진 기준으로도 안내해 드릴게요.',
+    ],
+    images: [{
+      title: '진료일정 안내',
+      description: '의료진 외래 진료일정표입니다.',
+      display: 'document',
+      url: resolvePublicImagePath('/images/%EC%A7%84%EB%A3%8C%EC%9D%BC%EC%A0%95%EC%A0%84%EC%B2%B4.png'),
+    }],
+    sources: [buildLocalDocSource('진료일정', '진료일정전체.png')],
   };
 }
 
