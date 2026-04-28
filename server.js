@@ -6,6 +6,7 @@ const { URL } = require('url');
 const { DatabaseSync } = require('node:sqlite');
 const XLSX = require('xlsx');
 const CPEXCEL = require('xlsx/dist/cpexcel.js');
+const { createSemanticSearchService } = require('./lib/semantic-search');
 
 const PORT = process.env.PORT || 3000;
 const IS_RENDER = Boolean(process.env.RENDER || process.env.RENDER_SERVICE_ID);
@@ -457,6 +458,7 @@ let pendingDoctorDocsUpdate = false;
 let doctorScheduleSyncInProgress = false;
 let doctorScheduleSyncQueued = false;
 let runtimeData = null;
+let semanticSearchService = null;
 let docsWatcher = null;
 
 function readJsonArray(filePath) {
@@ -517,6 +519,9 @@ function invalidateDynamicCaches() {
 function refreshRuntimeData(reason = 'manual refresh') {
   runtimeData = createRuntimeData();
   invalidateDynamicCaches();
+  if (semanticSearchService) {
+    semanticSearchService.invalidate(reason);
+  }
   console.log(`[docs-refresh] ${reason}`);
   return runtimeData;
 }
@@ -4539,6 +4544,15 @@ function getMatchedHomepageDiseaseTerms(question) {
 }
 
 runtimeData = createRuntimeData();
+semanticSearchService = createSemanticSearchService({
+  apiKey: OPENAI_API_KEY,
+  getSources: () => ({
+    faqEntries: runtimeData?.faqEntries || [],
+    integratedFaqCards: runtimeData?.integratedFaqCards || [],
+    localDocuments: runtimeData?.localDocuments || [],
+    imageGuides,
+  }),
+});
 
 function getFaqSourceInfo(entry) {
   const categoryHint = faqCategoryUrlHints[entry.category];
@@ -5015,6 +5029,33 @@ function rankDocuments(question, docs, limit = 7) {
     .sort((a, b) => b.score - a.score);
 
   return prioritizeDocumentsForQuestion(question, rankedDocs, docs, limit);
+}
+
+function mergeSemanticAndKeywordDocuments(semanticDocs, keywordDocs, limit = 7) {
+  const merged = [];
+  const seen = new Set();
+
+  [...(semanticDocs || []), ...(keywordDocs || [])].forEach((doc) => {
+    if (!doc || !String(doc.text || '').trim()) {
+      return;
+    }
+
+    const key = [
+      String(doc.url || '').trim(),
+      String(doc.chunkLabel || '').trim(),
+      normalizeSearchTextSafe(String(doc.title || doc.sourceTitle || '')),
+      normalizeSearchTextSafe(String(doc.text || '').slice(0, 160)),
+    ].join('::');
+
+    if (seen.has(key)) {
+      return;
+    }
+
+    seen.add(key);
+    merged.push(doc);
+  });
+
+  return merged.slice(0, limit);
 }
 
 function getConversationState(sessionId) {
@@ -6827,7 +6868,11 @@ async function buildChatResponse(rawMessage, sessionId) {
   }
 
   const docs = await getDocumentsForRequest();
-  const contextDocs = rankDocuments(retrievalMessage, docs);
+  const keywordContextDocs = rankDocuments(retrievalMessage, docs);
+  const semanticContextDocs = semanticSearchService
+    ? await semanticSearchService.search(retrievalMessage, 5)
+    : [];
+  const contextDocs = mergeSemanticAndKeywordDocuments(semanticContextDocs, keywordContextDocs);
 
   if (contextDocs.length === 0) {
     return enrichResponsePayload(createFallbackResponse(retrievalMessage, []), message);
