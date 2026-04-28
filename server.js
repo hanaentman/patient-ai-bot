@@ -911,18 +911,26 @@ function mapChatLogRow(row) {
     return null;
   }
 
+  const sources = safeJsonParseArray(row.sources).map((source) => ({
+    ...source,
+    title: repairBrokenKoreanText(source?.title || ''),
+    url: source?.url || '',
+    sourceTitle: repairBrokenKoreanText(source?.sourceTitle || ''),
+    description: repairBrokenKoreanText(source?.description || ''),
+  }));
+
   return {
     id: row.id,
     timestamp: row.timestamp,
     sessionId: row.session_id || '',
-    question: row.question || '',
-    answer: row.answer || '',
+    question: repairBrokenKoreanText(row.question || ''),
+    answer: repairBrokenKoreanText(row.answer || ''),
     followUp: safeJsonParseArray(row.follow_up),
-    answerFull: row.answer_full || row.answer || '',
+    answerFull: repairBrokenKoreanText(row.answer_full || row.answer || ''),
     type: row.type || 'unknown',
-    sources: safeJsonParseArray(row.sources),
+    sources,
     flag: row.flag || 'normal',
-    note: row.note || '',
+    note: repairBrokenKoreanText(row.note || ''),
     reviewedAt: row.reviewed_at || '',
   };
 }
@@ -7584,7 +7592,7 @@ function handleApiChat(req, res) {
         id: `log-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         timestamp: new Date().toISOString(),
         sessionId: parsed.sessionId || '',
-        question: String(parsed.message || '').trim(),
+        question: repairBrokenKoreanText(String(parsed.message || '').trim()),
         answer: response.answer || '',
         followUp: response.followUp || [],
         answerFull: [
