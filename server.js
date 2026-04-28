@@ -1856,6 +1856,9 @@ function shouldUseConsultationTone(payload) {
     'fallback_inference',
     'fallback_restricted',
     'consultation_clarification',
+    'parking_info',
+    'nasal_irrigation_surgery',
+    'nasal_irrigation_general',
   ].includes(type);
 }
 
@@ -1940,6 +1943,7 @@ function enrichResponsePayload(payload, question) {
     'doctor_overview',
     'smalltalk',
     'welcome',
+    'guided_question',
     'privacy_warning',
     'config_error',
     'emergency',
@@ -2965,6 +2969,30 @@ function createNasalIrrigationResponse(mode = 'general') {
   );
 }
 
+function getNasalIrrigationMode(message) {
+  const text = String(message || '');
+  if (!isNasalIrrigationQuestion(text)) {
+    return '';
+  }
+
+  if (matchesAnyPattern(text, NASAL_IRRIGATION_SURGERY_PATTERNS)) {
+    return 'surgery';
+  }
+
+  if (matchesAnyPattern(text, NASAL_IRRIGATION_GENERAL_PATTERNS)) {
+    return 'general';
+  }
+
+  return 'ambiguous';
+}
+
+function createNasalIrrigationClarificationResponse() {
+  return createGuidedQuestionResponse(
+    '코세척은 수술 후 코세척인지 일반 코세척인지에 따라 안내가 달라집니다. 어느 경우인지 먼저 선택해 주세요.',
+    ['수술 후 코세척이에요', '일반 코세척이에요']
+  );
+}
+
 function createComplaintGuideResponse() {
   return buildReinitializedIntentResponse('complaint_guide', '') || null;
 }
@@ -3016,6 +3044,55 @@ function createHospitalPhoneResponse() {
 
 function createRhinitisPostOpVisitResponse() {
   return buildReinitializedIntentResponse('rhinitis_postop_visit', '비염 수술 후 내원') || null;
+}
+
+function buildParkingInfoResponse(message) {
+  const text = String(message || '');
+  if (!matchesAnyPattern(text, PARKING_QUERY_PATTERNS)) {
+    return null;
+  }
+
+  const sources = [
+    buildIntegratedFaqDocSource(),
+    buildLocalDocSource('홈페이지-셔틀버스 및 오시는길', '홈페이지-셔틀버스 및 오시는길.txt'),
+  ];
+  const isInpatientParking = matchesAnyPattern(text, PARKING_INPATIENT_PATTERNS);
+  const isOutpatientParking = matchesAnyPattern(text, PARKING_OUTPATIENT_PATTERNS);
+
+  if (isInpatientParking) {
+    return {
+      type: 'parking_info',
+      answer: '입원 환자 주차는 경우에 따라 제한이 있습니다. 문서 기준으로 입원 당일 종일 주차는 가능하지만 밤샘 주차는 불가능하고, 홈페이지 안내에는 입원 환자는 퇴원 시 운전이 어려울 수 있어 차량 이용이 권장되지 않는다고 되어 있습니다.',
+      followUp: [
+        '외래 환자와 방문객은 주차권 또는 영수증 제출 시 무료주차가 가능합니다.',
+        '무료 발렛파킹 서비스가 운영되며, 주차장 높이 1.9m 이상 차량은 주차가 어려울 수 있습니다.',
+      ],
+      sources,
+    };
+  }
+
+  if (isOutpatientParking) {
+    return {
+      type: 'parking_info',
+      answer: '외래 환자와 방문객은 주차권 또는 영수증 제출 시 무료주차가 가능합니다. 무료 발렛파킹 서비스도 운영됩니다.',
+      followUp: [
+        '주차장이 협소할 수 있어 혼잡 시간에는 대중교통 이용이 더 편할 수 있습니다.',
+        '주차장 높이 1.9m 이상 차량은 주차가 어려울 수 있습니다.',
+      ],
+      sources,
+    };
+  }
+
+  return {
+    type: 'parking_info',
+    answer: '주차는 가능합니다. 문서 기준으로 환자 및 방문객은 주차권 또는 영수증 제출 시 무료주차가 가능하고, 무료 발렛파킹 서비스도 운영됩니다. 다만 입원 환자는 밤샘 주차가 불가능하며, 퇴원 시 운전이 어려울 수 있어 차량 이용이 권장되지 않습니다.',
+    followUp: [
+      '외래 방문 주차 안내',
+      '입원 환자 주차 안내',
+      '주차장 높이 1.9m 이상 차량은 주차가 어려울 수 있습니다.',
+    ],
+    sources,
+  };
 }
 
 function createFallbackInsufficientEvidenceResponse(contextTitles) {
@@ -6727,6 +6804,24 @@ async function buildChatResponse(rawMessage, sessionId) {
     return enrichResponsePayload(directDoctorOverviewResponse, message);
   }
 
+  const directParkingResponse = buildParkingInfoResponse(message);
+  if (directParkingResponse) {
+    return enrichResponsePayload(directParkingResponse, message);
+  }
+
+  const directNasalIrrigationMode = getNasalIrrigationMode(message);
+  if (directNasalIrrigationMode === 'surgery' || directNasalIrrigationMode === 'general') {
+    clearConversationState(sessionId);
+    return enrichResponsePayload(createNasalIrrigationResponse(directNasalIrrigationMode), message);
+  }
+  if (directNasalIrrigationMode === 'ambiguous') {
+    setConversationState(sessionId, {
+      topic: 'nasal_irrigation',
+      originalMessage: message,
+    });
+    return enrichResponsePayload(createNasalIrrigationClarificationResponse(), message);
+  }
+
   const looseTopicResponse = findLooseTopicResponse(message);
   if (looseTopicResponse) {
     return enrichResponsePayload(looseTopicResponse, message);
@@ -6783,6 +6878,24 @@ async function buildChatResponse(rawMessage, sessionId) {
     return enrichResponsePayload(preRetrievalDoctorOverviewResponse, message);
   }
 
+  const preRetrievalParkingResponse = buildParkingInfoResponse(intentProbeMessage);
+  if (preRetrievalParkingResponse) {
+    return enrichResponsePayload(preRetrievalParkingResponse, message);
+  }
+
+  const preRetrievalNasalIrrigationMode = getNasalIrrigationMode(intentProbeMessage);
+  if (preRetrievalNasalIrrigationMode === 'surgery' || preRetrievalNasalIrrigationMode === 'general') {
+    clearConversationState(sessionId);
+    return enrichResponsePayload(createNasalIrrigationResponse(preRetrievalNasalIrrigationMode), message);
+  }
+  if (preRetrievalNasalIrrigationMode === 'ambiguous') {
+    setConversationState(sessionId, {
+      topic: 'nasal_irrigation',
+      originalMessage: message,
+    });
+    return enrichResponsePayload(createNasalIrrigationClarificationResponse(), message);
+  }
+
   const preRetrievalLooseTopicResponse = findLooseTopicResponse(intentProbeMessage);
   if (preRetrievalLooseTopicResponse) {
     return enrichResponsePayload(preRetrievalLooseTopicResponse, message);
@@ -6804,6 +6917,24 @@ async function buildChatResponse(rawMessage, sessionId) {
   const doctorOverviewResponse = findDoctorOverviewResponse(retrievalMessage);
   if (doctorOverviewResponse) {
     return enrichResponsePayload(doctorOverviewResponse, message);
+  }
+
+  const parkingResponse = buildParkingInfoResponse(retrievalMessage);
+  if (parkingResponse) {
+    return enrichResponsePayload(parkingResponse, message);
+  }
+
+  const retrievalNasalIrrigationMode = getNasalIrrigationMode(retrievalMessage);
+  if (retrievalNasalIrrigationMode === 'surgery' || retrievalNasalIrrigationMode === 'general') {
+    clearConversationState(sessionId);
+    return enrichResponsePayload(createNasalIrrigationResponse(retrievalNasalIrrigationMode), message);
+  }
+  if (retrievalNasalIrrigationMode === 'ambiguous') {
+    setConversationState(sessionId, {
+      topic: 'nasal_irrigation',
+      originalMessage: message,
+    });
+    return enrichResponsePayload(createNasalIrrigationClarificationResponse(), message);
   }
 
   const retrievalLooseTopicResponse = findLooseTopicResponse(retrievalMessage);

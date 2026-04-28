@@ -1,0 +1,10 @@
+[
+  {
+    "caseType": "actual_wrong_answer",
+    "question": "네트워크 병원이 뭐야?",
+    "wrongAnswer": "제공된 문서들에는 네트워크병원(제휴 병원·연계 의료기관)에 대한 정보가 없다고 답변함",
+    "expectedIntent": "network_hospital_info",
+    "expectedSource": "하나이비인후과 네트워크 병원 안내",
+    "expectedAnswerHint": "하나이비인후과 전국네트워크 구축, 지역별 전국 43개소 네트워크 구성. 하나라는 브랜드를 사용하여 국내 최대 이비인후과 네트워크로 풍부한 경험을 통해 진료 표준화와 전문화를 추구한다고 안내"
+  }
+]
