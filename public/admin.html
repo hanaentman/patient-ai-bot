@@ -131,81 +131,6 @@
         font-size: 13px;
       }
 
-      .session-history {
-        margin-top: 14px;
-        padding-top: 14px;
-        border-top: 1px solid var(--line);
-      }
-
-      .session-history[hidden] {
-        display: none;
-      }
-
-      .session-history-list {
-        display: grid;
-        gap: 8px;
-        margin-top: 10px;
-      }
-
-      .session-message {
-        padding: 10px 12px;
-        border-radius: 12px;
-        background: #f7fbfe;
-        border: 1px solid var(--line);
-      }
-
-      .session-log-entry {
-        padding: 12px;
-        border-radius: 14px;
-        background: #f8fbfe;
-        border: 1px solid var(--line);
-      }
-
-      .session-log-review {
-        display: grid;
-        grid-template-columns: 160px 1fr auto;
-        gap: 10px;
-        margin-top: 10px;
-        align-items: start;
-      }
-
-      .session-message.user {
-        background: #eef7ff;
-      }
-
-      .session-message.assistant {
-        background: #f8fafc;
-      }
-
-      .session-message-header {
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 6px;
-        font-size: 12px;
-        color: var(--muted);
-      }
-
-      .session-controls {
-        display: flex;
-        gap: 8px;
-        margin-top: 14px;
-      }
-
-      .session-review {
-        display: grid;
-        grid-template-columns: 160px 1fr auto;
-        gap: 10px;
-        margin-top: 12px;
-        margin-bottom: 12px;
-        align-items: start;
-      }
-
-      .secondary-button {
-        background: #e8f4fd;
-        color: var(--primary);
-      }
-
       .sources ul {
         margin: 6px 0 0;
         padding-left: 18px;
@@ -420,39 +345,6 @@
         return [...bySession.values()].flatMap((sessionItems) => groupSessionLogItems(sessionItems));
       }
 
-      function formatSessionLogEntries(items) {
-        if (!items.length) {
-          return '<div class="muted">저장된 최근 질문/답변 로그가 없습니다.</div>';
-        }
-
-        return items.map((item) => `
-          <article class="session-log-entry" data-log-id="${escapeHtml(item.id)}">
-            <div class="row">
-              <span>${escapeHtml(item.timestamp || '')}</span>
-              <span>유형: ${escapeHtml(item.type || '-')}</span>
-              <span class="badge ${escapeHtml(item.flag || 'normal')}">${escapeHtml(formatFlagLabel(item.flag))}</span>
-            </div>
-            <section class="question">
-              <strong>질문</strong>
-              <div>${escapeHtml(item.question || '')}</div>
-            </section>
-            <section class="answer" style="margin-top: 10px;">
-              <strong>답변</strong>
-              <div>${escapeHtml(item.answerFull || item.answer || '')}</div>
-            </section>
-            <section class="session-log-review">
-              <select class="flag-select">
-                <option value="normal" ${item.flag === 'normal' ? 'selected' : ''}>정상</option>
-                <option value="needs_review" ${item.flag === 'needs_review' ? 'selected' : ''}>수정 필요</option>
-                <option value="important" ${item.flag === 'important' ? 'selected' : ''}>중요</option>
-              </select>
-              <textarea class="note-input" rows="2" placeholder="질문 메모">${escapeHtml(item.note || '')}</textarea>
-              <button type="button" class="session-log-save-button">질문 저장</button>
-            </section>
-          </article>
-        `).join('');
-      }
-
       async function updateFlag(id, card) {
         const flag = card.querySelector('.flag-select').value;
         const note = card.querySelector('.note-input').value;
@@ -468,86 +360,6 @@
         }
 
         await loadLogs();
-      }
-
-      async function updateSessionNote(sessionId, card) {
-        const flag = card.querySelector('.session-flag-select').value;
-        const note = card.querySelector('.session-note-input').value;
-        const response = await fetch('/api/admin/session-note', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessionId, flag, note }),
-        });
-
-        if (!response.ok) {
-          alert('세션 메모 저장에 실패했습니다.');
-          return;
-        }
-
-        await loadLogs();
-      }
-
-      async function toggleSessionHistory(card, sessionId) {
-        const section = card.querySelector('.session-history');
-        const content = card.querySelector('.session-history-list');
-        const button = card.querySelector('.history-button');
-        const representativeId = card.dataset.groupId;
-
-        if (!sessionId) {
-          alert('세션 정보가 없습니다.');
-          return;
-        }
-
-        if (!section.hidden) {
-          section.hidden = true;
-          button.textContent = '대화 맥락 보기';
-          return;
-        }
-
-        section.hidden = false;
-        button.textContent = '대화 맥락 닫기';
-
-        if (section.dataset.loaded === 'true') {
-          return;
-        }
-
-        content.innerHTML = '<div class="muted">불러오는 중...</div>';
-
-        try {
-          const response = await fetch(`/api/admin/session-history?sessionId=${encodeURIComponent(sessionId)}&limit=16`);
-          const data = await response.json();
-          const items = data.items || [];
-          const sessionNote = data.sessionNote || {};
-          const groups = groupSessionLogItems(items);
-          const targetGroup = groups.find((group) => String(group.id) === String(representativeId)) || groups[0];
-          const historyHtml = formatSessionLogEntries(targetGroup ? targetGroup.items : []);
-
-          content.innerHTML = `
-            <section class="session-review">
-              <select class="session-flag-select">
-                <option value="normal" ${(sessionNote.flag || 'normal') === 'normal' ? 'selected' : ''}>정상</option>
-                <option value="needs_review" ${(sessionNote.flag || '') === 'needs_review' ? 'selected' : ''}>수정 필요</option>
-                <option value="important" ${(sessionNote.flag || '') === 'important' ? 'selected' : ''}>중요</option>
-              </select>
-              <textarea class="session-note-input" rows="2" placeholder="세션 메모">${escapeHtml(sessionNote.note || '')}</textarea>
-              <button type="button" class="session-save-button">세션 저장</button>
-            </section>
-            ${historyHtml}
-          `;
-          content.querySelector('.session-save-button').addEventListener('click', () => {
-            updateSessionNote(sessionId, card);
-          });
-          content.querySelectorAll('.session-log-entry').forEach((entry) => {
-            const logId = entry.dataset.logId;
-            const saveButton = entry.querySelector('.session-log-save-button');
-            saveButton.addEventListener('click', () => {
-              updateFlag(logId, entry);
-            });
-          });
-          section.dataset.loaded = 'true';
-        } catch (error) {
-          content.innerHTML = '<div class="muted">세션 대화를 불러오지 못했습니다.</div>';
-        }
       }
 
       function renderLogs(items, total) {
@@ -588,15 +400,6 @@
               </ul>
             </section>
 
-            <section class="session-controls">
-              <button type="button" class="secondary-button history-button">대화 맥락 보기</button>
-            </section>
-
-            <section class="session-history" hidden data-loaded="false">
-              <strong>최근 대화 맥락</strong>
-              <div class="session-history-list"></div>
-            </section>
-
             <section class="review">
               <select class="flag-select">
                 <option value="normal" ${item.flag === 'normal' ? 'selected' : ''}>정상</option>
@@ -613,13 +416,8 @@
         document.querySelectorAll('.card').forEach((card) => {
           const id = card.dataset.id;
           const saveButton = card.querySelector('.save-button');
-          const historyButton = card.querySelector('.history-button');
-          const sessionId = groupedItems.find((group) => group.id === id)?.sessionId || '';
           saveButton.addEventListener('click', () => {
             updateFlag(id, card);
-          });
-          historyButton.addEventListener('click', () => {
-            toggleSessionHistory(card, sessionId);
           });
         });
       }
