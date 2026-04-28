@@ -2181,6 +2181,18 @@ function enrichResponsePayload(payload, question) {
     'rhinitis_exam_info',
     'exam_type_clarification',
     'doctor_career',
+    'payment_method',
+    'first_return_visit_process',
+    'waiting_time_visit',
+    'clinic_hours_night_weekend',
+    'facility_location',
+    'pharmacy_location',
+    'exam_location',
+    'accessibility_support',
+    'medical_record_copy',
+    'result_notification',
+    'infection_prevention',
+    'additional_consultation',
   ].includes(localizedPayload.type);
 
   return sanitizeOutgoingPayload({
@@ -3356,6 +3368,217 @@ function buildGuardianMealResponse() {
       '정확한 신청 방법이나 제공 기준은 병동 또는 대표전화 02-6925-1111로 확인해 주세요.',
     ],
     sources: [buildLocalDocSource('기타-비급여비용', path.basename(CERTIFICATE_FEES_DOC_PATH || '기타-비급여비용.txt'))],
+  };
+}
+
+function buildPaymentMethodResponse(message) {
+  const text = String(message || '');
+  if (!/(결제|수납|진료비)/u.test(text) || !/(카드|현금)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'payment_method',
+    answer: '진료비 결제는 카드와 현금 모두 가능합니다. 카드 결제 후 환불이나 카드 교체가 필요한 경우에는 결제하신 카드를 가지고 내원하시면 환불 처리가 가능합니다.',
+    followUp: [
+      '일반 진료 후 건강보험 피보험자 또는 피부양자로 등록된 경우 환불은 2주 이내 내원이 필요할 수 있습니다.',
+      '자세한 수납 관련 문의는 대표전화 02-6925-1111로 확인해 주세요.',
+    ],
+    sources: [buildIntegratedFaqDocSource()],
+  };
+}
+
+function buildFirstReturnVisitResponse(message) {
+  const text = String(message || '');
+  if (!/(초진|신환|처음\s*내원|첫\s*방문|재진)/u.test(text) || !/(절차|접수|다른|차이|어떻게)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'first_return_visit_process',
+    answer: '초진과 재진 모두 1층 원무과에서 접수 후 진료로 진행됩니다. 처음 내원하시는 초진 환자는 본인 확인을 위해 건강보험증 또는 신분증을 원무과에 제시해 주셔야 합니다. 예약하신 경우에는 1층 원무과에서 예약 확인을 먼저 받으시면 됩니다.',
+    followUp: [
+      '당일 방문 진료도 가능하지만 대기시간이 발생할 수 있습니다.',
+      '진료의뢰서, 타병원 CD, 소견서가 있으면 접수 시 미리 제출해 주세요.',
+      '대표전화 02-6925-1111',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-외래진료안내', '홈페이지-외래진료안내.txt'),
+      buildIntegratedFaqDocSource(),
+    ],
+  };
+}
+
+function buildWaitingTimeResponse(message) {
+  const text = String(message || '');
+  if (!/(대기|기다|예약\s*없이|예약없이|방문\s*접수|방문접수)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'waiting_time_visit',
+    answer: '예약 없이 당일 방문 진료도 가능하지만 외래 상황에 따라 대기시간이 발생할 수 있습니다. 홈페이지 외래진료안내에는 당일 방문 진료가 가능하나 대기시간이 발생할 수 있다고 안내되어 있고, 통합 FAQ에는 당일 예약은 1시간 이내 도착 가능할 때 방문 접수로 안내될 수 있다고 되어 있습니다. 대기가 길 수 있어 가능하면 예약 후 내원하시는 것을 권장드립니다.',
+    followUp: [
+      '당일 외래대기실 상황에 따라 달라질 수 있어 내원 전 대표전화 02-6925-1111로 확인해 주세요.',
+      '접수 마감 시간 전에 여유 있게 방문해 주세요.',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-외래진료안내', '홈페이지-외래진료안내.txt'),
+      buildIntegratedFaqDocSource(),
+    ],
+  };
+}
+
+function buildClinicHoursNightWeekendResponse(message) {
+  const text = String(message || '');
+  if (!/(야간|주말|토요일|일요일|공휴일|진료시간|진료\s*가능)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'clinic_hours_night_weekend',
+    answer: '진료시간은 평일 오전 9시부터 오후 6시까지이며, 토요일은 오전 9시부터 오후 1시 30분까지입니다. 일요일과 공휴일은 휴진으로 안내되어 있고, 별도 야간진료는 문서에 안내되어 있지 않습니다.',
+    followUp: [
+      '평일 접수 마감은 오후 5시 30분입니다.',
+      '토요일 접수 마감은 오후 1시입니다.',
+      '응급수술 등 진료 상황에 따라 접수가 조기 마감될 수 있어 내원 전 확인해 주세요.',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-외래진료안내', '홈페이지-외래진료안내.txt'),
+      buildIntegratedFaqDocSource(),
+    ],
+  };
+}
+
+function buildFacilityLocationResponse(message) {
+  const text = String(message || '');
+  const sources = [buildLocalDocSource('기타-층별안내도', '기타-층별안내도.txt')];
+
+  if (/(입원실|병동|회복실)/u.test(text) && /(시설|갖추|있나|위치|어디|층)/u.test(text)) {
+    return {
+      type: 'facility_location',
+      answer: '입원실은 병동이 있는 4층과 5층에 있고, 수술실·회복실·마취과는 6층에 있습니다. 층별안내도 기준으로 4층은 병동 401~409호와 약제과, 5층은 병동 501~509호로 안내됩니다.',
+      followUp: ['입원 관련 세부 이용 기준은 입원 전 병동 안내를 함께 확인해 주세요.'],
+      sources,
+    };
+  }
+
+  if (/(약국|약제과|약\s*타|약\s*받)/u.test(text)) {
+    return {
+      type: 'pharmacy_location',
+      answer: '병원 4층에 약제과가 있으나 주로 입원환자 이용과 관련된 공간입니다. 외래 환자의 처방약은 병원 내부 약국이 아니라 병원 입구 기준 양쪽에 있는 외부 약국을 이용하시면 됩니다.',
+      followUp: ['처방전이나 약 수령 위치가 헷갈리면 1층 원무과 또는 직원에게 문의해 주세요.'],
+      sources,
+    };
+  }
+
+  if (/(청력검사|청력\s*검사|내시경|검사).{0,12}(건물|위치|어디|층|가능|모두)/u.test(text)) {
+    return {
+      type: 'exam_location',
+      answer: '검사 종류에 따라 위치가 다릅니다. 층별안내도 기준으로 청력검사실은 지하 2층에 있고, CT·보청기상담실·외래검사실 등은 1층에 안내되어 있습니다. 코 내시경은 일반적으로 진료실에서 진료 중 시행될 수 있습니다.',
+      followUp: [
+        '검사 동선은 당일 진료 후 직원 안내에 따라 이동하시면 됩니다.',
+        '검사 종류와 당일 상황에 따라 위치나 순서가 달라질 수 있습니다.',
+      ],
+      sources,
+    };
+  }
+
+  return null;
+}
+
+function buildAccessibilityResponse(message) {
+  const text = String(message || '');
+  if (!/(장애|휠체어|몸이\s*불편|거동|편의시설)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'accessibility_support',
+    answer: '몸이 불편하시거나 휠체어를 이용 중인 고객은 2층에서 접수와 수납을 도와드리고 있습니다. 휠체어가 필요하시면 가까운 직원에게 말씀해 주세요.',
+    followUp: ['홈페이지 외래진료안내에도 휠체어 이용자는 2층 안내에서 접수/수납을 도와드린다고 안내되어 있습니다.'],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('홈페이지-외래진료안내', '홈페이지-외래진료안내.txt'),
+    ],
+  };
+}
+
+function buildMedicalRecordCopyResponse(message) {
+  const text = String(message || '');
+  if (!/(진료\s*기록|진료기록|검사\s*결과|검사결과|의무기록|기록|결과).{0,16}(복사|사본|발급|받|떼|출력)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'medical_record_copy',
+    answer: '진료기록이나 검사 결과는 서류 종류에 따라 발급 방식이 다릅니다. 검사 영상자료는 CD 복사로 발급할 수 있고, 기타 진료기록은 진료기록사본으로 발급할 수 있습니다. 비급여비용 문서 기준으로 CD복사는 10,000원, 진료기록사본은 1,000원 항목이 안내되어 있습니다.',
+    followUp: [
+      '개인정보보호법에 따라 본인이 신분증을 지참하고 내원해 본인 확인 후 발급하는 것이 원칙입니다.',
+      '보호자나 대리인이 내원하는 경우 필요한 구비서류를 확인해 주세요.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('기타-비급여비용', path.basename(CERTIFICATE_FEES_DOC_PATH || '기타-비급여비용.txt')),
+      buildLocalDocSource('홈페이지-외래진료안내', '홈페이지-외래진료안내.txt'),
+    ],
+  };
+}
+
+function buildResultNotificationResponse(message) {
+  const text = String(message || '');
+  if (!/(진료\s*후|진료후|검사\s*후|검사후|결과)/u.test(text) || !/(문자|앱|카톡|알림|받아볼|전송)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'result_notification',
+    answer: '일반 진료 결과나 검사 결과를 문자나 앱으로 받아볼 수 있는지에 대해서는 현재 문서에서 명확히 확인되지 않습니다. 다만 입원 수술 진행 상황은 원무과에 등록한 보호자 연락처로 안내 문자가 3회 발송된다고 안내되어 있습니다. 검사 결과는 문서 기준으로 진료 당일 확인 가능한 경우가 많지만, 별도 문자나 앱 제공 여부는 대표전화 02-6925-1111로 확인해 주세요.',
+    followUp: [
+      '검사 결과 사본이나 진료기록이 필요하면 서류 발급 절차로 문의해 주세요.',
+      '수술 진행 안내 문자는 병동에서 수술실 이동, 수술 종료, 회복실 퇴실 후 병동 도착 시점에 발송됩니다.',
+    ],
+    sources: [buildIntegratedFaqDocSource()],
+  };
+}
+
+function buildInfectionPreventionResponse(message) {
+  const text = String(message || '');
+  if (!(/(병원|병동|입원|면회)/u.test(text) && /(감염|감염병|예방|방역|면회\s*제한)/u.test(text))) {
+    return null;
+  }
+
+  return {
+    type: 'infection_prevention',
+    answer: '입원환자 면회는 환자 안전관리와 감염병 예방을 위해 전면 금지로 안내되어 있습니다. 병동 4층과 5층은 환자의 안정과 감염예방을 위해 출입을 제한하며, 출입증을 소지한 보호자 또는 환자 본인만 병동 출입이 가능합니다. 면회가 필요한 경우에는 1층 또는 2층 대기실 이용으로 안내됩니다.',
+    followUp: [
+      '감기나 인플루엔자 등 호흡기 질환자, 급성 장 관계 감염이 있는 면회객 등은 제한 대상입니다.',
+      '보호자 상주는 의료진 판단에 따라 예외적으로 안내될 수 있습니다.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('홈페이지-입퇴원 안내', '홈페이지-입퇴원 안내.txt'),
+    ],
+  };
+}
+
+function buildAdditionalConsultationResponse(message) {
+  const text = String(message || '');
+  if (!/(추가\s*상담|진료과목\s*외|건강검진|예방관리|예방\s*관리|예방접종)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'additional_consultation',
+    answer: '진료과목 외 추가 상담은 상담 내용에 따라 가능 여부가 달라집니다. 병원 문서에는 이비인후과 질환 진료와 검사, 내과 진료, 예방접종 관련 진료 분야가 확인됩니다. 건강검진이나 예방관리처럼 구체적인 항목은 운영 여부와 담당 진료과 확인이 필요하므로 대표전화 02-6925-1111로 문의해 주세요.',
+    followUp: [
+      '예방접종은 의료진 정보의 내과 전문분야 및 비급여비용 문서에 관련 항목이 확인됩니다.',
+      '원하시는 상담 항목을 말씀해 주시면 관련 진료과나 문의 방향을 안내해 드릴게요.',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt'),
+      buildLocalDocSource('기타-비급여비용', path.basename(CERTIFICATE_FEES_DOC_PATH || '기타-비급여비용.txt')),
+    ],
   };
 }
 
@@ -7255,6 +7478,56 @@ async function buildChatResponse(rawMessage, sessionId) {
   const meaningIntentResponse = resolveMeaningIntentResponse(meaningIntent, message, sessionId);
   if (meaningIntentResponse) {
     return enrichResponsePayload(meaningIntentResponse, message);
+  }
+
+  const directPaymentMethodResponse = buildPaymentMethodResponse(message);
+  if (directPaymentMethodResponse) {
+    return enrichResponsePayload(directPaymentMethodResponse, message);
+  }
+
+  const directFirstReturnVisitResponse = buildFirstReturnVisitResponse(message);
+  if (directFirstReturnVisitResponse) {
+    return enrichResponsePayload(directFirstReturnVisitResponse, message);
+  }
+
+  const directWaitingTimeResponse = buildWaitingTimeResponse(message);
+  if (directWaitingTimeResponse) {
+    return enrichResponsePayload(directWaitingTimeResponse, message);
+  }
+
+  const directClinicHoursNightWeekendResponse = buildClinicHoursNightWeekendResponse(message);
+  if (directClinicHoursNightWeekendResponse) {
+    return enrichResponsePayload(directClinicHoursNightWeekendResponse, message);
+  }
+
+  const directFacilityLocationResponse = buildFacilityLocationResponse(message);
+  if (directFacilityLocationResponse) {
+    return enrichResponsePayload(directFacilityLocationResponse, message);
+  }
+
+  const directAccessibilityResponse = buildAccessibilityResponse(message);
+  if (directAccessibilityResponse) {
+    return enrichResponsePayload(directAccessibilityResponse, message);
+  }
+
+  const directResultNotificationResponse = buildResultNotificationResponse(message);
+  if (directResultNotificationResponse) {
+    return enrichResponsePayload(directResultNotificationResponse, message);
+  }
+
+  const directMedicalRecordCopyResponse = buildMedicalRecordCopyResponse(message);
+  if (directMedicalRecordCopyResponse) {
+    return enrichResponsePayload(directMedicalRecordCopyResponse, message);
+  }
+
+  const directInfectionPreventionResponse = buildInfectionPreventionResponse(message);
+  if (directInfectionPreventionResponse) {
+    return enrichResponsePayload(directInfectionPreventionResponse, message);
+  }
+
+  const directAdditionalConsultationResponse = buildAdditionalConsultationResponse(message);
+  if (directAdditionalConsultationResponse) {
+    return enrichResponsePayload(directAdditionalConsultationResponse, message);
   }
 
   const directHearingTestResponse = buildHearingTestProcessResponse(message);
