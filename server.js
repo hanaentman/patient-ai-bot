@@ -29,6 +29,9 @@ const IMAGE_GUIDES_PATH = path.join(__dirname, 'data', 'image-guides.json');
 const POPULAR_QUESTIONS_PATH = path.join(PERSISTENT_DATA_DIR, 'popular-question-stats.json');
 const CHAT_LOGS_PATH = path.join(PERSISTENT_DATA_DIR, 'chat-logs.json');
 const CHAT_LOGS_DB_PATH = path.join(PERSISTENT_DATA_DIR, 'chat-logs.db');
+const EVAL_DIR = path.join(__dirname, 'eval');
+const SEED_QUESTIONS_PATH = path.join(EVAL_DIR, 'seed-questions.json');
+const WRONG_ANSWERS_PATH = path.join(EVAL_DIR, 'wrong-answers.json');
 const DOCS_DIR = path.join(__dirname, 'docs');
 const INTEGRATED_FAQ_DOC_FILENAME = findExistingDocFilename([
   '통합-FAQ.txt',
@@ -471,6 +474,11 @@ function readJsonArray(filePath) {
   return Array.isArray(parsed) ? parsed : [];
 }
 
+function writeJsonArray(filePath, items) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, `${JSON.stringify(Array.isArray(items) ? items : [], null, 2)}\n`, 'utf8');
+}
+
 function ensurePersistentDataDir() {
   fs.mkdirSync(PERSISTENT_DATA_DIR, { recursive: true });
 }
@@ -908,6 +916,95 @@ function safeJsonParseArray(value) {
   }
 }
 
+function normalizeEvalQuestionKey(question) {
+  return normalizeSearchTextSafe(question);
+}
+
+function removeEvalCaseByQuestion(filePath, question) {
+  const key = normalizeEvalQuestionKey(question);
+  if (!key || !fs.existsSync(filePath)) {
+    return;
+  }
+
+  const items = readJsonArray(filePath);
+  const filtered = items.filter((item) => normalizeEvalQuestionKey(item?.question) !== key);
+  if (filtered.length !== items.length) {
+    writeJsonArray(filePath, filtered);
+  }
+}
+
+function upsertEvalCase(filePath, question, entry) {
+  const key = normalizeEvalQuestionKey(question);
+  if (!key) {
+    return;
+  }
+
+  const items = readJsonArray(filePath);
+  const index = items.findIndex((item) => normalizeEvalQuestionKey(item?.question) === key);
+  const nextEntry = {
+    ...(index >= 0 ? items[index] : {}),
+    ...entry,
+    question: String(question || '').trim(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  if (index >= 0) {
+    items[index] = nextEntry;
+  } else {
+    items.push(nextEntry);
+  }
+
+  writeJsonArray(filePath, items);
+}
+
+function syncAdminReviewToEvalFiles(logItem) {
+  if (!logItem || !String(logItem.question || '').trim()) {
+    return;
+  }
+
+  const question = String(logItem.question || '').trim();
+  const flag = String(logItem.flag || 'normal');
+  const note = String(logItem.note || '').trim();
+  const answerFull = String(logItem.answerFull || logItem.answer || '').trim();
+  const sourceTitles = (Array.isArray(logItem.sources) ? logItem.sources : [])
+    .map((source) => String(source?.title || source?.url || '').trim())
+    .filter(Boolean);
+
+  try {
+    if (flag === 'normal') {
+      upsertEvalCase(SEED_QUESTIONS_PATH, question, {
+        caseType: 'admin_normal',
+        expectedIntent: String(logItem.type || '').trim() || undefined,
+        expectedSource: sourceTitles.join(' / ') || undefined,
+        expectedAnswerHint: note || answerFull.slice(0, 500),
+        adminNote: note,
+        reviewedLogId: logItem.id || '',
+      });
+      removeEvalCaseByQuestion(WRONG_ANSWERS_PATH, question);
+      return;
+    }
+
+    if (flag === 'needs_review') {
+      upsertEvalCase(WRONG_ANSWERS_PATH, question, {
+        caseType: 'actual_wrong_answer',
+        wrongAnswer: answerFull,
+        expectedIntent: '',
+        expectedSource: sourceTitles.join(' / ') || '',
+        expectedAnswerHint: note || '관리자 메모에 기대 답변 방향을 적어 주세요.',
+        adminNote: note,
+        reviewedLogId: logItem.id || '',
+      });
+      removeEvalCaseByQuestion(SEED_QUESTIONS_PATH, question);
+      return;
+    }
+
+    removeEvalCaseByQuestion(SEED_QUESTIONS_PATH, question);
+    removeEvalCaseByQuestion(WRONG_ANSWERS_PATH, question);
+  } catch (error) {
+    console.error('[eval-sync-error]', error);
+  }
+}
+
 function updateChatLogFlag(logId, flag, note = '') {
   chatLogDb.prepare(`
     UPDATE chat_logs
@@ -920,9 +1017,11 @@ function updateChatLogFlag(logId, flag, note = '') {
     String(logId)
   );
 
-  return mapChatLogRow(
+  const updated = mapChatLogRow(
     chatLogDb.prepare(`SELECT * FROM chat_logs WHERE id = ?`).get(String(logId))
   );
+  syncAdminReviewToEvalFiles(updated);
+  return updated;
 }
 
 function getChatLogsForAdmin(query, options = {}) {
