@@ -1,32 +1,38 @@
 [
   {
-    "caseType": "seed_test",
-    "question": "수술 전에 먹으면 안 되는 약 있어?",
-    "expectedSource": "입원전 복용중단 약물",
-    "expectedAnswerHint": "복용 중인 약은 임의로 중단하지 말고 의료진에게 확인"
+    "question": "당일 진료 가능해?",
+    "caseType": "admin_normal",
+    "expectedIntent": "clinic_hours_night_weekend",
+    "expectedSource": "홈페이지-외래진료안내 / 통합-FAQ",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n진료시간은 평일 오전 9시부터 오후 6시까지이며, 토요일은 오전 9시부터 오후 1시 30분까지입니다. 일요일과 공휴일은 휴진으로 안내되어 있고, 별도 야간진료는 문서에 안내되어 있지 않습니다.\n- 평일 접수 마감은 오후 5시 30분입니다.\n- 토요일 접수 마감은 오후 1시입니다.\n- 응급수술 등 진료 상황에 따라 접수가 조기 마감될 수 있어 내원 전 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777357947654-rzatvf"
   },
   {
-    "caseType": "seed_test",
-    "question": "비염 수술하면 며칠 입원해?",
-    "expectedSource": "홈페이지-만성비염",
-    "expectedAnswerHint": "1박 2일 또는 2박 3일"
+    "question": "성대 물혹 진료",
+    "caseType": "admin_normal",
+    "expectedIntent": "throat_mass_care",
+    "expectedSource": "홈페이지-목의 혹 / 외래-의료진 명단",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n성대물혹이나 목의 혹은 진료 가능합니다. 홈페이지 목의 혹 안내 기준으로 환자 나이, 혹의 위치, 발생 시기, 크기, 통증 여부 등을 확인하고 후두내시경검사, 혈액검사, 초음파검사, 방사선검사, CT검사 등을 시행할 수 있습니다.\n- 성대물혹 관련 진료는 목질환센터 또는 두경부센터 의료진 기준으로 확인해 주세요.\n- 검사와 치료 방향은 진료 후 의료진이 결정합니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777357262912-kuhxib"
   },
   {
-    "caseType": "seed_test",
-    "question": "입원할 때 뭐 챙겨가야 해?",
-    "expectedSource": "입원 준비물",
-    "expectedAnswerHint": "병실 종류에 따라 준비물이 다름"
+    "question": "남순열 경력",
+    "caseType": "admin_normal",
+    "expectedIntent": "doctor_career",
+    "expectedSource": "홈페이지-의료진 정보",
+    "expectedAnswerHint": "의료진 관련해서 안내드릴게요.\n\n남순열 의료진의 전문분야는 두경부질환, 음성질환, 목질환, 갑상선암, 후두암, 구강암, 침샘종양입니다. 주요 경력은 다음과 같습니다.\n\n- 경북대학교 의학과 졸업\n- 경북대학교 대학원 의학과 박사취득\n- 강북삼성병원 전문의\n- 미국 Vanderbilt의대 연구원\n- 울산의대 서울아산병원 이비인후과장\n- 울산의대 이비인후과학교실 주임교수\n- 울산의대 서울아산병원 두경부 센터 소장\n- 대한음성언어학회 이사\n- 한국국제보건의료재단 이사 (KOFIH)\n- 대한두경부외과학회 이사\n- 진료 일정은 외래 진료표와 당일 상황에 따라 달라질 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777356433809-8pcp1u"
   },
   {
-    "caseType": "seed_test",
-    "question": "보호자 밥 신청할 수 있어?",
-    "expectedSource": "기타-비급여비용",
-    "expectedAnswerHint": "보호자 식대 항목은 있으나 신청 방법은 확인 필요"
-  },
-  {
-    "caseType": "seed_test",
-    "question": "아스피린 먹고 있는데 수술 괜찮아?",
-    "expectedSource": "입원전 복용중단 약물",
-    "expectedAnswerHint": "약 중단 여부는 의료진 확인 필요"
+    "question": "귀가 갑자기 먹먹하고 소리가 안들려",
+    "caseType": "admin_normal",
+    "expectedIntent": "이명",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "단순한 이관기능장애에 의한 이충만감의 경우 쉽게 약물치료로 호전되지만, 실제로 청력이 떨어지는 경우에는 빠른 치료를 받지 못한 경우 영구적 난청이 남는 경우가 있어 내원해서 검사받으시기 바랍니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777338416013-1p03cj"
   }
 ]

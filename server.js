@@ -2267,6 +2267,9 @@ function enrichResponsePayload(payload, question) {
     'referral_document',
     'hospital_location',
     'doctor_schedule_image',
+    'room_fee',
+    'symptom_visit_guidance',
+    'ear_fullness_hearing_loss',
     'center_doctor_list',
     'sinusitis_care',
     'throat_mass_care',
@@ -3579,7 +3582,7 @@ function buildHospitalLocationResponse(message) {
 
 function buildDoctorScheduleImageResponse(message) {
   const text = String(message || '');
-  if (!/(오늘.{0,12}(진료|의료진|의사|원장)|외래\s*진료표|외래진료표|진료\s*일정|진료일정|진료표|의료진\s*일정)/u.test(text)) {
+  if (!/(오늘.{0,12}(의료진|의사|원장)|외래\s*진료표|외래진료표|진료\s*일정|진료일정|진료표|의료진\s*일정)/u.test(text)) {
     return null;
   }
 
@@ -3597,6 +3600,102 @@ function buildDoctorScheduleImageResponse(message) {
       url: resolvePublicImagePath('/images/%EC%A7%84%EB%A3%8C%EC%9D%BC%EC%A0%95%EC%A0%84%EC%B2%B4.png'),
     }],
     sources: [buildLocalDocSource('진료일정', '진료일정전체.png')],
+  };
+}
+
+function buildRoomFeeResponse(message) {
+  const text = String(message || '');
+  if (!/(병실\s*비용|병실비용|입원료|병실료|병실\s*료|[124]\s*인실.{0,8}(비용|얼마|가격|금액)|비용.{0,8}[124]\s*인실)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'room_fee',
+    answer: '병실 비용은 통합 FAQ 기준으로 1인실 350,000원, 2인실 대략 7~8만원, 4인실 대략 3만원으로 안내되어 있습니다. 1인실 당일퇴원 비용은 비급여비용 문서 기준 175,000원 항목도 확인됩니다.',
+    followUp: [
+      '병실 배정과 실제 적용 금액은 입원 형태와 당일 병실 상황에 따라 달라질 수 있습니다.',
+      '정확한 금액은 입원 상담 또는 대표전화 02-6925-1111로 확인해 주세요.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('기타-비급여비용', path.basename(CERTIFICATE_FEES_DOC_PATH || '기타-비급여비용.txt')),
+    ],
+  };
+}
+
+function buildSymptomVisitGuidanceResponse(message) {
+  const text = String(message || '');
+  const asksVisitToday = /(진료|진료보|진료\s*보|내원|오늘|가능|접수|예약)/u.test(text);
+  if (!asksVisitToday) {
+    return null;
+  }
+
+  if (/(코막힘|코\s*막힘|코막혀|코\s*막혀|비염|축농증|부비동염|코질환|코\s*질환)/u.test(text)) {
+    return {
+      type: 'symptom_visit_guidance',
+      answer: '코막힘이나 코 질환 진료는 코센터 기준으로 안내드릴 수 있습니다. 당일 방문 진료도 가능하지만 대기시간이 발생할 수 있고, 실제 진료 가능 여부는 접수 마감 시간과 당일 진료 상황에 따라 달라질 수 있습니다.',
+      followUp: [
+        '코센터 의료진은 동헌종 대표원장, 이상덕 병원장, 정도광 원장, 김태현 부원장, 정종인 진료부장, 장규선 과장, 김병길 과장입니다.',
+        '평일 접수 마감은 오후 5시 30분, 토요일 접수 마감은 오후 1시입니다.',
+        '아래 진료일정표 이미지를 참고해 주세요.',
+      ],
+      images: [{
+        title: '진료일정 안내',
+        description: '의료진 외래 진료일정표입니다.',
+        display: 'document',
+        url: resolvePublicImagePath('/images/%EC%A7%84%EB%A3%8C%EC%9D%BC%EC%A0%95%EC%A0%84%EC%B2%B4.png'),
+      }],
+      sources: [
+        buildLocalDocSource('외래-의료진 명단', DOCTOR_LIST_DOC_FILENAME),
+        buildLocalDocSource('홈페이지-외래진료안내', '홈페이지-외래진료안내.txt'),
+        buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt'),
+      ],
+    };
+  }
+
+  if (/(목\s*아파|목아파|목통증|목\s*통증|성대|인후두|두경부|목질환|목\s*질환)/u.test(text)) {
+    return {
+      type: 'symptom_visit_guidance',
+      answer: '목 통증이나 목 질환 진료는 목센터 또는 두경부센터 기준으로 안내드릴 수 있습니다. 당일 방문 진료도 가능하지만 대기시간이 발생할 수 있고, 실제 진료 가능 여부는 접수 마감 시간과 당일 진료 상황에 따라 달라질 수 있습니다.',
+      followUp: [
+        '목센터 의료진은 남순열 두경부 센터장, 주형로 원장입니다.',
+        '평일 접수 마감은 오후 5시 30분, 토요일 접수 마감은 오후 1시입니다.',
+        '아래 진료일정표 이미지를 참고해 주세요.',
+      ],
+      images: [{
+        title: '진료일정 안내',
+        description: '의료진 외래 진료일정표입니다.',
+        display: 'document',
+        url: resolvePublicImagePath('/images/%EC%A7%84%EB%A3%8C%EC%9D%BC%EC%A0%95%EC%A0%84%EC%B2%B4.png'),
+      }],
+      sources: [
+        buildLocalDocSource('외래-의료진 명단', DOCTOR_LIST_DOC_FILENAME),
+        buildLocalDocSource('홈페이지-외래진료안내', '홈페이지-외래진료안내.txt'),
+        buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt'),
+      ],
+    };
+  }
+
+  return null;
+}
+
+function buildEarFullnessHearingLossResponse(message) {
+  const text = String(message || '');
+  if (!/(귀.{0,8}(먹먹|답답|안\s*들|안들|소리.{0,6}안)|먹먹.{0,8}귀|청력.{0,8}(떨어|저하)|소리.{0,8}안\s*들|소리.{0,8}안들)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'ear_fullness_hearing_loss',
+    answer: '귀가 먹먹하거나 소리가 잘 안 들리는 증상은 단순한 이관기능장애일 수도 있지만, 실제로 청력이 떨어진 경우에는 빠른 치료를 받지 못하면 영구적 난청이 남을 수 있어 내원해서 검사를 받으시는 것이 좋습니다.',
+    followUp: [
+      '청력검사와 귀 진료를 통해 난청 여부를 확인할 수 있습니다.',
+      '갑자기 청력이 떨어졌거나 한쪽 귀가 잘 안 들리면 늦추지 말고 진료를 권장드립니다.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('홈페이지-난청', '홈페이지-난청.txt'),
+    ],
   };
 }
 
@@ -7761,6 +7860,16 @@ async function buildChatResponse(rawMessage, sessionId) {
     return enrichResponsePayload(directDoctorScheduleImageResponse, message);
   }
 
+  const directRoomFeeResponse = buildRoomFeeResponse(message);
+  if (directRoomFeeResponse) {
+    return enrichResponsePayload(directRoomFeeResponse, message);
+  }
+
+  const directEarFullnessHearingLossResponse = buildEarFullnessHearingLossResponse(message);
+  if (directEarFullnessHearingLossResponse) {
+    return enrichResponsePayload(directEarFullnessHearingLossResponse, message);
+  }
+
   const directCenterDoctorListResponse = buildCenterDoctorListResponse(message);
   if (directCenterDoctorListResponse) {
     return enrichResponsePayload(directCenterDoctorListResponse, message);
@@ -7774,6 +7883,11 @@ async function buildChatResponse(rawMessage, sessionId) {
   const directThroatMassCareResponse = buildThroatMassCareResponse(message);
   if (directThroatMassCareResponse) {
     return enrichResponsePayload(directThroatMassCareResponse, message);
+  }
+
+  const directSymptomVisitGuidanceResponse = buildSymptomVisitGuidanceResponse(message);
+  if (directSymptomVisitGuidanceResponse) {
+    return enrichResponsePayload(directSymptomVisitGuidanceResponse, message);
   }
 
   const directWaitingTimeResponse = buildWaitingTimeResponse(message);
