@@ -50,6 +50,16 @@
     "reviewedLogId": "log-1777364377577-c4lqwa"
   },
   {
+    "question": "마운자로 얼마야",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "비용 관련해서 안내드릴게요.\n\n1인실 : 350,000원, 2인실 : 대략7~8만원, 4인실 : 대략3만원",
+    "expectedIntent": "약제, 비급여",
+    "expectedSource": "기타-비급여비용.txt",
+    "expectedAnswerHint": "비급여 비용 안내",
+    "adminNote": "",
+    "reviewedLogId": "log-1777364334331-crurfq"
+  },
+  {
     "question": "코성형 가능해?",
     "caseType": "actual_wrong_answer",
     "wrongAnswer": "문의하신 내용에 대해 안내드릴게요.\n\n소아환자(15세 이하)의 경우, 의료진이 환자안전증진 및 정서적지지가 필요하다고 판단하는 경우 1인실에 한하여 보호자 상주를 요청할 수 있습니다.",

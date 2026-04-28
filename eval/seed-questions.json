@@ -81,15 +81,6 @@
     "reviewedLogId": "log-1777364382080-xujdem"
   },
   {
-    "question": "마운자로 얼마야",
-    "caseType": "admin_normal",
-    "expectedIntent": "약제, 비급여",
-    "expectedSource": "기타-비급여비용.txt",
-    "expectedAnswerHint": "비급여 비용 안내",
-    "adminNote": "",
-    "reviewedLogId": "log-1777364334331-crurfq"
-  },
-  {
     "question": "대표적인 비급여 알려줘",
     "caseType": "admin_normal",
     "expectedIntent": "ai",
