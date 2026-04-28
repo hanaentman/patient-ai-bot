@@ -96,6 +96,18 @@
         margin-bottom: 12px;
       }
 
+      .eval-status {
+        margin: -4px 0 12px;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: #fff;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+        word-break: break-all;
+      }
+
       .list {
         display: grid;
         gap: 12px;
@@ -212,6 +224,7 @@
       </section>
 
       <section class="stats muted" id="stats">로드 중...</section>
+      <section class="eval-status" id="eval-status">Eval 저장 위치 확인 중...</section>
       <section class="list" id="log-list"></section>
     </main>
 
@@ -224,6 +237,7 @@
       const exportButton = document.getElementById('export-button');
       const logoutButton = document.getElementById('logout-button');
       const stats = document.getElementById('stats');
+      const evalStatus = document.getElementById('eval-status');
       const logList = document.getElementById('log-list');
 
       function toDateRangeIso(value, isEnd) {
@@ -414,7 +428,22 @@
           return;
         }
 
+        await loadEvalStatus();
         await loadLogs();
+      }
+
+      async function loadEvalStatus() {
+        try {
+          const response = await fetch('/api/admin/eval-status', { cache: 'no-store' });
+          if (!response.ok) {
+            throw new Error('eval status failed');
+          }
+
+          const data = await response.json();
+          evalStatus.textContent = `Eval 저장 위치: 정상 ${data.seedQuestionsCount}개 -> ${data.seedQuestionsPath} / 수정필요 ${data.wrongAnswersCount}개 -> ${data.wrongAnswersPath}`;
+        } catch (error) {
+          evalStatus.textContent = 'Eval 저장 위치를 확인하지 못했습니다. 로컬 patient-ai-bot 서버에서 열린 어드민인지 확인해 주세요.';
+        }
       }
 
       function renderLogs(items, total) {
@@ -513,7 +542,7 @@
         }
       }
 
-      async function exportNeedsReviewLogs() {
+      async function saveNeedsReviewLogs() {
         const params = new URLSearchParams();
         params.set('flag', 'needs_review');
         if (searchInput.value.trim()) params.set('q', searchInput.value.trim());
@@ -521,30 +550,24 @@
         if (endDateInput.value) params.set('endAt', toDateRangeIso(endDateInput.value, true));
 
         try {
-          const response = await fetch(`/api/admin/logs/export?${params.toString()}`);
+          const response = await fetch(`/api/admin/logs/export/save?${params.toString()}`, {
+            method: 'POST',
+          });
           if (!response.ok) {
             alert('JSON 내보내기에 실패했습니다.');
             return;
           }
 
-          const blob = await response.blob();
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          const disposition = response.headers.get('Content-Disposition') || '';
-          const match = disposition.match(/filename="([^"]+)"/);
-          link.href = url;
-          link.download = match ? match[1] : 'wrong-answer-notes.json';
-          document.body.appendChild(link);
-          link.click();
-          link.remove();
-          URL.revokeObjectURL(url);
+          const data = await response.json();
+          await loadEvalStatus();
+          alert(`수정필요 ${data.savedCount}건을 저장했습니다.\n${data.wrongAnswersPath}`);
         } catch (error) {
           alert('JSON 내보내기에 실패했습니다.');
         }
       }
 
       refreshButton.addEventListener('click', loadLogs);
-      exportButton.addEventListener('click', exportNeedsReviewLogs);
+      exportButton.addEventListener('click', saveNeedsReviewLogs);
       logoutButton.addEventListener('click', async () => {
         await fetch('/api/admin/logout', { method: 'POST' });
         window.location.href = '/admin/login';
@@ -558,6 +581,7 @@
       startDateInput.addEventListener('change', loadLogs);
       endDateInput.addEventListener('change', loadLogs);
 
+      loadEvalStatus();
       loadLogs();
     </script>
   </body>

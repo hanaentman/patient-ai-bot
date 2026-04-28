@@ -1040,6 +1040,19 @@ function syncAdminReviewToEvalFiles(logItem) {
   }
 }
 
+function getAdminEvalStatus() {
+  return {
+    ok: true,
+    cwd: __dirname,
+    evalDir: EVAL_DIR,
+    seedQuestionsPath: SEED_QUESTIONS_PATH,
+    wrongAnswersPath: WRONG_ANSWERS_PATH,
+    seedQuestionsCount: readJsonArray(SEED_QUESTIONS_PATH).length,
+    wrongAnswersCount: readJsonArray(WRONG_ANSWERS_PATH).length,
+    timestamp: new Date().toISOString(),
+  };
+}
+
 function updateChatLogFlag(logId, flag, note = '') {
   chatLogDb.prepare(`
     UPDATE chat_logs
@@ -1235,6 +1248,71 @@ function buildWrongAnswerExportRows(query) {
       : [],
     };
   });
+}
+
+function buildWrongAnswerEvalRows(query) {
+  const exportQuery = new URLSearchParams();
+  const getQueryValue = (key) => (typeof query?.get === 'function' ? query.get(key) : query?.[key]);
+  const search = String(getQueryValue('q') || '').trim();
+  const startAt = String(getQueryValue('startAt') || '').trim();
+  const endAt = String(getQueryValue('endAt') || '').trim();
+
+  exportQuery.set('flag', 'needs_review');
+  if (search) {
+    exportQuery.set('q', search);
+  }
+  if (startAt) {
+    exportQuery.set('startAt', startAt);
+  }
+  if (endAt) {
+    exportQuery.set('endAt', endAt);
+  }
+
+  return getChatLogsForAdmin(exportQuery, { disableLimit: true })
+    .map((item) => {
+      const question = String(item.question || '').trim();
+      if (!question) {
+        return null;
+      }
+
+      const reviewNote = parseAdminReviewNote(item.note);
+      const answerFull = String(item.answerFull || item.answer || '').trim();
+      const sourceTitles = (Array.isArray(item.sources) ? item.sources : [])
+        .map((source) => String(source?.title || source?.url || '').trim())
+        .filter(Boolean);
+
+      return {
+        question,
+        entry: {
+          caseType: 'actual_wrong_answer',
+          wrongAnswer: answerFull,
+          expectedIntent: reviewNote.expectedIntent || '',
+          expectedSource: reviewNote.expectedSource || sourceTitles.join(' / ') || '',
+          expectedAnswerHint: reviewNote.expectedAnswerHint || reviewNote.adminNote || '관리자 메모에 기대 답변 방향을 적어 주세요.',
+          adminNote: reviewNote.adminNote || '',
+          reviewedLogId: item.id || '',
+        },
+      };
+    })
+    .filter(Boolean);
+}
+
+function saveWrongAnswerEvalRows(query) {
+  const rows = buildWrongAnswerEvalRows(query);
+
+  rows.forEach((row) => {
+    upsertEvalCase(WRONG_ANSWERS_PATH, row.question, row.entry);
+    removeEvalCaseByQuestion(SEED_QUESTIONS_PATH, row.question);
+  });
+
+  return {
+    ok: true,
+    savedCount: rows.length,
+    wrongAnswersPath: WRONG_ANSWERS_PATH,
+    seedQuestionsPath: SEED_QUESTIONS_PATH,
+    wrongAnswersCount: readJsonArray(WRONG_ANSWERS_PATH).length,
+    timestamp: new Date().toISOString(),
+  };
 }
 
 function getSessionMessagesForAdmin(sessionId, limit = MAX_SESSION_MESSAGE_ENTRIES) {
@@ -7406,6 +7484,18 @@ function handleApiAdminLogsExport(req, res, requestUrl) {
   res.end(payload);
 }
 
+function handleApiAdminLogsExportSave(req, res, requestUrl) {
+  try {
+    sendJson(res, 200, saveWrongAnswerEvalRows(requestUrl.searchParams));
+  } catch (error) {
+    console.error('[wrong-answer-save-error]', error);
+    sendJson(res, 500, {
+      ok: false,
+      error: error.message,
+    });
+  }
+}
+
 function handleApiAdminSessionNote(req, res) {
   let body = '';
 
@@ -7548,6 +7638,11 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  if (req.method === 'POST' && pathname === '/api/admin/logs/export/save') {
+    handleApiAdminLogsExportSave(req, res, requestUrl);
+    return;
+  }
+
   if (req.method === 'POST' && pathname === '/api/admin/session-note') {
     handleApiAdminSessionNote(req, res);
     return;
@@ -7555,6 +7650,11 @@ const server = http.createServer((req, res) => {
 
   if (req.method === 'GET' && pathname === '/api/admin/session-history') {
     handleApiAdminSessionHistory(req, res, requestUrl);
+    return;
+  }
+
+  if (req.method === 'GET' && pathname === '/api/admin/eval-status') {
+    sendJson(res, 200, getAdminEvalStatus());
     return;
   }
 
