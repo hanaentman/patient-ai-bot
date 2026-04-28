@@ -2185,7 +2185,9 @@ function enrichResponsePayload(payload, question) {
     'first_return_visit_process',
     'waiting_time_visit',
     'clinic_hours_night_weekend',
+    'discharge_time',
     'facility_location',
+    'anti_aging_clinic_location',
     'pharmacy_location',
     'exam_location',
     'accessibility_support',
@@ -3450,9 +3452,38 @@ function buildClinicHoursNightWeekendResponse(message) {
   };
 }
 
+function buildDischargeTimeResponse(message) {
+  const text = String(message || '');
+  if (!/(퇴원\s*시간|퇴원시간|몇\s*시.{0,8}퇴원|퇴원.{0,8}몇\s*시|언제.{0,8}퇴원|퇴원.{0,8}언제)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'discharge_time',
+    answer: '퇴원시간은 수술 종류와 환자 상태에 따라 달라지며, 퇴원 전 회진이나 진료 후 퇴원하게 됩니다. 문서 기준으로 코수술 환자는 오전 퇴원 시 9시~9시 30분, 오후 퇴원 시 2시로 안내되어 있습니다. 목수술 환자는 오전 9시~9시 30분, 귀수술 환자는 오전 퇴원 시 9시~9시 30분, 오후 퇴원 시 2시로 안내됩니다.',
+    followUp: [
+      '당일 상태나 회진 일정에 따라 실제 퇴원시간은 달라질 수 있습니다.',
+      '퇴원 당일에는 수술부위 확인, 주의사항 안내, 진료비 수납 등이 함께 진행됩니다.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('홈페이지-입퇴원 안내', '홈페이지-입퇴원 안내.txt'),
+    ],
+  };
+}
+
 function buildFacilityLocationResponse(message) {
   const text = String(message || '');
   const sources = [buildLocalDocSource('기타-층별안내도', '기타-층별안내도.txt')];
+
+  if (/(항노화|항\s*노화|H\s*Reverse|리버스\s*에이징|reverse\s*aging)/iu.test(text)) {
+    return {
+      type: 'anti_aging_clinic_location',
+      answer: '항노화클리닉(H Reverse Aging Center)은 층별안내도 기준 7층에 있습니다.',
+      followUp: ['내원 당일 위치가 헷갈리면 1층 원무과 또는 가까운 직원에게 문의해 주세요.'],
+      sources,
+    };
+  }
 
   if (/(입원실|병동|회복실)/u.test(text) && /(시설|갖추|있나|위치|어디|층)/u.test(text)) {
     return {
@@ -3495,7 +3526,7 @@ function buildAccessibilityResponse(message) {
 
   return {
     type: 'accessibility_support',
-    answer: '몸이 불편하시거나 휠체어를 이용 중인 고객은 2층에서 접수와 수납을 도와드리고 있습니다. 휠체어가 필요하시면 가까운 직원에게 말씀해 주세요.',
+    answer: '몸이 불편하시거나 휠체어를 이용 중인 고객은 2층에서 접수와 수납을 도와드리고 있으며, 진료도 가능합니다. 휠체어가 필요하시면 가까운 직원에게 말씀해 주세요.',
     followUp: ['홈페이지 외래진료안내에도 휠체어 이용자는 2층 안내에서 접수/수납을 도와드린다고 안내되어 있습니다.'],
     sources: [
       buildIntegratedFaqDocSource(),
@@ -7495,9 +7526,9 @@ async function buildChatResponse(rawMessage, sessionId) {
     return enrichResponsePayload(directWaitingTimeResponse, message);
   }
 
-  const directClinicHoursNightWeekendResponse = buildClinicHoursNightWeekendResponse(message);
-  if (directClinicHoursNightWeekendResponse) {
-    return enrichResponsePayload(directClinicHoursNightWeekendResponse, message);
+  const directDischargeTimeResponse = buildDischargeTimeResponse(message);
+  if (directDischargeTimeResponse) {
+    return enrichResponsePayload(directDischargeTimeResponse, message);
   }
 
   const directFacilityLocationResponse = buildFacilityLocationResponse(message);
@@ -7508,6 +7539,11 @@ async function buildChatResponse(rawMessage, sessionId) {
   const directAccessibilityResponse = buildAccessibilityResponse(message);
   if (directAccessibilityResponse) {
     return enrichResponsePayload(directAccessibilityResponse, message);
+  }
+
+  const directClinicHoursNightWeekendResponse = buildClinicHoursNightWeekendResponse(message);
+  if (directClinicHoursNightWeekendResponse) {
+    return enrichResponsePayload(directClinicHoursNightWeekendResponse, message);
   }
 
   const directResultNotificationResponse = buildResultNotificationResponse(message);

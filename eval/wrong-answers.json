@@ -1,5 +1,45 @@
 [
   {
+    "question": "퇴원시간은 언제인가요?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "수술 관련해서 안내드릴게요.\n\n비급여비용 문서에 산소치료 비용 항목이 있어 해당 서비스는 운영 중일 가능성이 높습니다. 다만 적용 기준이나 대상은 문서에 직접 정리되어 있지 않아 정확한 운영 방식은 대표전화 02-6925-1111로 확인해 주세요.\n\n비급여 안내 페이지: https://hanaent.co.kr/nonpay.html\n- 문서 근거: 산소치료 200,000 2023-03-01\n- 이 답변은 문서의 간접 근거를 바탕으로 한 추정입니다.\n- 비급여 안내 페이지: https://hanaent.co.kr/nonpay.html",
+    "expectedIntent": "퇴원시간",
+    "expectedSource": "통합-FAQ.txt",
+    "expectedAnswerHint": "수술과 비급여에 대한 잘못된 답변임, 퇴원시간을 안내해야 함",
+    "adminNote": "",
+    "reviewedLogId": "log-1777349395963-i4j6wv"
+  },
+  {
+    "question": "항노화클리닉은 몇층인가요",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "현재 확인된 병원 문서만으로는 정확히 안내드리기 어렵습니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.\n- 외래진료안내",
+    "expectedIntent": "항노화클리닉 위치",
+    "expectedSource": "기타-층별안내도.txt",
+    "expectedAnswerHint": "층별 안내도 보면 7층에 항노화클리닉 있음",
+    "adminNote": "",
+    "reviewedLogId": "log-1777349319712-i1vdl4"
+  },
+  {
+    "question": "휠체어는 어디서 접수하나요",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "예약과 접수 관련해서 안내드릴게요.\n\n몸이 불편하시거나 휠체어를 이용 중인 고객은 2층에서 접수와 수납을 도와드리고 있습니다. 휠체어가 필요하시면 가까운 직원에게 말씀해 주세요.\n- 홈페이지 외래진료안내에도 휠체어 이용자는 2층 안내에서 접수/수납을 도와드린다고 안내되어 있습니다.",
+    "expectedIntent": "휠체어",
+    "expectedSource": "통합-FAQ.txt",
+    "expectedAnswerHint": "휠체어 탑승한 경우 2층에서 접수 가능함",
+    "adminNote": "",
+    "reviewedLogId": "log-1777349087745-zhdrs7"
+  },
+  {
+    "question": "휠체어를 탔는데 진료 가능하나요",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "문의하신 내용에 대해 안내드릴게요.\n\n진료시간은 평일 오전 9시부터 오후 6시까지이며, 토요일은 오전 9시부터 오후 1시 30분까지입니다. 일요일과 공휴일은 휴진으로 안내되어 있고, 별도 야간진료는 문서에 안내되어 있지 않습니다.\n- 평일 접수 마감은 오후 5시 30분입니다.\n- 토요일 접수 마감은 오후 1시입니다.\n- 응급수술 등 진료 상황에 따라 접수가 조기 마감될 수 있어 내원 전 확인해 주세요.",
+    "expectedIntent": "휠체어",
+    "expectedSource": "통합-FAQ.txt",
+    "expectedAnswerHint": "휠체어 탑승한 경우 2층에서 접수 하고 진료 가능함",
+    "adminNote": "",
+    "reviewedLogId": "log-1777349077746-xd055w"
+  },
+  {
     "question": "진료 기록이나 검사 결과를 복사해서 받을 수 있나요?",
     "caseType": "actual_wrong_answer",
     "wrongAnswer": "검사 관련해서 안내드릴게요.\n\n본원은 진료에서 검사, 치료방침과 수술 결정까지 진료 당일 1~2 시간 이내로 가능한 원스톱시스템을 운영하고 있습니다. 대부분의 검사는 당일 검사 가능하시며 결과를 확인하실 수 있습니다. 다만, 귀 검사의 경우 검사 진행 상황에 따라 예약진행 될 수 있으며, 코골이수면무호흡 검사의 경우 검사 특성 상 1박 2일 입원해 진행합니다. 질환에 따라서 검사 시간은 일부 차이가 날 수 있으므로 자세한 사항은 대표전화 [대표전화 02-6925-1111] 로 문의주시기 바랍니다.",
