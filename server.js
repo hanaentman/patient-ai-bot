@@ -1361,6 +1361,27 @@ function sendJson(res, statusCode, payload) {
   res.end(JSON.stringify(sanitizeOutgoingPayload(payload)));
 }
 
+function readJsonRequestBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+
+    req.on('data', (chunk) => {
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    });
+
+    req.on('end', () => {
+      try {
+        const body = Buffer.concat(chunks).toString('utf8');
+        resolve(JSON.parse(body || '{}'));
+      } catch (error) {
+        reject(error);
+      }
+    });
+
+    req.on('error', reject);
+  });
+}
+
 function isPublicHttpUrl(value) {
   try {
     const url = new URL(String(value || ''));
@@ -7547,16 +7568,9 @@ function dedupeSources(docs) {
   return nonFaqSources.length > 0 ? nonFaqSources : faqSources.slice(0, 1);
 }
 
-function handleApiChat(req, res) {
-  let body = '';
-
-  req.on('data', (chunk) => {
-    body += chunk;
-  });
-
-  req.on('end', async () => {
-    try {
-      const parsed = JSON.parse(body || '{}');
+async function handleApiChat(req, res) {
+  try {
+      const parsed = await readJsonRequestBody(req);
       const requestGuardResult = getRequestGuardResult(req);
       if (!requestGuardResult.allowed) {
         sendJson(res, requestGuardResult.statusCode || 403, {
@@ -7613,19 +7627,11 @@ function handleApiChat(req, res) {
         detail: error.message,
       });
     }
-  });
 }
 
-function handleApiAdminLogFlag(req, res) {
-  let body = '';
-
-  req.on('data', (chunk) => {
-    body += chunk;
-  });
-
-  req.on('end', () => {
-    try {
-      const parsed = JSON.parse(body || '{}');
+async function handleApiAdminLogFlag(req, res) {
+  try {
+      const parsed = await readJsonRequestBody(req);
       const updated = updateChatLogFlag(parsed.id, parsed.flag, parsed.note);
       if (!updated) {
         sendJson(res, 404, {
@@ -7645,7 +7651,6 @@ function handleApiAdminLogFlag(req, res) {
         error: error.message,
       });
     }
-  });
 }
 
 function handleApiAdminLogsExport(req, res, requestUrl) {
@@ -7673,16 +7678,9 @@ function handleApiAdminLogsExportSave(req, res, requestUrl) {
   }
 }
 
-function handleApiAdminSessionNote(req, res) {
-  let body = '';
-
-  req.on('data', (chunk) => {
-    body += chunk;
-  });
-
-  req.on('end', () => {
-    try {
-      const parsed = JSON.parse(body || '{}');
+async function handleApiAdminSessionNote(req, res) {
+  try {
+      const parsed = await readJsonRequestBody(req);
       const updated = updateSessionNoteForAdmin(parsed.sessionId, parsed.flag, parsed.note);
       if (!updated) {
         sendJson(res, 400, {
@@ -7703,7 +7701,6 @@ function handleApiAdminSessionNote(req, res) {
         error: 'Invalid payload',
       });
     }
-  });
 }
 
 function handleApiAdminSessionHistory(req, res, requestUrl) {
@@ -7725,16 +7722,9 @@ function handleApiAdminSessionHistory(req, res, requestUrl) {
   });
 }
 
-function handleApiAdminLogin(req, res) {
-  let body = '';
-
-  req.on('data', (chunk) => {
-    body += chunk;
-  });
-
-  req.on('end', () => {
-    try {
-      const parsed = JSON.parse(body || '{}');
+async function handleApiAdminLogin(req, res) {
+  try {
+      const parsed = await readJsonRequestBody(req);
       const username = String(parsed.username || '').trim();
       const password = String(parsed.password || '');
 
@@ -7758,7 +7748,6 @@ function handleApiAdminLogin(req, res) {
         error: error.message,
       });
     }
-  });
 }
 
 function handleApiAdminLogout(req, res) {
