@@ -2186,6 +2186,7 @@ function shouldUseConsultationTone(payload) {
     'visitor_policy',
     'hospital_history',
     'discharge_process',
+    'same_day_exam_availability',
   ].includes(type);
 }
 
@@ -2323,6 +2324,7 @@ function enrichResponsePayload(payload, question) {
     'visitor_policy',
     'hospital_history',
     'discharge_process',
+    'same_day_exam_availability',
   ].includes(localizedPayload.type);
 
   return sanitizeOutgoingPayload({
@@ -3956,6 +3958,27 @@ function buildDischargeProcessResponse(message) {
   };
 }
 
+function buildSameDayExamAvailabilityResponse(message) {
+  const text = String(message || '');
+  if (!matchesAnyPattern(text, sameDayExamAvailabilityPatterns)) {
+    return null;
+  }
+
+  return {
+    type: 'same_day_exam_availability',
+    answer: '대부분 검사는 진료 당일 진행하고 결과까지 확인하는 흐름으로 안내됩니다. 다만 검사 종류와 당일 상황에 따라 예약 검사로 전환될 수 있습니다. 코 내시경처럼 진료 중 바로 확인하는 검사가 있고, 청력검사나 전정기능검사처럼 상황에 따라 예약으로 안내될 수 있는 검사도 있습니다.',
+    followUp: [
+      '코 검사인지, 청력검사인지, 수면검사인지에 따라 당일 가능 여부가 달라질 수 있습니다.',
+      '코골이·수면무호흡 검사는 1박 2일 입원 검사가 필요할 수 있습니다.',
+      '내원 전 대표전화 02-6925-1111로 당일 검사 가능 여부를 확인해 주세요.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('홈페이지-외래진료안내', '홈페이지-외래진료안내.txt'),
+    ],
+  };
+}
+
 function buildPaymentMethodResponse(message) {
   const text = String(message || '');
   if (!/(결제|수납|진료비)/u.test(text) || !/(카드|현금)/u.test(text)) {
@@ -4350,7 +4373,9 @@ function buildFacilityLocationResponse(message) {
     };
   }
 
-  if (/(청력검사|청력\s*검사|내시경|검사).{0,12}(건물|위치|어디|층|가능|모두)/u.test(text)) {
+  const asksExamLocation = /(청력검사|청력\s*검사|내시경|검사).{0,12}(건물|위치|어디|층|모두|같은\s*건물)/u.test(text)
+    || /(건물|위치|어디|층|모두|같은\s*건물).{0,12}(청력검사|청력\s*검사|내시경|검사)/u.test(text);
+  if (asksExamLocation && !matchesAnyPattern(text, sameDayExamAvailabilityPatterns)) {
     return {
       type: 'exam_location',
       answer: '검사 종류에 따라 위치가 다릅니다. 층별안내도 기준으로 청력검사실은 지하 2층에 있고, CT·보청기상담실·외래검사실 등은 1층에 안내되어 있습니다. 코 내시경은 일반적으로 진료실에서 진료 중 시행될 수 있습니다.',
@@ -8386,6 +8411,11 @@ async function buildChatResponse(rawMessage, sessionId) {
   const preMeaningDocumentApplicationResponse = buildDocumentApplicationResponse(message);
   if (preMeaningDocumentApplicationResponse) {
     return enrichResponsePayload(preMeaningDocumentApplicationResponse, message);
+  }
+
+  const preMeaningSameDayExamAvailabilityResponse = buildSameDayExamAvailabilityResponse(message);
+  if (preMeaningSameDayExamAvailabilityResponse) {
+    return enrichResponsePayload(preMeaningSameDayExamAvailabilityResponse, message);
   }
 
   const preMeaningVisitorPolicyResponse = buildVisitorPolicyResponse(message);
