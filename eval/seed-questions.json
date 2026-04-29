@@ -1,5 +1,455 @@
 [
   {
+    "question": "예약방법은 뭐가있너",
+    "caseType": "admin_normal",
+    "expectedIntent": "reservation_or_reception",
+    "expectedSource": "통합-FAQ / 홈페이지-외래진료안내",
+    "expectedAnswerHint": "예약과 접수 관련해서 안내드릴게요.\n\n예약은 온라인 예약, 전화 예약, 방문 예약으로 가능합니다. 처음 내원하시는 경우에는 신분증을 지참하고 1층 접수 데스크에서 등록 후 진료실로 안내됩니다.\n- 예약 변경은 대표전화 02-6925-1111로 문의해 주세요.\n- 온라인 예약은 병원 홈페이지에서 요청 후 상담 확인 절차로 진행됩니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777469708981-ntohy4"
+  },
+  {
+    "question": "진료후 검사 가능해?",
+    "caseType": "admin_normal",
+    "expectedIntent": "same_day_exam_availability",
+    "expectedSource": "통합-FAQ / 홈페이지-외래진료안내",
+    "expectedAnswerHint": "대부분 검사는 진료 당일 진행하고 결과까지 확인하는 흐름으로 안내됩니다. 다만 검사 종류와 당일 상황에 따라 예약 검사로 전환될 수 있습니다. 코 내시경처럼 진료 중 바로 확인하는 검사가 있고, 청력검사나 전정기능검사처럼 상황에 따라 예약으로 안내될 수 있는 검사도 있습니다.\n- 코 검사인지, 청력검사인지, 수면검사인지에 따라 당일 가능 여부가 달라질 수 있습니다.\n- 코골이·수면무호흡 검사는 1박 2일 입원 검사가 필요할 수 있습니다.\n- 내원 전 대표전화 02-6925-1111로 당일 검사 가능 여부를 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777469541378-8mw1u9"
+  },
+  {
+    "question": "의료진 페이지",
+    "caseType": "admin_normal",
+    "expectedIntent": "faq",
+    "expectedSource": "의료진 소개",
+    "expectedAnswerHint": "의료진 관련해서 안내드릴게요.\n\n하나이비인후과병원 홈페이지 기준으로 현재 의료진 정보를 확인할 수 있습니다.\n- 세부 일정은 내원 전 대표전화 02-6925-1111로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777469520887-5h19n9"
+  },
+  {
+    "question": "환자가 가장 많은 의사는 누구야 추측해줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "ai",
+    "expectedSource": "입퇴원안내 / 서류발급안내",
+    "expectedAnswerHint": "문서만으로는 환자가 가장 많은 의사를 특정할 수 없습니다.\n홈페이지의 의료진 안내에서 현재 근무 의사 정보를 확인할 수 있으나, 환자 수나 인기 순위 관련 정보는 제공되어 있지 않습니다.\n정확히 확인하시려면 홈페이지에서 의료진 안내를 보시거나 병원 대표번호(대표전화 02-6925-1111)로 문의해 주세요.\n원하시면 제가 대신 홈페이지 의료진 페이지를 확인해 드릴게요—어떤 진료과 위주로 알고 싶으신가요?",
+    "adminNote": "",
+    "reviewedLogId": "log-1777469494863-q1s3t9"
+  },
+  {
+    "question": "편도수술 얼마야",
+    "caseType": "admin_normal",
+    "expectedIntent": "tonsillectomy_info",
+    "expectedSource": "홈페이지-편도",
+    "expectedAnswerHint": "수술 관련해서 안내드릴게요.\n\n편도절제술은 홈페이지 편도 안내 기준으로 1년에 3번 이상 고열을 동반한 편도선염을 앓는 경우, 편도결석이 반복되어 불편한 경우, 편도비대로 코골이나 수면무호흡증이 심한 경우 고려할 수 있습니다.\n\n하나이비인후과병원 안내에는 편도절제술 수술시간은 약 20~30분, 마취방법은 전신마취, 입원기간은 2박 3일, 회복기간은 약 2~3주로 안내되어 있습니다.\n- 성인 편도절제술 수술비용은 문서 기준 90만원으로 안내되어 있습니다.\n- 소아 편도절제술은 130만원으로 안내되어 있습니다.\n- 실제 수술 여부는 진찰과 검사 후 의료진 판단이 필요합니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777469399454-ac7we7"
+  },
+  {
+    "question": "역삼역에서 어떻게가",
+    "caseType": "admin_normal",
+    "expectedIntent": "hospital_location",
+    "expectedSource": "통합-FAQ / 홈페이지-셔틀버스 및 오시는길",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n하나이비인후과병원 주소는 서울특별시 강남구 역삼로 245입니다. 대중교통은 2호선 역삼역 1번 출구를 이용하시면 되고, 역삼역 1번 출구에서 병원 셔틀버스도 이용할 수 있습니다. 자동차로 오실 때는 내비게이션에 “서울특별시 강남구 역삼로 245” 또는 “하나이비인후과병원”을 입력하시면 됩니다.\n- 역삼역 1번 출구에서 도보 약 10분 거리로 안내되어 있습니다.\n- 버스는 동영문화센터, 개나리아파트, 신한은행 전산센터 정류장 하차 안내가 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777469307332-frxoby"
+  },
+  {
+    "question": "병원에서 제일 인기많은 의사 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "doctor_overview",
+    "expectedSource": "홈페이지-의료진 정보",
+    "expectedAnswerHint": "의료진 관련해서 안내드릴게요.\n\n하나이비인후과병원 홈페이지 기준으로 현재 의료진 정보를 확인할 수 있습니다. 대표 의료진으로는 동헌종 대표원장, 이상덕 병원장, 정도광 원장, 남순열 두경부 센터장, 주형로 원장, 장선오 귀질환 센터장, 장정훈 원장, 김태현 부원장, 정종인 진료부장, 김종세 과장 등이 있습니다. 특정 의료진의 자세한 경력이 궁금하시면 “의료진 이름 + 경력”으로 입력해 주세요.\n- 코 질환 의사: 동헌종, 이상덕, 정도광, 김태현, 정종인, 장규선, 김병길\n- 목·두경부·수면클리닉: 남순열, 주형로, 장규선\n- 귀 질환 의사: 장선오, 장정훈, 김종세\n- 내과: 이영미\n- 특정 의료진의 자세한 경력이 궁금하시면 “의료진 이름 + 경력”으로 입력해 주세요.\n- 세부 일정은 내원 전 대표전화 02-6925-1111로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777469207943-t87xpy"
+  },
+  {
+    "question": "양압기",
+    "caseType": "admin_normal",
+    "expectedIntent": "ai",
+    "expectedSource": "자주 묻는 질문",
+    "expectedAnswerHint": "양압기 처방은 수면다원검사(수면다원검사) 결과와 실제 사용 순응도를 기준으로 결정되며, 적응은 공기 압력 조절과 마스크 선택으로 크게 개선됩니다.\n불편한 부분은 주로 공기압력과 마스크인데, 병원에서는 환자 증상에 맞춰 세 가지 압력 패턴 중 적절한 것을 선택하고 수면다원검사 결과를 바탕으로 압력을 설정·조정합니다.\n마스크는 입으로 호흡이 심하면 코·입을 덮는 안면형을, 잠자는 동안 움직임이 적다면 면적이 작은 콧구멍형(코캡)을 권합니다.\n건강보험 적용 기준은 AHI 가 15 이상이거나 AHI 5~14 면서 주간졸음·불면증 등 증상이 동반될 경우 해당되며, 최초 처방일부터 90 일의 순응기간이 주어집니다(연속 30 일 사용, 그 기간 중 하루 4 시간 이상 사용한 날이 21 일 이상이면 이후에도 보험 적용 유지).\n수면다원검사는 1 박 2 일 입원으로 진행되며(기본 세면도구 병실 제공), 수면내시경은 마취 전 검사와 금식이 필요하니 사전에 확인해야 합니다.\n원하시면 수면검사 예약이나 ",
+    "adminNote": "",
+    "reviewedLogId": "log-1777462691210-7d49p8"
+  },
+  {
+    "question": "양압기 상담받고 싶어",
+    "caseType": "admin_normal",
+    "expectedIntent": "양압기 상담, 수면센터, 코골이 의료진 소개",
+    "expectedSource": "홈페이지-의료진 정보.txt",
+    "expectedAnswerHint": "대표번호로 문의해주세요",
+    "adminNote": "",
+    "reviewedLogId": "log-1777462647274-b7k459"
+  },
+  {
+    "question": "내일.진료 일정 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "doctor_schedule_image",
+    "expectedSource": "진료일정",
+    "expectedAnswerHint": "의료진 관련해서 안내드릴게요.\n\n의료진 진료일정은 외래 진료표 기준으로 확인하시면 됩니다. 다만 오늘 실제 진료 가능 여부는 당일 수술, 휴진, 대기 상황에 따라 달라질 수 있어 내원 전 대표전화 02-6925-1111로 확인해 주세요.\n- 아래 진료일정표 이미지를 참고해 주세요.\n- 특정 의료진 이름을 알려주시면 해당 의료진 기준으로도 안내해 드릴게요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777462601359-ah594e"
+  },
+  {
+    "question": "이상덕 경력",
+    "caseType": "admin_normal",
+    "expectedIntent": "doctor_career",
+    "expectedSource": "홈페이지-의료진 정보",
+    "expectedAnswerHint": "의료진 관련해서 안내드릴게요.\n\n이상덕 의료진의 전문분야는 부비동내시경수술, 코물혹, 코 막힘, 비중격만곡증, 알레르기 비염입니다. 주요 경력은 다음과 같습니다.\n\n- 고려대학교 의과대학 외래교수\n- 일본 독협의과대학 의학박사\n- 고려대학교 의과대학 졸업\n- 미국 뉴욕 컬럼비아대학병원 연수\n- 미국 펜실베니아대학 코 성형수술과정 연수\n- 오스트리아 그라츠대학 부비동 내시경수술과정 연수\n- (전)대한이비인후과학회 감사\n- (전)대한전문병원협의회장\n- 대한이비인후과 개원의협의회 총무이사 역임\n- 대한비과학회 보험이사 역임\n- 대한이비인후과학회 개원이사 역임\n- 대한비과학회 감사 역임\n- 대한병원협회 홍보·섭외 이사 역임\n- 대한이비인후과학회 서울지부 지부장 역임\n- 진료 일정은 외래 진료표와 당일 상황에 따라 달라질 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777462562044-4hh57p"
+  },
+  {
+    "question": "의사 이름 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "doctor_overview",
+    "expectedSource": "홈페이지-의료진 정보",
+    "expectedAnswerHint": "의료진 관련해서 안내드릴게요.\n\n하나이비인후과병원 홈페이지 기준으로 현재 의료진 정보를 확인할 수 있습니다. 대표 의료진으로는 동헌종 대표원장, 이상덕 병원장, 정도광 원장, 남순열 두경부 센터장, 주형로 원장, 장선오 귀질환 센터장, 장정훈 원장, 김태현 부원장, 정종인 진료부장, 김종세 과장 등이 있습니다. 특정 의료진의 자세한 경력이 궁금하시면 “의료진 이름 + 경력”으로 입력해 주세요.\n- 코 질환 의사: 동헌종, 이상덕, 정도광, 김태현, 정종인, 장규선, 김병길\n- 목·두경부·수면클리닉: 남순열, 주형로, 장규선\n- 귀 질환 의사: 장선오, 장정훈, 김종세\n- 내과: 이영미\n- 특정 의료진의 자세한 경력이 궁금하시면 “의료진 이름 + 경력”으로 입력해 주세요.\n- 세부 일정은 내원 전 대표전화 02-6925-1111로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777462547836-bpikq7"
+  },
+  {
+    "question": "동한종 경력",
+    "caseType": "admin_normal",
+    "expectedIntent": "ai",
+    "expectedSource": "의료진 소개 / 외래진료안내",
+    "expectedAnswerHint": "동헌종 대표원장의 주요 경력은 서울대학교 의과대학 의학박사 취득, 서울대병원 이비인후과 전공의·전임의, 보라매병원 이비인후과 과장, University of Pennsylvania Hospital 펠로우, 삼성서울병원 이비인후과 과장·환자행복추진실장·진료부원장, 성균관대학교 의과대학 부교수·교수·이비인후과학 주임교수, Cleveland Clinic 방문학자 등으로 정리됩니다.\n학회·학술 활동으로는 대한비과학회 회장, 대한천식알레르기학회 회장, International Congress of ORL-HNS 학술대회장, 대한안면성형재건학회 회장 등을 역임했으며 이비인후과학회 및 대한비과학회에서 기획이사·간행이사·국제이사 등 임원을 맡은 이력이 문서에 나와 있습니다.\n대외활동으로는 EBS 명의 출연(비염·축농증 관련) 등도 포함되며, 전문분야는 부비동 내시경수술, 코물혹, 비중격만곡증, 알레르기비염입니다.\n문서에 없는 상세 연도나 그 외 정보는 추가 확인이 필요하니 원하시면 확인해 드리겠습",
+    "adminNote": "",
+    "reviewedLogId": "log-1777462485649-t2kh45"
+  },
+  {
+    "question": "의료진 소개해줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "doctor_overview",
+    "expectedSource": "홈페이지-의료진 정보",
+    "expectedAnswerHint": "의료진 관련해서 안내드릴게요.\n\n하나이비인후과병원 홈페이지 기준으로 현재 의료진 정보를 확인할 수 있습니다. 대표 의료진으로는 동헌종 대표원장, 이상덕 병원장, 정도광 원장, 남순열 두경부 센터장, 주형로 원장, 장선오 귀질환 센터장, 장정훈 원장, 김태현 부원장, 정종인 진료부장, 김종세 과장 등이 있습니다. 특정 의료진의 자세한 경력이 궁금하시면 “의료진 이름 + 경력”으로 입력해 주세요.\n- 코 질환 의사: 동헌종, 이상덕, 정도광, 김태현, 정종인, 장규선, 김병길\n- 목·두경부·수면클리닉: 남순열, 주형로, 장규선\n- 귀 질환 의사: 장선오, 장정훈, 김종세\n- 내과: 이영미\n- 특정 의료진의 자세한 경력이 궁금하시면 “의료진 이름 + 경력”으로 입력해 주세요.\n- 세부 일정은 내원 전 대표전화 02-6925-1111로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777462410554-p1b6lk"
+  },
+  {
+    "question": "장정훈 경력",
+    "caseType": "admin_normal",
+    "expectedIntent": "doctor_career",
+    "expectedSource": "홈페이지-의료진 정보",
+    "expectedAnswerHint": "의료진 관련해서 안내드릴게요.\n\n장정훈 의료진의 전문분야는 인공와우, 난청, 이명, 중이염, 돌발성난청, 어지럼증, 전이개누공, 메니에르병, 안면마비, 보청기입니다. 주요 경력은 다음과 같습니다.\n\n- 서울대학교 의과대학 학사,석사,박사\n- 서울대학교 의과대학 이비인후과학교실 임상강사\n- 경북대학교 의과대학 이비인후과학교실 조교수\n- 아주대학교 의과대학 이비인후과학교실 조교수\n- 아주대학교 의과대학 이비인후과 부교수\n- 아주대학교 의과대학 이비인후과 교수\n- 대한이비인후과학회 회원\n- 대한이과학회 회원\n- 대한청각학회 회원\n- 세계 이비인후과의사(CORLAS) member\n- 피츠버그 메디컬 센터 대학 단기 연수\n- 서울대병원 이비인후과 측두골 해부실습 연수\n- 인공와우 이식술 Training Workshop: Sydney, Australia; Innsbruck, Austria; Piacenza, Italy; Valencia, USA\n- 진료 일정은 외래 진료표와 당일 상황에 따라 ",
+    "adminNote": "",
+    "reviewedLogId": "log-1777454832371-lehawf"
+  },
+  {
+    "question": "병원 근처 약국 어디 있어?",
+    "caseType": "admin_normal",
+    "expectedIntent": "pharmacy_location",
+    "expectedSource": "기타-층별안내도 / 통합-FAQ",
+    "expectedAnswerHint": "외래 환자의 처방약은 병원 내부 약국이 아니라 병원 입구 기준 양쪽에 있는 외부 약국을 이용하시면 됩니다. 병원 4층에는 약제과가 있으나 주로 입원환자 이용과 관련된 공간으로 안내되어 있습니다.\n- 처방전이나 약 수령 위치가 헷갈리면 1층 원무과 또는 가까운 직원에게 문의해 주세요.\n- 복용 방법이나 처방 변경은 의료진 또는 약사와 직접 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777454702678-3028i2"
+  },
+  {
+    "question": "병원 창립일 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "hospital_history",
+    "expectedSource": "홈페이지-의료진 정보 / 홈페이지-축농증",
+    "expectedAnswerHint": "하나이비인후과병원은 1995년에 개원한 것으로 안내되어 있습니다. 이후 이비인후과 진료와 수술 경험을 바탕으로 코 질환 센터 등 전문 진료 영역을 운영하고 있습니다.\n- 병원 연혁이나 소개 관련 상세 내용은 병원 소개 페이지 또는 대표전화 02-6925-1111로 확인해 주세요.\n- 진료센터나 의료진 정보가 궁금하시면 코 센터, 목 센터, 귀 질환 센터처럼 센터명을 함께 질문해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777454617122-zu72ff"
+  },
+  {
+    "question": "외래진료표",
+    "caseType": "admin_normal",
+    "expectedIntent": "doctor_schedule_image",
+    "expectedSource": "진료일정",
+    "expectedAnswerHint": "의료진 관련해서 안내드릴게요.\n\n의료진 진료일정은 외래 진료표 기준으로 확인하시면 됩니다. 다만 오늘 실제 진료 가능 여부는 당일 수술, 휴진, 대기 상황에 따라 달라질 수 있어 내원 전 대표전화 02-6925-1111로 확인해 주세요.\n- 아래 진료일정표 이미지를 참고해 주세요.\n- 특정 의료진 이름을 알려주시면 해당 의료진 기준으로도 안내해 드릴게요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777450907602-qvf4un"
+  },
+  {
+    "question": "귀센터 의사 추천해주세요",
+    "caseType": "admin_normal",
+    "expectedIntent": "center_doctor_list",
+    "expectedSource": "외래-의료진 명단",
+    "expectedAnswerHint": "의료진 관련해서 안내드릴게요.\n\n귀진료는 귀센터 의료진 기준으로 안내드릴 수 있습니다. 외래 의료진 명단 기준 귀센터 의료진은 장선오 귀질환 센터장, 장정훈 원장, 김종세 과장입니다.\n- 의료진별 진료일정은 외래 진료표와 당일 상황에 따라 달라질 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777450892638-baftn8"
+  },
+  {
+    "question": "귀가아픈데 귀진료보고 목진료도 볼 수 있어?",
+    "caseType": "admin_normal",
+    "expectedIntent": "ai",
+    "expectedSource": "외래진료안내 / 오시는 길",
+    "expectedAnswerHint": "네, 가능합니다.\n하나이비인후과는 코·귀·목 분야별 전문의가 상주해 있어 한 번 내원으로 귀 진료를 먼저 받고, 필요하면 목(후두·목센터) 진료까지 같은 날 이어서 보실 수 있습니다.\n본원은 진료·검사·치료방침 결정까지 원스톱으로 1~2 시간 이내 처리가 가능한 시스템이지만, 귀 관련 검사 경우 검사 진행 상황에 따라 별도 예약이 필요할 수 있습니다.\n다른 병원 검사 결과가 있으면 복사본을 가져오시면 진료에 도움이 되고, 내원 시 건강보험증·신분증을 지참해 주세요.\n정확한 진료 일정이나 특정 의료진 예약은 대표전화 02-6925-1111 로 문의해 주시면 확인 도와드리겠습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777450821939-wnoo36"
+  },
+  {
+    "question": "동한종 경력",
+    "caseType": "admin_normal",
+    "expectedIntent": "ai",
+    "expectedSource": "의료진 소개 / 외래진료안내",
+    "expectedAnswerHint": "문서에 따르면 동헌종 대표원장의 주요 경력은 다음과 같습니다.\n- 서울대학교 의과대학 의학박사 취득 및 서울대병원 이비인후과 전공의·전임의 수료\n- 보라매병원 이비인후과 과장 역임, University of Pennsylvania Hospital 펠로우십 수료\n- 삼성서울병원 이비인후과 과장 및 환자행복추진실장, 진료부원장 역임\n- 성균관대학교 의과대학 교수(부교수 및 이비인후과학 주임교수) 재직\n- Cleveland Clinic 방문학자(visiting scholar) 활동\n- 대한비과학회·대한천식알레르기학회 등 학회 회장 및 국제학술대회 의장 역임, EBS 명의 출연 등 대외활동 다수\n문서에 기재된 내용만 정리한 것이며, 추가적인 세부 연혁(연도 등)은 병원 확인이 필요합니다.\n원하시면 확인해 드릴 사항을 알려주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777450757941-f7ui42"
+  },
+  {
+    "question": "목아픈데 주형로 원장에게 진료보고싶어요",
+    "caseType": "admin_normal",
+    "expectedIntent": "faq",
+    "expectedSource": "FAQ",
+    "expectedAnswerHint": "의료진 관련해서 안내드릴게요.\n\n주형로 원장은(는) 목 센터,수면클리닉 진료를 담당합니다. 오전은 화요일, 목요일에 진료합니다. 오후는 월요일, 화요일, 목요일에 진료합니다.\n- ※ 토요일 진료 : 4/4, 4/18\n- ※ 당일 접수는 오전 10시 / 오후 3시, 토요일 오전 10시까지 가능합니다.\n- ※ 응급 수술 등에 의해 진료시간이 변경될 수 있으니 예약 및 내원 시 확인바랍니다.\n- 응급 수술 등에 따라 진료시간이 변경될 수 있어 내원 전 확인이 필요합니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777450699595-olls4d"
+  },
+  {
+    "question": "역삼역네서 어떻게 가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "hospital_location",
+    "expectedSource": "통합-FAQ / 홈페이지-셔틀버스 및 오시는길",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n하나이비인후과병원 주소는 서울특별시 강남구 역삼로 245입니다. 대중교통은 2호선 역삼역 1번 출구를 이용하시면 되고, 역삼역 1번 출구에서 병원 셔틀버스도 이용할 수 있습니다. 자동차로 오실 때는 내비게이션에 “서울특별시 강남구 역삼로 245” 또는 “하나이비인후과병원”을 입력하시면 됩니다.\n- 역삼역 1번 출구에서 도보 약 10분 거리로 안내되어 있습니다.\n- 버스는 동영문화센터, 개나리아파트, 신한은행 전산센터 정류장 하차 안내가 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777450672446-qz1epu"
+  },
+  {
+    "question": "주차 가능한가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "parking_info",
+    "expectedSource": "통합-FAQ / 홈페이지-셔틀버스 및 오시는길",
+    "expectedAnswerHint": "주차는 가능합니다. 문서 기준으로 환자 및 방문객은 주차권 또는 영수증 제출 시 무료주차가 가능하고, 무료 발렛파킹 서비스도 운영됩니다. 다만 입원 환자는 밤샘 주차가 불가능하며, 퇴원 시 운전이 어려울 수 있어 차량 이용이 권장되지 않습니다.\n- 외래 방문 주차 안내\n- 입원 환자 주차 안내\n- 주차장 높이 1.9m 이상 차량은 주차가 어려울 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777450654747-vxyh7u"
+  },
+  {
+    "question": "안녕하세요",
+    "caseType": "admin_normal",
+    "expectedIntent": "smalltalk",
+    "expectedSource": "",
+    "expectedAnswerHint": "안녕하세요. 하나이비인후과병원 안내 상담봇입니다. 예약, 진료시간, 입원, 셔틀버스 같은 병원 안내를 도와드릴게요. 정확한 안내를 위해 한 번에 한 가지씩 질문해 주세요.\n- 진료시간 알려줘\n- 주차 가능한가요?\n- 입원 준비물 알려줘",
+    "adminNote": "",
+    "reviewedLogId": "log-1777450645030-o1yio3"
+  },
+  {
+    "question": "편도수술 의사 추천해줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "tonsil_doctor",
+    "expectedSource": "홈페이지-의료진 정보",
+    "expectedAnswerHint": "홈페이지 의료진 정보의 전문분야 기준으로 편도수술 상담은 주형로 원장과 정종인 진료부장이 관련 의료진으로 안내됩니다. 실제 수술 가능 여부와 담당 의료진은 진료와 검사 후 결정되므로 예약 시 편도수술 상담이라고 말씀해 주세요.\n- 주형로 원장은 두경부종양, 갑상선질환, 음성질환, 성인편도, 소아이비인후과 분야로 안내되어 있습니다.\n- 정종인 진료부장은 부비동내시경수술, 비염, 기능적코성형, 비중격만곡증, 수면무호흡, 성인편도 분야로 안내되어 있습니다.\n- 대표전화 02-6925-1111",
+    "adminNote": "",
+    "reviewedLogId": "log-1777446399463-vqy2gq"
+  },
+  {
+    "question": "수술확인서 발급 비용은 얼마인가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "서류,비용,수술확인서",
+    "expectedSource": "기타-비급여비용.txt,통합-FAQ",
+    "expectedAnswerHint": "서류 비용은 서류 종류에 따라 다릅니다. 병원 비급여 안내 기준으로 수술확인서는 10,000원, 수술확인서 재발행은 1,000원입니다\n- 원하시는 서류명이 정해져 있으면 해당 서류명으로 문의해 주시면 더 정확히 안내드릴 수 있습니다.\n- 서류 발급은 본인 확인이 필요할 수 있어 신분증을 지참해 주세요.\n- 대리 발급은 관계 확인 서류나 위임 서류가 필요할 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777446041746-9c9sjf"
+  },
+  {
+    "question": "진료기록 CD 복사 비용이 얼마인가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "CD복사,영상,서류,비용",
+    "expectedSource": "기타-비급여비용.txt,통합-FAQ,홈페이지-서류발급.txt,",
+    "expectedAnswerHint": "진료기록 비용은 1천원에서 최대 5천원 발생되며, CD복사비용은 1만원입니다.\n- 원하시는 서류명이 정해져 있으면 해당 서류명으로 문의해 주시면 더 정확히 안내드릴 수 있습니다.\n- 서류 발급은 본인 확인이 필요할 수 있어 신분증을 지참해 주세요.\n- 대리 발급은 관계 확인 서류나 위임 서류가 필요할 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777446040346-ftjnzt"
+  },
+  {
+    "question": "보호자 식대 금액은 얼마인가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "guardian_meal",
+    "expectedSource": "기타-비급여비용",
+    "expectedAnswerHint": "비급여비용 문서에 보호자 식대 9,000 항목이 있어 보호자 식사가 제공되거나 신청 가능한 운영일 가능성이 높습니다. 다만 문서에 신청 방법이나 제공 기준이 직접 적혀 있지는 않아 정확한 운영 방식은 병동 또는 대표전화 02-6925-1111로 확인해 주세요.\n\n비급여 안내 페이지: https://hanaent.co.kr/nonpay.html\n- 문서 근거: 보호자식대\t보호자 일반식\tY2300001 9,000 2022-12-01\n- 이 답변은 문서의 간접 근거를 바탕으로 한 추정입니다.\n- 정확한 신청 방법이나 제공 기준은 병동 또는 대표전화 02-6925-1111로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777446036143-4f87c5"
+  },
+  {
+    "question": "갑상선 수술 비용 범위가 궁금합니다",
+    "caseType": "admin_normal",
+    "expectedIntent": "homepage_surgery_cost",
+    "expectedSource": "홈페이지-갑상선",
+    "expectedAnswerHint": "수술 관련해서 안내드릴게요.\n\n갑상선 수술 안내드립니다. 하나이비인후과병원 기준으로 수술비용은 약 350~500만원(실비보험 적용 가능)입니다. 수술시간은 약 1~2시간입니다. 마취방법은 전신마취입니다. 입원기간은 2박 3일 또는 3박 4일입니다. 수술 후 내원치료는 수술 후 4~5회입니다. 회복기간은 약 2~3주입니다. 정확한 수술 적응증과 비용 적용 방식은 진료와 검사 후 결정되므로 자세한 상담이나 예약은 대표전화 02-6925-1111로 문의해 주세요.\n\n갑상선 관련 영상 보기: https://www.youtube.com/watch?v=kWyOA1AxJaQ\n- 보험 적용 여부와 실제 비용은 질환 상태와 검사 결과에 따라 달라질 수 있습니다.\n- 다른 수술이나 질환명을 말씀해 주시면 해당 문서 기준으로 다시 안내해 드릴게요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777446033250-lu3t4u"
+  },
+  {
+    "question": "편도 수술비는 성인과 소아가 다른가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "homepage_surgery_info",
+    "expectedSource": "홈페이지-편도",
+    "expectedAnswerHint": "수술 관련해서 안내드릴게요.\n\n편도 수술 안내드립니다. 수술비용은 성인 90만원(소아 130만원, 실비보험 적용 가능)입니다. 수술시간은 약 20분~30분입니다. 마취방법은 전신마취입니다. 입원기간은 2박 3일입니다. 수술 후 내원치료는 수술 후 2~3회입니다. 회복기간은 약 2주~3주 하나이비인후과병원 편도절제술 장점 풍부한 임상경험의 실력있는 의료진입니다. 정확한 수술 적응증과 방법은 진료와 검사 후 결정되므로 자세한 상담이나 예약은 대표전화 02-6925-1111로 문의해 주세요.\n- 원하시는 수술명을 구체적으로 말씀해 주시면 비용, 입원기간, 회복기간 기준으로 다시 안내해 드릴게요.\n- 보험 적용 여부와 실제 비용은 질환 상태와 검사 결과에 따라 달라질 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777446030259-8nvm8d"
+  },
+  {
+    "question": "편도수술 후 회복기간은 어느 정도인가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "homepage_surgery_info",
+    "expectedSource": "홈페이지-편도",
+    "expectedAnswerHint": "수술 관련해서 안내드릴게요.\n\n편도 수술 안내드립니다. 수술비용은 성인 90만원(소아 130만원, 실비보험 적용 가능)입니다. 수술시간은 약 20분~30분입니다. 마취방법은 전신마취입니다. 입원기간은 2박 3일입니다. 수술 후 내원치료는 수술 후 2~3회입니다. 회복기간은 약 2주~3주 하나이비인후과병원 편도절제술 장점 풍부한 임상경험의 실력있는 의료진입니다. 정확한 수술 적응증과 방법은 진료와 검사 후 결정되므로 자세한 상담이나 예약은 대표전화 02-6925-1111로 문의해 주세요.\n- 원하시는 수술명을 구체적으로 말씀해 주시면 비용, 입원기간, 회복기간 기준으로 다시 안내해 드릴게요.\n- 보험 적용 여부와 실제 비용은 질환 상태와 검사 결과에 따라 달라질 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777446028859-10t77x"
+  },
+  {
+    "question": "코골이 치료는 수술만 하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "snoring_care",
+    "expectedSource": "통합-FAQ / 외래-의료진 명단",
+    "expectedAnswerHint": "코골이와 수면무호흡 관련 진료가 가능합니다. 코골이와 수면무호흡은 증상 정도와 폐쇄 부위에 따라 수술적 치료와 비수술적 치료를 함께 검토할 수 있으며, 필요한 경우 수면다원검사 등으로 상태를 확인합니다.\n- 코막힘, 입으로 숨쉬기, 낮 졸림, 수면 중 숨 멎음이 함께 있으면 진료 시 같이 말씀해 주세요.\n- 진료 가능 시간은 의료진 일정에 따라 달라질 수 있어 예약 전 확인을 권장드립니다.\n- 대표전화 02-6925-1111",
+    "adminNote": "",
+    "reviewedLogId": "log-1777446027457-rajx2b"
+  },
+  {
+    "question": "수면검사는 하룻밤 자면서 하는 건가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "sleep_apnea_exam",
+    "expectedSource": "통합-FAQ / 입원-수면검사 입원 안내",
+    "expectedAnswerHint": "수면무호흡 검사는 주로 수면다원검사로 확인합니다. 수면다원검사는 1박 2일 입원하에 진행되며, 몸에 여러 센서를 부착하고 자는 동안 호흡, 몸의 움직임, 심전도, 뇌파, 산소포화도 등을 측정해 코골이와 수면무호흡의 정도를 파악합니다.\n- 입원 안내 기준으로 수면다원검사만 하는 경우 오후 9시 입원 후 다음날 오전 5~8시 퇴원으로 안내되어 있습니다.\n- 수면무호흡증 진단 목적의 수면다원검사는 건강보험 적용이 가능할 수 있지만, 단순 코골이 검사는 보험 적용에서 제외될 수 있습니다.\n- 실제 비용은 보험 적용 여부와 검사 조합에 따라 달라져 대표전화 02-6925-1111로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777446026040-k98yut"
+  },
+  {
+    "question": "어지러움 검사실 위치가 어디인가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "dizziness_care",
+    "expectedSource": "통합-FAQ / 기타-층별안내도",
+    "expectedAnswerHint": "어지럼증은 이비인후과 귀 질환 영역에서도 진료 가능합니다. 빙글 도는 느낌이나 기울어지는 느낌이 움직일 때 심해진다면 귀에 의한 말초성 어지러움 가능성이 있어 전정기능검사 등을 통해 확인할 수 있습니다.\n- 층별안내도 기준 어지러움검사실과 동적자세검사실은 지하 2층에 있습니다.\n- 증상이 심하거나 갑작스러운 신경학적 증상이 함께 있으면 응급 진료가 필요할 수 있습니다.\n- 검사 진행 상황에 따라 당일검사 또는 예약검사로 안내될 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777446024613-nddawg"
+  },
+  {
+    "question": "난청이면 어떤 청력검사를 하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "hearing_test_process",
+    "expectedSource": "홈페이지-난청 / 홈페이지-어지러움증",
+    "expectedAnswerHint": "검사 관련해서 안내드릴게요.\n\n청력검사는 문진과 진료 후 필요한 검사로 청력 상태와 난청의 정도, 종류를 확인하는 과정입니다. 홈페이지 난청 안내 기준으로 순음청력검사, 어음청력검사, 임피던스청력검사, 이음향방사검사, 청성뇌간반응청력검사 등이 청력검사 종류에 포함됩니다. 어지럼증이 함께 있으면 청력검사와 전정기능검사, 필요 시 영상검사까지 함께 검토될 수 있습니다.\n- 수면검사와는 다른 귀/난청 관련 검사입니다.\n- 검사 종류와 소요시간은 증상과 진료 결과에 따라 달라질 수 있습니다.\n- 정확한 검사 안내는 진료 후 의료진이 결정합니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777446023151-8tr64y"
+  },
+  {
+    "question": "비중격만곡증 검사는 어떤 걸 하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "septoplasty_info",
+    "expectedSource": "홈페이지-비중격만곡증",
+    "expectedAnswerHint": "비중격만곡증은 문진, 코내시경 검사, X-ray 또는 이비인후과 전용 CT 검사, 비강음향통기도검사 등을 통해 상태를 확인합니다. 약물치료 효과가 미비하거나 비염, 축농증 같은 동반질환이 있는 경우 비중격교정술을 고려할 수 있습니다.\n- 실비보험 적용 가능 여부와 실제 비용은 상태와 보험 조건에 따라 달라질 수 있습니다.\n- 수술 여부는 진료와 검사 후 의료진 판단이 필요합니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777446015847-g3q48q"
+  },
+  {
+    "question": "입원 수속은 몇 층에서 하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "입원, 수속, 창구",
+    "expectedSource": "통합-FAQ,홈페이지-입퇴원 안내.txt",
+    "expectedAnswerHint": "입원수속은 1층 원무과 입원창구에서 수속하고 있습니다.\n환자분마다 입원하는 시간이 다르기 때문에 본인의 입원시간을 확인해서 내원해주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777446010153-yuessn"
+  },
+  {
+    "question": "휠체어가 필요한데 병원에서 빌릴 수 있나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "accessibility_support",
+    "expectedSource": "통합-FAQ / 홈페이지-외래진료안내",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n몸이 불편하시거나 휠체어를 이용 중인 고객은 2층에서 접수와 수납을 도와드리고 있으며, 진료도 가능합니다. 휠체어가 필요하시면 가까운 직원에게 말씀해 주세요.\n- 홈페이지 외래진료안내에도 휠체어 이용자는 2층 안내에서 접수/수납을 도와드린다고 안내되어 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777446008714-idnqip"
+  },
+  {
+    "question": "진료의뢰환자 전용 창구가 있나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "진료,의뢰서,창구",
+    "expectedSource": "통합-FAQ,홈페이지-외래진료안내.txt",
+    "expectedAnswerHint": "진료의뢰환자 전용창구는 따로 없습니다.\n진료의뢰서 지참시 내원후 접수하실때 미리 제출해주시면 됩니다.\n타병원 CD나 소견서를 가지고 오신 경우에도 접수 시 함께 제출해 주시면 됩니다. \n전자의뢰인 경우에는 접수 직원에게 전자의뢰가 되어 있다고 알려 주세요.\n-진료협력센터 담당자 연락처는 문서 기준 010-3661-8998입니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777446007260-48ionq"
+  },
+  {
+    "question": "예약하고 갔을 때 먼저 어디로 가면 되나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "예약, 접수,",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "처음 내원하시는 경우 예약시 1층 원무과 접수 창구로 가셔서 신분증 또는 모바일 건강보험증을 제출하여 본인 확인후 예약 확인해주시고\n내원하신지 6개월 이내인경우(신분증확인기준) 키오스크로 예약 접수가능합니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777446005851-st0jh8"
+  },
+  {
+    "question": "재진 환자도 신분증을 챙겨야 하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "재진,신분증",
+    "expectedSource": "홈페이지-외래진료안내.txt,통합-FAQ",
+    "expectedAnswerHint": "신분증 확인 기간이 6개월로 재진인 경우도 신분증 확인한 기간이 6개월 지난경우 신분증 지참후 본인 확인해주셔야합니다.\n신분증이 없는 경우 모바일 건강보험증 으로도 본인 확인이 가능합니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777446004401-xt5gsk"
+  },
+  {
+    "question": "오전 진료를 보려면 몇 시까지 접수해야 하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "reception_deadline",
+    "expectedSource": "통합-FAQ / 홈페이지-외래진료안내",
+    "expectedAnswerHint": "진료시간은 평일 오전 9시부터 오후 6시까지이고, 점심시간은 오후 1시부터 2시까지입니다. 토요일은 오전 9시부터 오후 1시 30분까지 진료하며 점심시간 없이 운영됩니다. 접수는 평일 오전 8시 30분부터 오후 5시 30분까지, 토요일은 오전 8시 30분부터 오후 1시까지 가능합니다.\n- 초진은 오전 진료의 경우 11시 30분까지, 오후 진료의 경우 오후 5시까지 접수하는 것이 안전합니다.\n- 재진은 오전 12시까지, 오후 5시 30분까지 접수 기준으로 안내되어 있습니다.\n- 진료과와 의료진 상황에 따라 달라질 수 있어 늦게 도착할 예정이면 대표전화 02-6925-1111로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777446002957-w9star"
+  },
+  {
+    "question": "토요일 접수는 몇 시에 끝나나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "reception_deadline",
+    "expectedSource": "통합-FAQ / 홈페이지-외래진료안내",
+    "expectedAnswerHint": "진료시간은 평일 오전 9시부터 오후 6시까지이고, 점심시간은 오후 1시부터 2시까지입니다. 토요일은 오전 9시부터 오후 1시 30분까지 진료하며 점심시간 없이 운영됩니다. 접수는 평일 오전 8시 30분부터 오후 5시 30분까지, 토요일은 오전 8시 30분부터 오후 1시까지 가능합니다.\n- 초진은 오전 진료의 경우 11시 30분까지, 오후 진료의 경우 오후 5시까지 접수하는 것이 안전합니다.\n- 재진은 오전 12시까지, 오후 5시 30분까지 접수 기준으로 안내되어 있습니다.\n- 진료과와 의료진 상황에 따라 달라질 수 있어 늦게 도착할 예정이면 대표전화 02-6925-1111로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777446001463-53iayg"
+  },
+  {
+    "question": "입원중에 배달음식 시켜도 되?",
+    "caseType": "admin_normal",
+    "expectedIntent": "delivery_food",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "입원 중 배달음식은 가능합니다. 다만 외부 음식 섭취 시 소화 불편이나 합병증 발생 가능성을 고려해 주문해 주세요. 문서 기준 배달음식 가능시간은 오전 7시부터 오후 9시까지이며, 지하 1층에서 수령합니다.\n- 수술 종류나 식이 제한이 있는 경우 병동 간호사에게 먼저 확인해 주세요.\n- 회복 중에는 의료진이 안내한 식이 기준을 우선 따라 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777445924433-wvrok5"
+  },
+  {
+    "question": "오늘 대기시간 많아?",
+    "caseType": "admin_normal",
+    "expectedIntent": "waiting_time_visit",
+    "expectedSource": "홈페이지-외래진료안내 / 통합-FAQ",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n예약 없이 당일 방문 진료도 가능하지만 외래 상황에 따라 대기시간이 발생할 수 있습니다. 홈페이지 외래진료안내에는 당일 방문 진료가 가능하나 대기시간이 발생할 수 있다고 안내되어 있고, 통합 FAQ에는 당일 예약은 1시간 이내 도착 가능할 때 방문 접수로 안내될 수 있다고 되어 있습니다. 대기가 길 수 있어 가능하면 예약 후 내원하시는 것을 권장드립니다.\n- 당일 외래대기실 상황에 따라 달라질 수 있어 내원 전 대표전화 02-6925-1111로 확인해 주세요.\n- 접수 마감 시간 전에 여유 있게 방문해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777445896418-1nqtmt"
+  },
+  {
+    "question": "처음 방문하는데 건강보험증 가져가야되나?",
+    "caseType": "admin_normal",
+    "expectedIntent": "처음,초진,방문,건강보험증",
+    "expectedSource": "통합-FAQ,홈페이지-외래진료안내",
+    "expectedAnswerHint": "처음 내원하시는 초진 환자는 본인 확인을 위해 신분증 또는 모바일건강보험증을 접수시 원무과에 제시해 주셔야 합니다.\n- 당일 방문 진료도 가능하지만 대기시간이 발생할 수 있습니다.\n- 진료의뢰서, 타병원 CD, 소견서가 있으면 접수 시 미리 제출해 주세요.\n- 대표전화 02-6925-1111",
+    "adminNote": "",
+    "reviewedLogId": "log-1777445883869-jnl68j"
+  },
+  {
+    "question": "병원 대표번호 뭐야",
+    "caseType": "admin_normal",
+    "expectedIntent": "hospital_phone",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "하나이비인후과병원 대표전화는 02-6925-1111입니다.\n- 전화 예약이나 예약 변경은 대표전화 연결 후 0번 상담원 연결로 진행할 수 있습니다.\n- 진료시간은 평일 오전 9시부터 오후 6시, 토요일 오전 9시부터 오후 1시 30분까지입니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777445867873-rj9mpy"
+  },
+  {
+    "question": "영수증 재발급 하려면 어떻게 해야되",
+    "caseType": "admin_normal",
+    "expectedIntent": "receipt_issuance",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "서류 발급 관련해서 안내드릴게요.\n\n진료비 영수증은 다시 발급받을 수 있습니다. 영수증은 팩스 발급도 가능하지만, 진료비 세부내역서는 팩스 발급이 불가능합니다. 직접 내원하시는 경우 본인 확인을 위해 신분증을 지참해 원무과에서 신청해 주세요.\n- 보호자나 대리인이 발급받는 경우 관계 확인 서류와 위임 서류가 필요할 수 있습니다.\n- 입원 환자는 퇴원 하루 전 병동에 미리 신청하고 퇴원 수납 시 원무과에서 받을 수 있습니다.\n- 대표전화 02-6925-1111",
+    "adminNote": "",
+    "reviewedLogId": "log-1777445826360-tqtuvk"
+  },
+  {
+    "question": "셔틀버스 점심시간에 운행해?",
+    "caseType": "admin_normal",
+    "expectedIntent": "shuttle_bus",
+    "expectedSource": "통합-FAQ / 기타-병원셔틀시간표 / 홈페이지-셔틀버스 및 오시는길",
+    "expectedAnswerHint": "내원 안내 관련해서 안내드릴게요.\n\n셔틀버스는 점심시간에는 운행하지 않습니다. 통합 FAQ 기준으로 오후 12시 30분부터 1시 45분까지는 점심시간으로 셔틀버스를 운행하지 않는다고 안내되어 있습니다.\n\n셔틀버스 관련 영상 보기: https://www.youtube.com/watch?v=4XdnkkUvw10\n- 평일 셔틀버스는 오전 8시 55분부터 12시 25분까지, 오후 1시 40분부터 5시 40분까지 약 15분 간격으로 안내됩니다.\n- 토요일은 약 30분 간격으로 오전 8시 55분부터 12시 55분까지 운행합니다.\n- 셔틀 승차 위치는 역삼역 1번 출구 인근입니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777445809064-wv2cf1"
+  },
+  {
     "question": "퇴원 시간은 수술 종류마다 다른가요?",
     "caseType": "admin_normal",
     "expectedIntent": "discharge_process",
@@ -16,6 +466,15 @@
     "expectedAnswerHint": "입원 생활 관련해서 안내드릴게요.\n\n간호간병통합서비스 병동에는 환자 치료 집중, 감염 예방 등 쾌적한 입원 환경 제공을 위해 보호자 상주를 원칙적으로 제한하고 있으나, 불가피하게 보호자 상주가 필요한 경우 의료진의 판단에 따라 한시적으로 상주를 허용합니다. 상주 보호자 교대는 가능하나 치료 및 감염 예방을 위해 불가피한 경우에만 교대해 주시길 바랍니다.",
     "adminNote": "",
     "reviewedLogId": "log-1777444227361-igic5c"
+  },
+  {
+    "question": "진료기록 사본은 종이로 받을 수 있나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "진료기록사본발급, 진료기록발급, 진료기록서류발급,비용",
+    "expectedSource": "홈페이지-서류발급.txt, 홈페이지-외래진료안내.txt,기타-비급여비용.txt",
+    "expectedAnswerHint": "접수시간에 맞춰 1층 원무과로 내원 후 서류 신청가능하며\n병원 비급여 안내 기준으로 진료기록 발급 비용 1천원~최대 5천원 비용 발생됩니다.\n-서류 발급은 본인 확인이 필요할 수 있어 신분증을 지참해 주세요.\n-대리 발급은 관계 확인 서류나 위임 서류가 필요할 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777444225942-5xcssi"
   },
   {
     "question": "진단서 발급 비용은 얼마인가요?",
@@ -43,15 +502,6 @@
     "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n귀가 먹먹하거나 삐 소리가 나거나 소리가 잘 안 들리는 증상은 이명, 이관기능장애, 난청 등 여러 원인에서 생길 수 있습니다. 실제로 청력이 떨어진 경우에는 빠른 치료를 받지 못하면 영구적 난청이 남을 수 있어 내원해서 청력검사와 귀 진료를 받으시는 것이 좋습니다.\n- 청력검사와 귀 진료를 통해 난청 여부를 확인할 수 있습니다.\n- 갑자기 청력이 떨어졌거나 한쪽 귀가 잘 안 들리면 늦추지 말고 진료를 권장드립니다.",
     "adminNote": "",
     "reviewedLogId": "log-1777444220245-1zaf2t"
-  },
-  {
-    "question": "후각이 떨어졌을 때 어떤 검사를 하나요?",
-    "caseType": "admin_normal",
-    "expectedIntent": "integrated_faq",
-    "expectedSource": "통합-FAQ",
-    "expectedAnswerHint": "검사 관련해서 안내드릴게요.\n\n고막내시경, 청력검사 및 측두골 CT 등의 검사가 필요합니다.",
-    "adminNote": "",
-    "reviewedLogId": "log-1777444218847-gc6c5s"
   },
   {
     "question": "비중격 수술 후 회복은 몇 주 정도 걸리나요?",
@@ -90,6 +540,15 @@
     "reviewedLogId": "log-1777444208961-k954os"
   },
   {
+    "question": "온라인 예약 후 병원에 가면 어디서 확인하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "예약,온라인,접수",
+    "expectedSource": "통합-FAQ,홈페이지-외래진료안내.txt",
+    "expectedAnswerHint": "온라인 예약 후 예약확정 연락을 받은경우 예약날짜에 신분증을 지참하고 1층 원무과로 오셔서 접수 해주시면 됩니다\n- 예약 변경은 대표전화 02-6925-1111로 문의해 주세요.\n- 온라인 예약은 병원 홈페이지에서 요청 후 상담 확인 절차로 진행됩니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777444207547-g44xzt"
+  },
+  {
     "question": "간호간병통합서비스가 뭐야",
     "caseType": "admin_normal",
     "expectedIntent": "ai",
@@ -102,7 +561,7 @@
     "question": "입퇴원확인서는 비용이 얼마인가요?",
     "caseType": "admin_normal",
     "expectedIntent": "서류,비용",
-    "expectedSource": "기타-비급여비용.txt,홈페이지-서류발급",
+    "expectedSource": "기타-비급여비용.txt,홈페이지-서류발급.txt",
     "expectedAnswerHint": "병원 비급여 안내 기준으로 입퇴원확인서 발급 비용 3,000원, 입퇴원확인서 재발행 비용은 1,000원입니다.\n-원하시는 서류명이 정해져 있으면 해당 서류명으로 문의해 주시면 더 정확히 안내드릴 수 있습니다.\n-서류 발급은 본인 확인이 필요할 수 있어 신분증을 지참해 주세요.\n-대리 발급은 관계 확인 서류나 위임 서류가 필요할 수 있습니다.",
     "adminNote": "",
     "reviewedLogId": "log-1777442675282-51x834"
@@ -135,15 +594,6 @@
     "reviewedLogId": "log-1777442637854-rmhr4p"
   },
   {
-    "question": "병원 대표전화 번호가 어떻게 되나요?",
-    "caseType": "admin_normal",
-    "expectedIntent": "대표번호, 전화,",
-    "expectedSource": "통합-FAQ",
-    "expectedAnswerHint": "병원대표번호 02-6925-1111 입니다.",
-    "adminNote": "",
-    "reviewedLogId": "log-1777441531245-nula8x"
-  },
-  {
     "question": "입퇴원확인서는 비용이 얼마인가요?",
     "caseType": "admin_normal",
     "expectedIntent": "document_fee_overview",
@@ -151,15 +601,6 @@
     "expectedAnswerHint": "서류 비용은 서류 종류에 따라 다릅니다. 병원 비급여 안내 기준으로 입퇴원확인서는 3,000원, 입퇴원확인서 재발행은 1,000원, 진료기록사본은 1,000원으로 안내되어 있습니다.\n- 원하시는 서류명이 정해져 있으면 해당 서류명으로 문의해 주시면 더 정확히 안내드릴 수 있습니다.\n- 서류 발급은 본인 확인이 필요할 수 있어 신분증을 지참해 주세요.\n- 대리 발급은 관계 확인 서류나 위임 서류가 필요할 수 있습니다.",
     "adminNote": "",
     "reviewedLogId": "log-1777441529844-w37l1h"
-  },
-  {
-    "question": "진료비 영수증은 나중에 다시 발급받을 수 있나요?",
-    "caseType": "admin_normal",
-    "expectedIntent": "영수증,발급",
-    "expectedSource": "통합-FAQ",
-    "expectedAnswerHint": "1층원무과에서 다시 발급 받으실 수 있습니다.",
-    "adminNote": "",
-    "reviewedLogId": "log-1777441528440-3uxkl3"
   },
   {
     "question": "보호자 식사는 따로 신청할 수 있나요?",
@@ -171,42 +612,6 @@
     "reviewedLogId": "log-1777441527046-h23l1f"
   },
   {
-    "question": "입원 중 배달음식 받을 수 있나요?",
-    "caseType": "admin_normal",
-    "expectedIntent": "입원, 배달, 음식",
-    "expectedSource": "통합-FAQ",
-    "expectedAnswerHint": "배달음식은 가능하나 외부 음식 섭취 시 소화 불편이나 합병증 발생 가능성을 고려하여 주문하여 주시기 바랍니다. 배달음식 가능시간: 오전 7시 ~ 오후 9시, 지하 1층에서 수령",
-    "adminNote": "",
-    "reviewedLogId": "log-1777441525647-1xeyfj"
-  },
-  {
-    "question": "수면다원검사는 입원이 필요한 검사인가요?",
-    "caseType": "admin_normal",
-    "expectedIntent": "수면다원검사, 입원",
-    "expectedSource": "입원-수면검사 입원 안내",
-    "expectedAnswerHint": "1박2일 입원하여 진행됩니다.",
-    "adminNote": "",
-    "reviewedLogId": "log-1777441524230-y0zih8"
-  },
-  {
-    "question": "청력검사실은 몇 층에 있나요?",
-    "caseType": "admin_normal",
-    "expectedIntent": "층별위치, 청력검사실",
-    "expectedSource": "기타-층별안내도",
-    "expectedAnswerHint": "지하2층입니다.",
-    "adminNote": "",
-    "reviewedLogId": "log-1777441522773-p14k7i"
-  },
-  {
-    "question": "어지럼증 검사는 어디에서 받나요?",
-    "caseType": "admin_normal",
-    "expectedIntent": "청력검사, 어지럼증검사, 층별안내도, 위치",
-    "expectedSource": "기타-층별안내도",
-    "expectedAnswerHint": "지하2층 청력검사실입니다.",
-    "adminNote": "",
-    "reviewedLogId": "log-1777441521352-kytr8q"
-  },
-  {
     "question": "코물혹 수술 비용 범위를 알 수 있을까요?",
     "caseType": "admin_normal",
     "expectedIntent": "homepage_surgery_cost",
@@ -214,15 +619,6 @@
     "expectedAnswerHint": "수술 관련해서 안내드릴게요.\n\n코물혹 수술 안내드립니다. 하나이비인후과병원 기준으로 수술비용은 약 160~450만원(실비보험 적용 가능)입니다. 수술시간은 약 30분~1시간입니다. 마취방법은 수면마취+국소마취입니다. 입원기간은 1박 2일 또는 2박 3일입니다. 수술 후 내원치료는 수술 후 8~12회입니다. 회복기간은 약 3주~4주 하나이비인후과병원 코물혹 치료 장점 물혹 위치, 크기, 동반질환 등에 따라 맞춤 치료입니다. 정확한 수술 적응증과 비용 적용 방식은 진료와 검사 후 결정되므로 자세한 상담이나 예약은 대표전화 02-6925-1111로 문의해 주세요.\n- 보험 적용 여부와 실제 비용은 질환 상태와 검사 결과에 따라 달라질 수 있습니다.\n- 다른 수술이나 질환명을 말씀해 주시면 해당 문서 기준으로 다시 안내해 드릴게요.",
     "adminNote": "",
     "reviewedLogId": "log-1777441519947-q9of1d"
-  },
-  {
-    "question": "축농증 수술 회복기간은 얼마나 걸리나요?",
-    "caseType": "admin_normal",
-    "expectedIntent": "축농증수술, 회복기간, 치료",
-    "expectedSource": "통합-FAQ",
-    "expectedAnswerHint": "일반적으로 통원치료는 4 주 정도 소요됩니다. 단, 환자분의 경과에 따라 회복기간은 달라질 수 있습니다.",
-    "adminNote": "",
-    "reviewedLogId": "log-1777441518545-oua23p"
   },
   {
     "question": "비염 수술은 보통 며칠 입원하나요?",
@@ -252,15 +648,6 @@
     "reviewedLogId": "log-1777441514320-xhjlvy"
   },
   {
-    "question": "병원 셔틀은 점심시간에도 운행하나요?",
-    "caseType": "admin_normal",
-    "expectedIntent": "셔틀시간표,운행,점심시간,",
-    "expectedSource": "기타-병원셔틀시간표",
-    "expectedAnswerHint": "점심시간에는 운행하지 않습니다.",
-    "adminNote": "",
-    "reviewedLogId": "log-1777441512931-joph86"
-  },
-  {
     "question": "타 병원 CT 자료를 가져가면 도움이 되나요?",
     "caseType": "admin_normal",
     "expectedIntent": "integrated_faq",
@@ -268,15 +655,6 @@
     "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n타 병원 CT 나 기타 검사 결과지가 있는 경우 복사하여 가져오시면, 진료에 도움이 될 수 있습니다. 다만 필요에 따라서 추가적인 검사가 있을 수 있는 점 알려드립니다.",
     "adminNote": "",
     "reviewedLogId": "log-1777441511535-p03stv"
-  },
-  {
-    "question": "진료의뢰서 없이도 처음 진료를 볼 수 있나요?",
-    "caseType": "admin_normal",
-    "expectedIntent": "진료의뢰서, 진료",
-    "expectedSource": "통합-FAQ",
-    "expectedAnswerHint": "필수 지참은 아니며 진료의뢰서가 있으면 진료시 참고 할 수 있습니다.",
-    "adminNote": "",
-    "reviewedLogId": "log-1777441510052-9elnx3"
   },
   {
     "question": "1인실에는 세면도구가 제공되나요?",
@@ -306,22 +684,13 @@
     "reviewedLogId": "log-1777441488345-ec2cjb"
   },
   {
-    "question": "토요일에도 수술 상담 가능한가요?",
-    "caseType": "admin_normal",
-    "expectedIntent": "수술상담, 수술, 예약",
-    "expectedSource": "통합-FAQ",
-    "expectedAnswerHint": "토요일에도 수술상담 진행합니다.",
-    "adminNote": "",
-    "reviewedLogId": "log-1777441422147-rplzqi"
-  },
-  {
     "question": "진료확인서 발급은 어디서 하나요?",
     "caseType": "admin_normal",
-    "expectedIntent": "확인서, 발급",
-    "expectedSource": "통합-FAQ, 홈페이지-서류발급",
-    "expectedAnswerHint": "진료확인서는 진료 후 수납시 발급 받을 수 있으며, 과거 날짜 확인서가 필요하신 경우 1층 원무과에 신청하시면 발급 받을 수 있습니다. 서류에 대한 수수료가 발생합니다.",
+    "expectedIntent": "진료확인서,서류,비용",
+    "expectedSource": "홈페이지-서류발급.txt, 기타-비급여비용.txt",
+    "expectedAnswerHint": "접수시간에 맞춰 1층 원무과로 내원 후 서류 신청가능하며\n병원 비급여 안내 기준으로 진료확인서 발급 비용 3,000원, 진료확인서 재발행 비용은 1,000원입니다.\n-원하시는 서류명이 정해져 있으면 해당 서류명으로 문의해 주시면 더 정확히 안내드릴 수 있습니다.\n-서류 발급은 본인 확인이 필요할 수 있어 신분증을 지참해 주세요.\n-대리 발급은 관계 확인 서류나 위임 서류가 필요할 수 있습니다.",
     "adminNote": "",
-    "reviewedLogId": "log-1777439685442-s2uo13"
+    "reviewedLogId": "log-1777441402741-767gjg"
   },
   {
     "question": "토요일에도 수술 상담 가능한가요?",
@@ -342,15 +711,6 @@
     "reviewedLogId": "log-1777439682640-8vievh"
   },
   {
-    "question": "목에 혹이 만져지면 어떤 검사를 하나요?",
-    "caseType": "admin_normal",
-    "expectedIntent": "목, 혹, 검사",
-    "expectedSource": "통합-FAQ",
-    "expectedAnswerHint": "목에 혹이 만져지면 CT 또는 초음파검사를 진행 할 수 있으며, 상황에 따라 당일 또는 예약진행 됩니다.",
-    "adminNote": "",
-    "reviewedLogId": "log-1777439681246-yqoqvh"
-  },
-  {
     "question": "보청기 상담은 예약해야 하나요?",
     "caseType": "admin_normal",
     "expectedIntent": "hearing_aid_consult",
@@ -367,15 +727,6 @@
     "expectedAnswerHint": "입원 생활 관련해서 안내드릴게요.\n\n배달음식은 가능하나 외부 음식 섭취 시 소화 불편이나 합병증 발생 가능성을 고려하여 주문하여 주시기 바랍니다. 배달음식 가능시간: 오전 7시 ~ 오후 9시, 지하 1층에서 수령",
     "adminNote": "",
     "reviewedLogId": "log-1777439674059-2da1u0"
-  },
-  {
-    "question": "진료 끝나고 처방약은 병원 안에서 받나요?",
-    "caseType": "admin_normal",
-    "expectedIntent": "약처방, 약국위치",
-    "expectedSource": "통합-FAQ.txt",
-    "expectedAnswerHint": "외래환자인 경우 본원 입구 양쪽에 외부 약국이 있습니다. 입원환자인 경우 4층에 약국이 있습니다.",
-    "adminNote": "",
-    "reviewedLogId": "log-1777439668443-0u6lw6"
   },
   {
     "question": "수면무호흡이 의심되면 어떤 검사를 하나요?",
@@ -441,15 +792,6 @@
     "reviewedLogId": "log-1777439472274-xnk9lm"
   },
   {
-    "question": "실손보험 청구용 서류는 무엇을 발급받아야 하나요?",
-    "caseType": "admin_normal",
-    "expectedIntent": "서류, 보험청구",
-    "expectedSource": "홈페이지-서류발급, 통합-FAQ",
-    "expectedAnswerHint": "실비보험 청구용 서류는 가입하신 보험사 약관에 따라서 차이가 있을 수 있습니다. 가입하신 보험사의 약관을 확인한 후 직접 보험 회사에 문의해보시기 바랍니다.",
-    "adminNote": "",
-    "reviewedLogId": "log-1777438535315-a0s1bo"
-  },
-  {
     "question": "의무기록 사본 발급 시 필요한 서류를 알려주세요.",
     "caseType": "admin_normal",
     "expectedIntent": "document_application",
@@ -468,15 +810,6 @@
     "reviewedLogId": "log-1777438506929-d45tc2"
   },
   {
-    "question": "진단서 발급 방법을 알려주세요.",
-    "caseType": "admin_normal",
-    "expectedIntent": "진단서,발급",
-    "expectedSource": "홈페이지-서류발급, 통합-FAQ",
-    "expectedAnswerHint": "서류발급은 개인정보보호법에 따라 본인이 신분증 지참 후 직접 내원하여 본인 확인절차를 거쳐 발급하는 것을 원칙으로 하며 보호자나 대리인이 내원 하시는 경우 본원 홈페이지 서류발급절차 기준에 따라 발급됩니다. 발급 시 필요한 [구비서류] 를 꼭 참고하시기 바랍니다",
-    "adminNote": "",
-    "reviewedLogId": "log-1777438504509-jlk73p"
-  },
-  {
     "question": "퇴원 절차를 알려주세요.",
     "caseType": "admin_normal",
     "expectedIntent": "discharge_process",
@@ -484,6 +817,33 @@
     "expectedAnswerHint": "퇴원은 수술 종류와 회복 상태에 따라 시간이 달라질 수 있습니다. 통합 FAQ 기준으로 코 수술은 오전 9시부터 9시 30분 또는 오후 2시 전후, 목 수술은 오전 9시부터 9시 30분 전후, 귀 수술은 오전 9시부터 9시 30분 또는 오후 2시 전후 퇴원으로 안내되어 있습니다.\n- 최종 퇴원 가능 여부와 시간은 담당 의료진과 병동 안내에 따라 결정됩니다.\n- 입퇴원확인서 등 제증명 서류가 필요하면 입원 중 병동 간호사에게 미리 신청하거나 퇴원 후 외래에서 신청할 수 있습니다.\n- 퇴원 당일 운전이 어려울 수 있어 보호자 동행을 권장드립니다.",
     "adminNote": "",
     "reviewedLogId": "log-1777438439517-56oo33"
+  },
+  {
+    "question": "병실 면회 시간이 어떻게 되나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "visitor_policy",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "입원환자 면회는 전면 금지로 안내되어 있습니다. 면회나 병문안 대신 1층과 2층 대기실 이용을 안내하고 있으며, 소아환자의 경우 보호자 한 분이 함께 있을 수 있습니다.\n- 감염 예방과 환자 안정을 위한 기준이라 병동 상황에 따라 안내가 달라질 수 있습니다.\n- 입원 중 보호자 동반이 필요한 경우 병동 간호사에게 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777438434913-3726mc"
+  },
+  {
+    "question": "입원 중 보호자 상주가 가능한가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "integrated_faq",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "입원 생활 관련해서 안내드릴게요.\n\n간호간병통합서비스 병동에는 환자 치료 집중, 감염 예방 등 쾌적한 입원 환경 제공을 위해 보호자 상주를 원칙적으로 제한하고 있으나, 불가피하게 보호자 상주가 필요한 경우 의료진의 판단에 따라 한시적으로 상주를 허용합니다. 상주 보호자 교대는 가능하나 치료 및 감염 예방을 위해 불가피한 경우에만 교대해 주시길 바랍니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777438429434-oo1cy3"
+  },
+  {
+    "question": "입원 준비물을 알려주세요.",
+    "caseType": "admin_normal",
+    "expectedIntent": "admission_prep_items",
+    "expectedSource": "통합-FAQ / 입원-입원생활안내문",
+    "expectedAnswerHint": "입원 생활 관련해서 안내드릴게요.\n\n입원 준비물은 병실 종류에 따라 조금 다릅니다. 1인실은 환자용 세면도구(치약, 칫솔, 비누, 수건, 티슈)가 제공되며, 개인컵, 화장품, 드라이기, 샴푸, 린스 등 개인 물품은 지참하셔야 합니다. 2인실과 4인실은 세면도구와 개인용품(티슈, 수건, 개인컵, 슬리퍼, 화장품, 드라이기, 샴푸, 린스 등)을 모두 챙겨오셔야 합니다.\n- 수술 종류나 병실 배정에 따라 추가 준비물이 있을 수 있어 입원 전 안내를 함께 확인해 주세요.\n- 대표전화 02-6925-1111",
+    "adminNote": "",
+    "reviewedLogId": "log-1777438402302-lpqark"
   },
   {
     "question": "병원 위치를 알려주세요.",

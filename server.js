@@ -2200,6 +2200,24 @@ function shouldUseConsultationTone(payload) {
     'same_day_discharge',
     'smell_exam',
     'voice_center',
+    'cpap_insurance',
+    'cpap_consult',
+    'homepage_url',
+    'map_url',
+    'seolleung_route',
+    'doctor_popularity_unknown',
+    'doctor_education',
+    'doctor_count',
+    'floor_facility',
+    'salivary_gland_care',
+    'throat_mass_result',
+    'tinnitus_treatment',
+    'nasal_polyp_ct',
+    'allergen_immunotherapy_fee',
+    'specific_document_fee',
+    'voice_exam',
+    'admission_process_location',
+    'appointment_arrival',
   ].includes(type);
 }
 
@@ -2351,6 +2369,24 @@ function enrichResponsePayload(payload, question) {
     'same_day_discharge',
     'smell_exam',
     'voice_center',
+    'cpap_insurance',
+    'cpap_consult',
+    'homepage_url',
+    'map_url',
+    'seolleung_route',
+    'doctor_popularity_unknown',
+    'doctor_education',
+    'doctor_count',
+    'floor_facility',
+    'salivary_gland_care',
+    'throat_mass_result',
+    'tinnitus_treatment',
+    'nasal_polyp_ct',
+    'allergen_immunotherapy_fee',
+    'specific_document_fee',
+    'voice_exam',
+    'admission_process_location',
+    'appointment_arrival',
   ].includes(localizedPayload.type);
 
   return sanitizeOutgoingPayload({
@@ -4229,8 +4265,23 @@ function buildShuttleLunchResponse(message) {
 
 function buildPreopExamTimingResponse(message) {
   const text = String(message || '');
-  if (!/(수술\s*전\s*검사|수술전\s*검사)/u.test(text) || !/(언제|까지|시기|받아|해야|하나요|무엇|뭔가요)/u.test(text)) {
+  if (!/(수술\s*전\s*검사|수술전\s*검사)/u.test(text) || !/(언제|까지|시기|받아|해야|하나요|무엇|뭔가요|이상|결과|수치|안\s*좋|문제)/u.test(text)) {
     return null;
+  }
+
+  if (/(이상|결과|수치|안\s*좋|문제)/u.test(text)) {
+    return {
+      type: 'preop_exam_timing',
+      answer: '수술 전 검사에서 이상 소견이 확인되면 수술 상담실에서 별도로 연락을 드릴 수 있습니다. 상태에 따라 내과 진료 일정을 도와드리거나, 수치가 안정된 뒤 수술 일정이 조정될 수 있습니다.',
+      followUp: [
+        '검사 결과에 따라 수술 가능 여부가 달라질 수 있어 임의로 판단하지 말고 병원 안내를 따라 주세요.',
+        '수술 전 검사 결과 확인이나 일정 문의는 대표전화 02-6925-1111로 확인해 주세요.',
+      ],
+      sources: [
+        buildIntegratedFaqDocSource(),
+        buildLocalDocSource('홈페이지-입퇴원 안내', '홈페이지-입퇴원 안내.txt'),
+      ],
+    };
   }
 
   return {
@@ -4307,6 +4358,370 @@ function buildVoiceCenterResponse(message) {
     sources: [
       buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt'),
       buildLocalDocSource('홈페이지-목의 혹', '홈페이지-목의 혹.txt'),
+    ],
+  };
+}
+
+function buildCpapInsuranceResponse(message) {
+  const text = String(message || '');
+  if (!/(양압기|얍압기|CPAP|cpap)/u.test(text) || !/(보험|급여|적용|기준|지원|처방|순응|AHI|추측)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'cpap_insurance',
+    answer: '양압기 보험 적용 여부는 추측으로 결정할 수 없고, 수면다원검사 결과와 의료진 판단을 기준으로 확인합니다. 통합 FAQ 기준으로 무호흡-저호흡 지수(AHI)가 15 이상이거나, AHI 5~14 범위에서 불면증, 주간졸음, 인지기능 감소 같은 동반 증상이 있으면 양압기 처방을 위한 수면다원검사가 보험 적용될 수 있습니다.',
+    followUp: [
+      '양압기를 계속 보험 적용받으려면 90일 순응 기간 중 연속 30일 사용이 필요하며, 그 기간 중 하루 4시간 이상 사용한 날이 21일 이상이어야 합니다.',
+      '정확한 적용 여부는 검사 결과와 진료 후 확인해 주세요.',
+    ],
+    sources: [buildIntegratedFaqDocSource()],
+  };
+}
+
+function buildCpapConsultResponse(message) {
+  const text = String(message || '');
+  if (!/(양압기|얍압기|CPAP|cpap)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'cpap_consult',
+    answer: '양압기 상담은 코골이, 수면무호흡 증상과 수면다원검사 결과를 바탕으로 진행됩니다. 양압기 처방이나 사용 여부는 진료와 검사 결과를 확인한 뒤 안내받으시는 것이 정확합니다.',
+    followUp: [
+      '수면다원검사는 코골이나 수면무호흡의 정도를 확인하는 검사입니다.',
+      '예약 및 상담 문의는 대표전화 02-6925-1111로 확인해 주세요.',
+    ],
+    sources: [buildIntegratedFaqDocSource()],
+  };
+}
+
+function buildHomepageUrlResponse(message) {
+  const text = String(message || '');
+  if (!/(홈페이지|홈\s*페이지|웹사이트|사이트)/u.test(text) || !/(주소|url|URL|링크|알려|어디)/u.test(text)) {
+    return null;
+  }
+
+  const includePhone = /(대표\s*전화|전화번호|번호)/u.test(text);
+  return {
+    type: 'homepage_url',
+    answer: includePhone
+      ? '하나이비인후과병원 대표전화는 02-6925-1111이고, 홈페이지 주소는 https://hanaent.co.kr/ 입니다.'
+      : '하나이비인후과병원 홈페이지 주소는 https://hanaent.co.kr/ 입니다.',
+    followUp: [
+      '진료 예약, 의료진 안내, 오시는 길 등은 홈페이지에서 확인하실 수 있습니다.',
+    ],
+    sources: [buildIntegratedFaqDocSource()],
+  };
+}
+
+function buildMapUrlResponse(message) {
+  const text = String(message || '');
+  if (!/(약도|지도|오시는\s*길|오시는길)/u.test(text) || !/(보여|링크|주소|url|URL|어디|알려)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'map_url',
+    answer: '병원 약도와 오시는 길은 https://hanaent.co.kr/info/info04.html 에서 확인하실 수 있습니다.',
+    followUp: [
+      '주소는 서울특별시 강남구 역삼로 245 하나이비인후과병원입니다.',
+      '대표전화는 02-6925-1111입니다.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('홈페이지-셔틀버스 및 오시는길', '홈페이지-셔틀버스 및 오시는길.txt'),
+    ],
+  };
+}
+
+function buildSeolleungRouteResponse(message) {
+  const text = String(message || '');
+  if (!/(선릉|선릉역)/u.test(text) || !/(어떻게|가는|가나요|길|출구|도보|버스)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'seolleung_route',
+    answer: '선릉역에서 오실 경우 2호선 또는 분당선 선릉역 4번 출구에서 도보 약 15분으로 안내되어 있습니다.',
+    followUp: [
+      '버스 이용 시 선릉역 7번 출구에서 강남07번 버스를 타고 동영문화센터 정류장에서 하차 후 약 50m 이동하시면 됩니다.',
+      '오시는 길 상세 안내는 https://hanaent.co.kr/info/info04.html 에서 확인하실 수 있습니다.',
+    ],
+    sources: [buildLocalDocSource('홈페이지-셔틀버스 및 오시는길', '홈페이지-셔틀버스 및 오시는길.txt')],
+  };
+}
+
+function buildDoctorPopularityResponse(message) {
+  const text = String(message || '');
+  if (!/(환자.*많|인기.*의사|가장.*의사|많이.*보는.*의사|추천.*의사)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'doctor_popularity_unknown',
+    answer: '문서에는 의료진별 환자 수나 인기 순위를 판단할 수 있는 정보가 없습니다. 특정 의사를 순위로 안내하기보다는 증상이나 진료 분야에 맞는 의료진을 확인해 드리는 방식이 정확합니다.',
+    followUp: [
+      '귀, 코, 목, 수면, 어지럼증처럼 증상을 알려주시면 관련 센터나 의료진 정보를 기준으로 안내드릴 수 있습니다.',
+      '의료진 진료 일정은 병원 사정에 따라 달라질 수 있어 예약 전 확인을 권장드립니다.',
+    ],
+    sources: [buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt')],
+  };
+}
+
+function buildDoctorEducationResponse(message) {
+  const text = String(message || '');
+  if (!/(서울대|서울대학교|아주대|아주대학교)/u.test(text) || !/(출신|학력|의료진|의사|원장|누구)/u.test(text)) {
+    return null;
+  }
+
+  if (/(아주대|아주대학교)/u.test(text)) {
+    return {
+      type: 'doctor_education',
+      answer: '의료진 정보 문서 기준으로 장정훈 원장에게 아주대학교 의과대학 이비인후과학교실 조교수, 부교수, 주임교수 이력이 안내되어 있습니다.',
+      followUp: [
+        '학력과 경력은 의료진 정보 문서 기준이며, 최신 정보는 병원 홈페이지 의료진 안내에서 다시 확인해 주세요.',
+      ],
+      sources: [buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt')],
+    };
+  }
+
+  return {
+    type: 'doctor_education',
+    answer: '의료진 정보 문서 기준으로 서울대학교 관련 학력 또는 경력이 안내된 의료진은 동헌종 원장, 장선오 원장, 장정훈 원장, 강매화 원장입니다.',
+    followUp: [
+      '각 의료진별 세부 학력과 경력은 병원 홈페이지 의료진 정보에서 확인하시는 것이 가장 정확합니다.',
+    ],
+    sources: [buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt')],
+  };
+}
+
+function buildDoctorCountResponse(message) {
+  const text = String(message || '');
+  if (!/(의료진|의사|원장)/u.test(text) || !/(몇\s*명|몇명|총\s*몇|인원|수)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'doctor_count',
+    answer: '의료진 정보 문서 기준으로 안내 가능한 의료진은 총 15명입니다.',
+    followUp: [
+      '동헌종, 이상덕, 정도광, 남순열, 주형로, 장선오, 장정훈, 김태현, 정종인, 김종세, 장규선, 김병길, 이영미, 강매화, 문보은 의료진이 문서에 포함되어 있습니다.',
+    ],
+    sources: [buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt')],
+  };
+}
+
+function buildFloorByNumberResponse(message) {
+  const text = String(message || '');
+  if (!/(4층|5층|6층)/u.test(text) || !/(시설|뭐|무엇|어떤|있나요|있어|위치)/u.test(text)) {
+    return null;
+  }
+
+  if (/6층/u.test(text)) {
+    return {
+      type: 'floor_facility',
+      answer: '6층에는 수술실, 회복실, 마취통증의학과가 안내되어 있습니다.',
+      followUp: [
+        '수술 관련 공간이므로 일반 대기나 외부인 이용 공간으로 안내되지는 않습니다.',
+      ],
+      sources: [buildLocalDocSource('기타-층별안내도', '기타-층별안내도.txt')],
+    };
+  }
+
+  if (/5층/u.test(text)) {
+    return {
+      type: 'floor_facility',
+      answer: '5층은 병동으로, 병실 501호부터 509호가 안내되어 있습니다.',
+      followUp: [
+        '병동은 입원 환자 중심 공간이므로 방문이나 보호자 동반은 병동 안내 기준을 따라 주세요.',
+      ],
+      sources: [buildLocalDocSource('기타-층별안내도', '기타-층별안내도.txt')],
+    };
+  }
+
+  return {
+    type: 'floor_facility',
+    answer: '4층은 병동과 약제과로 안내되어 있으며, 병실 401호부터 409호가 포함되어 있습니다.',
+    followUp: [
+      '병동은 입원 환자 중심 공간이므로 외부인 출입이나 방문은 병동 안내 기준을 따라 주세요.',
+    ],
+    sources: [buildLocalDocSource('기타-층별안내도', '기타-층별안내도.txt')],
+  };
+}
+
+function buildSalivaryGlandCareResponse(message) {
+  const text = String(message || '');
+  if (!/(침샘|타석|귀밑샘|악하선)/u.test(text) || !/(수술|치료|가능|하나요|하나)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'salivary_gland_care',
+    answer: '침샘 질환은 원인과 상태에 따라 치료 방향이 달라집니다. 문서 기준으로 침샘염은 약물치료와 증상치료가 안내되어 있고, 타석증처럼 돌이 있는 경우에는 돌 제거 수술이나 침샘 절제 수술이 고려될 수 있습니다.',
+    followUp: [
+      '수술 여부는 진찰과 검사 결과를 보고 결정되므로, 먼저 진료에서 원인을 확인하는 것이 좋습니다.',
+    ],
+    sources: [buildLocalDocSource('홈페이지-침샘', '홈페이지-침샘.txt')],
+  };
+}
+
+function buildThroatMassResultResponse(message) {
+  const text = String(message || '');
+  if (!/(목.*혹|목의\s*혹|목\s*혹|혹.*목|성대\s*물혹)/u.test(text) || !/(당일|결과|확인|언제|며칠)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'throat_mass_result',
+    answer: '목에 혹이 있는 경우 진찰 후 후두내시경, 초음파, 혈액검사, CT 등 필요한 검사가 결정될 수 있습니다. 다만 조직검사나 정밀 확인이 필요한 경우 최종 결과 확인까지 최소 5~7일 정도 걸릴 수 있어, 당일에 모든 결과가 확정된다고 안내하기는 어렵습니다.',
+    followUp: [
+      '검사 종류에 따라 당일 설명 가능한 내용과 며칠 뒤 확인해야 하는 내용이 나뉠 수 있습니다.',
+      '정확한 결과 확인 일정은 검사 후 안내받으신 기준을 따라 주세요.',
+    ],
+    sources: [buildLocalDocSource('홈페이지-목의 혹', '홈페이지-목의 혹.txt')],
+  };
+}
+
+function buildTinnitusTreatmentResponse(message) {
+  const text = String(message || '');
+  if (!/(이명|귀.*삐|삐.*소리)/u.test(text) || !/(치료|장점|효과|완치|좋아|낫)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'tinnitus_treatment',
+    answer: '이명 치료는 원인 질환이 확인되면 그 질환을 먼저 치료하고, 원인이 뚜렷하지 않은 경우에는 증상 조절과 적응을 돕는 방향으로 진행될 수 있습니다. 이명이 반드시 완치된다고 단정하기보다는 청력검사와 진료로 원인을 확인하는 것이 중요합니다.',
+    followUp: [
+      '귀 먹먹함, 청력저하, 어지럼증이 함께 있으면 함께 말씀해 주세요.',
+      '필요한 검사는 진료 후 결정됩니다.',
+    ],
+    sources: [buildLocalDocSource('홈페이지-난청', '홈페이지-난청.txt')],
+  };
+}
+
+function buildNasalPolypCtResponse(message) {
+  const text = String(message || '');
+  if (!/(코\s*물혹|물혹|비용종)/u.test(text) || !/(CT|ct|씨티|검사|필요|찍)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'nasal_polyp_ct',
+    answer: '코물혹이나 축농증이 의심되는 경우 현재 상태를 확인하기 위해 비내시경, X-ray, CT 같은 검사가 필요할 수 있습니다. CT 촬영 여부는 증상과 진찰 결과를 보고 의료진이 결정합니다.',
+    followUp: [
+      '코막힘, 누런 콧물, 후각저하, 얼굴 통증 같은 증상이 있으면 진료 시 함께 말씀해 주세요.',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-만성부비동염', '홈페이지-만성부비동염.txt'),
+      buildLocalDocSource('홈페이지-후각장애', '홈페이지-후각장애.txt'),
+    ],
+  };
+}
+
+function buildAllergenImmunotherapyFeeResponse(message) {
+  const text = String(message || '');
+  if (!/(알레르기|알러지|알레르겐)/u.test(text) || !/(면역\s*요법|면역요법|주사)/u.test(text) || !/(비용|얼마|금액|가격)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'allergen_immunotherapy_fee',
+    answer: '비급여비용 문서 기준으로 알레르겐 면역요법제는 147,000원과 220,000원 항목이 안내되어 있습니다.',
+    followUp: [
+      '실제 적용 약제와 횟수는 진료 후 결정되므로, 정확한 비용은 수납 또는 진료 상담에서 다시 확인해 주세요.',
+    ],
+    sources: [buildLocalDocSource('기타-비급여비용', '기타-비급여비용.txt')],
+  };
+}
+
+function buildSpecificDocumentFeeResponse(message) {
+  const text = String(message || '');
+  if (!/(비용|얼마|금액|가격|발급비)/u.test(text)) {
+    return null;
+  }
+
+  if (/(CD|cd|씨디|영상\s*복사|진료\s*기록.*복사|기록.*CD)/u.test(text)) {
+    return {
+      type: 'specific_document_fee',
+      answer: '비급여비용 문서 기준으로 CD 복사 비용은 10,000원으로 안내되어 있습니다.',
+      followUp: [
+        '발급 가능 여부와 준비물은 원무과 또는 대표전화 02-6925-1111로 확인해 주세요.',
+      ],
+      sources: [buildLocalDocSource('기타-비급여비용', '기타-비급여비용.txt')],
+    };
+  }
+
+  if (/(수술\s*확인서|수술확인서)/u.test(text)) {
+    return {
+      type: 'specific_document_fee',
+      answer: '비급여비용 문서 기준으로 수술확인서 발급 비용은 10,000원으로 안내되어 있습니다. 재발급은 1,000원 항목이 별도로 안내되어 있습니다.',
+      followUp: [
+        '진단명이나 수술명 등 포함 내용은 발급 목적에 맞게 원무과에서 확인해 주세요.',
+      ],
+      sources: [buildLocalDocSource('기타-비급여비용', '기타-비급여비용.txt')],
+    };
+  }
+
+  return null;
+}
+
+function buildVoiceExamResponse(message) {
+  const text = String(message || '');
+  if (!/(목소리|쉰\s*목소리|음성|소리\s*안\s*나|소리가\s*안\s*나)/u.test(text) || !/(검사|하고\s*싶|받고\s*싶|가능|당일)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'voice_exam',
+    answer: '목소리가 잘 안 나오거나 쉰 목소리가 지속되면 먼저 진료를 보고, 필요 시 후두내시경이나 음성 관련 검사가 결정될 수 있습니다. 음성검사는 진료 후 필요 여부가 정해지며, 예약이나 검사 가능 시간에 따라 당일 진행이 어려울 수 있습니다.',
+    followUp: [
+      '비급여비용 문서에는 음성검사 관련 항목이 안내되어 있습니다.',
+      '정확한 검사 가능 여부는 예약 또는 진료 시 확인해 주세요.',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt'),
+      buildLocalDocSource('기타-비급여비용', '기타-비급여비용.txt'),
+    ],
+  };
+}
+
+function buildAdmissionProcessLocationResponse(message) {
+  const text = String(message || '');
+  if (!/(입원\s*수속|입원수속|입원\s*접수)/u.test(text) || !/(어디|층|장소|위치)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'admission_process_location',
+    answer: '입원 수속은 1층 원무과 입원 창구에서 진행하는 것으로 안내되어 있습니다.',
+    followUp: [
+      '입원 준비물과 병실 안내는 병실 종류와 입원 일정에 따라 달라질 수 있습니다.',
+      '입원 당일 안내받은 시간과 준비물을 다시 확인해 주세요.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('홈페이지-입퇴원 안내', '홈페이지-입퇴원 안내.txt'),
+    ],
+  };
+}
+
+function buildAppointmentArrivalResponse(message) {
+  const text = String(message || '');
+  if (!/(예약하고|예약\s*후|예약했|예약한)/u.test(text) || !/(먼저|어디|가면|가야|접수)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'appointment_arrival',
+    answer: '예약 후 내원하시면 먼저 1층 원무과 또는 접수 데스크에서 예약 확인과 접수를 진행하시면 됩니다.',
+    followUp: [
+      '초진 환자는 본인 확인을 위해 신분증 또는 건강보험증을 준비해 주세요.',
+      '타병원 소견서, 진료의뢰서, CD가 있으면 접수 시 함께 제출해 주세요.',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-외래진료안내', '홈페이지-외래진료안내.txt'),
+      buildIntegratedFaqDocSource(),
     ],
   };
 }
@@ -8761,6 +9176,81 @@ async function buildChatResponse(rawMessage, sessionId) {
     return enrichResponsePayload(preMeaningShuttleLunchResponse, message);
   }
 
+  const preMeaningCpapInsuranceResponse = buildCpapInsuranceResponse(message);
+  if (preMeaningCpapInsuranceResponse) {
+    return enrichResponsePayload(preMeaningCpapInsuranceResponse, message);
+  }
+
+  const preMeaningCpapConsultResponse = buildCpapConsultResponse(message);
+  if (preMeaningCpapConsultResponse) {
+    return enrichResponsePayload(preMeaningCpapConsultResponse, message);
+  }
+
+  const preMeaningHomepageUrlResponse = buildHomepageUrlResponse(message);
+  if (preMeaningHomepageUrlResponse) {
+    return enrichResponsePayload(preMeaningHomepageUrlResponse, message);
+  }
+
+  const preMeaningMapUrlResponse = buildMapUrlResponse(message);
+  if (preMeaningMapUrlResponse) {
+    return enrichResponsePayload(preMeaningMapUrlResponse, message);
+  }
+
+  const preMeaningSeolleungRouteResponse = buildSeolleungRouteResponse(message);
+  if (preMeaningSeolleungRouteResponse) {
+    return enrichResponsePayload(preMeaningSeolleungRouteResponse, message);
+  }
+
+  const preMeaningDoctorPopularityResponse = buildDoctorPopularityResponse(message);
+  if (preMeaningDoctorPopularityResponse) {
+    return enrichResponsePayload(preMeaningDoctorPopularityResponse, message);
+  }
+
+  const preMeaningDoctorEducationResponse = buildDoctorEducationResponse(message);
+  if (preMeaningDoctorEducationResponse) {
+    return enrichResponsePayload(preMeaningDoctorEducationResponse, message);
+  }
+
+  const preMeaningDoctorCountResponse = buildDoctorCountResponse(message);
+  if (preMeaningDoctorCountResponse) {
+    return enrichResponsePayload(preMeaningDoctorCountResponse, message);
+  }
+
+  const preMeaningFloorByNumberResponse = buildFloorByNumberResponse(message);
+  if (preMeaningFloorByNumberResponse) {
+    return enrichResponsePayload(preMeaningFloorByNumberResponse, message);
+  }
+
+  const preMeaningSalivaryGlandCareResponse = buildSalivaryGlandCareResponse(message);
+  if (preMeaningSalivaryGlandCareResponse) {
+    return enrichResponsePayload(preMeaningSalivaryGlandCareResponse, message);
+  }
+
+  const preMeaningThroatMassResultResponse = buildThroatMassResultResponse(message);
+  if (preMeaningThroatMassResultResponse) {
+    return enrichResponsePayload(preMeaningThroatMassResultResponse, message);
+  }
+
+  const preMeaningTinnitusTreatmentResponse = buildTinnitusTreatmentResponse(message);
+  if (preMeaningTinnitusTreatmentResponse) {
+    return enrichResponsePayload(preMeaningTinnitusTreatmentResponse, message);
+  }
+
+  const preMeaningNasalPolypCtResponse = buildNasalPolypCtResponse(message);
+  if (preMeaningNasalPolypCtResponse) {
+    return enrichResponsePayload(preMeaningNasalPolypCtResponse, message);
+  }
+
+  const preMeaningAllergenImmunotherapyFeeResponse = buildAllergenImmunotherapyFeeResponse(message);
+  if (preMeaningAllergenImmunotherapyFeeResponse) {
+    return enrichResponsePayload(preMeaningAllergenImmunotherapyFeeResponse, message);
+  }
+
+  const preMeaningSpecificDocumentFeeResponse = buildSpecificDocumentFeeResponse(message);
+  if (preMeaningSpecificDocumentFeeResponse) {
+    return enrichResponsePayload(preMeaningSpecificDocumentFeeResponse, message);
+  }
+
   const preMeaningPreopExamTimingResponse = buildPreopExamTimingResponse(message);
   if (preMeaningPreopExamTimingResponse) {
     return enrichResponsePayload(preMeaningPreopExamTimingResponse, message);
@@ -8774,6 +9264,11 @@ async function buildChatResponse(rawMessage, sessionId) {
   const preMeaningSmellExamResponse = buildSmellExamResponse(message);
   if (preMeaningSmellExamResponse) {
     return enrichResponsePayload(preMeaningSmellExamResponse, message);
+  }
+
+  const preMeaningVoiceExamResponse = buildVoiceExamResponse(message);
+  if (preMeaningVoiceExamResponse) {
+    return enrichResponsePayload(preMeaningVoiceExamResponse, message);
   }
 
   const preMeaningVoiceCenterResponse = buildVoiceCenterResponse(message);
@@ -8854,6 +9349,16 @@ async function buildChatResponse(rawMessage, sessionId) {
   const preMeaningReceptionProcessResponse = buildReceptionProcessResponse(message);
   if (preMeaningReceptionProcessResponse) {
     return enrichResponsePayload(preMeaningReceptionProcessResponse, message);
+  }
+
+  const preMeaningAdmissionProcessLocationResponse = buildAdmissionProcessLocationResponse(message);
+  if (preMeaningAdmissionProcessLocationResponse) {
+    return enrichResponsePayload(preMeaningAdmissionProcessLocationResponse, message);
+  }
+
+  const preMeaningAppointmentArrivalResponse = buildAppointmentArrivalResponse(message);
+  if (preMeaningAppointmentArrivalResponse) {
+    return enrichResponsePayload(preMeaningAppointmentArrivalResponse, message);
   }
 
   const preMeaningDocumentApplicationResponse = buildDocumentApplicationResponse(message);
