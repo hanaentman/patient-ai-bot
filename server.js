@@ -2003,7 +2003,31 @@ function appendSupportLinks(answer, question) {
     result = `${result}\n\n비급여 안내 페이지: ${NONPAY_PAGE_URL}`;
   }
 
-  return result.replace(/(?:대표전화\s*)?02-6925-1111/g, '대표전화 02-6925-1111');
+  return normalizeBrokenUrls(result.replace(/(?:대표전화\s*)?02-6925-1111/g, '대표전화 02-6925-1111'));
+}
+
+function normalizeBrokenUrls(value) {
+  return String(value || '')
+    .replace(/https?:\/\/(?:www\s*\.\s*)?hanaent\s*\.\s*co\s*\.\s*kr(?:\s*\/\s*[A-Za-z0-9._~:/?#[\]@!$&'()*+,;=%-]*)?/gi, (url) => (
+      url.replace(/\s+/g, '')
+    ))
+    .replace(/https?:\/\/(?:www\s*\.\s*)?youtube\s*\.\s*com\s*\/\s*watch\s*\?\s*v\s*=\s*([A-Za-z0-9_-]+)/gi, (_url, videoId) => (
+      `https://www.youtube.com/watch?v=${videoId}`
+    ));
+}
+
+function protectUrlsForFormatting(text, formatter) {
+  const urls = [];
+  const protectedText = String(text || '').replace(/https?:\/\/[^\s)\]]+/g, (url) => {
+    const token = `__URL_TOKEN_${urls.length}__`;
+    urls.push(url);
+    return token;
+  });
+
+  const formatted = formatter(protectedText);
+  return urls.reduce((result, url, index) => (
+    result.replace(`__URL_TOKEN_${index}__`, url)
+  ), formatted);
 }
 
 function looksLikeBrokenKoreanText(value) {
@@ -2031,11 +2055,11 @@ function repairBrokenKoreanText(value) {
     ));
   }
 
-  return result
+  return normalizeBrokenUrls(result
     .replace(/\u0000/g, '')
     .replace(/[ \t]{2,}/g, ' ')
     .replace(/\n{3,}/g, '\n\n')
-    .trim();
+    .trim());
 }
 
 function repairChatPayloadFields(payload) {
@@ -8798,19 +8822,22 @@ function extractOutputText(payload) {
 }
 
 function formatAssistantAnswer(text) {
-  return String(text || '')
-    .replace(/\r/g, '\n')
-    .replace(/[ \t]+/g, ' ')
-    .replace(/\n{3,}/g, '\n\n')
-    .replace(/([.!?][\]\)'"]?)(\s+)/g, '$1\n')
-    .replace(/([.!?][\]\)'"]?)(?=[가-힣A-Za-z0-9])/g, '$1\n')
-    .replace(/([가-힣])([A-Za-z0-9])/g, '$1 $2')
-    .replace(/([A-Za-z0-9])([가-힣])/g, '$1 $2')
-    .replace(/(\uC785\uB2C8\uB2E4|\uB429\uB2C8\uB2E4|\uBCF4\uC785\uB2C8\uB2E4|\uAD8C\uC7A5\uD569\uB2C8\uB2E4|\uC548\uB0B4\uB429\uB2C8\uB2E4|\uAC00\uB2A5\uD569\uB2C8\uB2E4|\uC5B4\uB835\uC2B5\uB2C8\uB2E4|\uBC14\uB78D\uB2C8\uB2E4)\s+(?=[\uAC00-\uD7A3])/g, '$1\n')
-    .replace(/\s+\n/g, '\n')
-    .replace(/\n\s+/g, '\n')
-    .replace(/\s{2,}/g, ' ')
-    .trim();
+  const normalized = normalizeBrokenUrls(text);
+  return protectUrlsForFormatting(normalized, (value) => (
+    String(value || '')
+      .replace(/\r/g, '\n')
+      .replace(/[ \t]+/g, ' ')
+      .replace(/\n{3,}/g, '\n\n')
+      .replace(/([.!?][\]\)'"]?)(\s+)/g, '$1\n')
+      .replace(/([.!?][\]\)'"]?)(?=[가-힣A-Za-z0-9])/g, '$1\n')
+      .replace(/([가-힣])([A-Za-z0-9])/g, '$1 $2')
+      .replace(/([A-Za-z0-9])([가-힣])/g, '$1 $2')
+      .replace(/(\uC785\uB2C8\uB2E4|\uB429\uB2C8\uB2E4|\uBCF4\uC785\uB2C8\uB2E4|\uAD8C\uC7A5\uD569\uB2C8\uB2E4|\uC548\uB0B4\uB429\uB2C8\uB2E4|\uAC00\uB2A5\uD569\uB2C8\uB2E4|\uC5B4\uB835\uC2B5\uB2C8\uB2E4|\uBC14\uB78D\uB2C8\uB2E4)\s+(?=[\uAC00-\uD7A3])/g, '$1\n')
+      .replace(/\s+\n/g, '\n')
+      .replace(/\n\s+/g, '\n')
+      .replace(/\s{2,}/g, ' ')
+      .trim()
+  ));
 }
 
 function simplifyMedicalTerms(text) {
