@@ -2168,9 +2168,14 @@ function shouldUseConsultationTone(payload) {
     'pharmacy_location',
     'mounjaro_fee',
     'representative_nonpay',
+    'septoplasty_info',
     'rhinoplasty_consult',
     'smoking_policy',
     'tonsil_postop_bleeding',
+    'sleep_apnea_exam',
+    'dizziness_care',
+    'hearing_aid_consult',
+    'parking_and_clinic_hours',
   ].includes(type);
 }
 
@@ -2290,9 +2295,14 @@ function enrichResponsePayload(payload, question) {
     'additional_consultation',
     'mounjaro_fee',
     'representative_nonpay',
+    'septoplasty_info',
     'rhinoplasty_consult',
     'smoking_policy',
     'tonsil_postop_bleeding',
+    'sleep_apnea_exam',
+    'dizziness_care',
+    'hearing_aid_consult',
+    'parking_and_clinic_hours',
   ].includes(localizedPayload.type);
 
   return sanitizeOutgoingPayload({
@@ -3508,11 +3518,43 @@ function buildRepresentativeNonpayResponse(message) {
   };
 }
 
+function buildSeptoplastyInfoResponse(message) {
+  const text = String(message || '');
+  if (!/(비중격\s*만곡증|비중격만곡증|비중격\s*수술|비중격교정술)/u.test(text)) {
+    return null;
+  }
+  if (/(코\s*성형|코성형|성형\s*수술|성형수술|기능적\s*코성형|비성형)/u.test(text)) {
+    return null;
+  }
+
+  const asksCost = /(비용|금액|가격|얼마)/u.test(text);
+  const asksStay = /(입원|며칠|기간|필요|회복|수술시간|마취)/u.test(text);
+
+  const answerParts = [
+    '비중격만곡증은 문진, 코내시경 검사, X-ray 또는 이비인후과 전용 CT 검사, 비강음향통기도검사 등을 통해 상태를 확인합니다.',
+    '약물치료 효과가 미비하거나 비염, 축농증 같은 동반질환이 있는 경우 비중격교정술을 고려할 수 있습니다.',
+  ];
+
+  if (asksCost || asksStay || /수술/u.test(text)) {
+    answerParts.push('하나이비인후과병원 안내 기준으로 비중격만곡증 수술비용은 약 150~200만원, 수술시간은 약 30분, 마취방법은 수면마취+국소마취, 입원기간은 1박 2일 또는 2박 3일, 회복기간은 약 3~4주로 안내되어 있습니다.');
+  }
+
+  return {
+    type: 'septoplasty_info',
+    answer: answerParts.join(' '),
+    followUp: [
+      '실비보험 적용 가능 여부와 실제 비용은 상태와 보험 조건에 따라 달라질 수 있습니다.',
+      '수술 여부는 진료와 검사 후 의료진 판단이 필요합니다.',
+    ],
+    sources: [buildLocalDocSource('홈페이지-비중격만곡증', '홈페이지-비중격만곡증.txt')],
+  };
+}
+
 function buildRhinoplastyConsultResponse(message) {
   const text = String(message || '');
   const asksRhinoplasty = /(코\s*성형|코성형|비성형|기능적\s*코성형|성형\s*수술|성형수술|정종인.{0,8}성형|성형.{0,8}정종인)/u.test(text);
   const hasSeptoplasty = /(비중격|비중격만곡|비중격\s*수술)/u.test(text);
-  if (!asksRhinoplasty && !hasSeptoplasty) {
+  if (!asksRhinoplasty) {
     return null;
   }
 
@@ -3567,6 +3609,92 @@ function buildTonsilPostopBleedingResponse(message) {
     sources: [
       buildIntegratedFaqDocSource(),
       buildLocalDocSource('입원-수술 후 주의사항', '입원-수술 후 주의사항.txt'),
+    ],
+  };
+}
+
+function buildSleepApneaExamResponse(message) {
+  const text = String(message || '');
+  if (!/(수면\s*무호흡|수면무호흡|코골이|수면다원|수면\s*검사|수면검사)/u.test(text) || !/(검사|진행|비용|금액|얼마|건강보험|보험)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'sleep_apnea_exam',
+    answer: '수면무호흡 검사는 주로 수면다원검사로 확인합니다. 수면다원검사는 1박 2일 입원하에 진행되며, 몸에 여러 센서를 부착하고 자는 동안 호흡, 몸의 움직임, 심전도, 뇌파, 산소포화도 등을 측정해 코골이와 수면무호흡의 정도를 파악합니다.',
+    followUp: [
+      '입원 안내 기준으로 수면다원검사만 하는 경우 오후 9시 입원 후 다음날 오전 5~8시 퇴원으로 안내되어 있습니다.',
+      '수면무호흡증 진단 목적의 수면다원검사는 건강보험 적용이 가능할 수 있지만, 단순 코골이 검사는 보험 적용에서 제외될 수 있습니다.',
+      '실제 비용은 보험 적용 여부와 검사 조합에 따라 달라져 대표전화 02-6925-1111로 확인해 주세요.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('입원-수면검사 입원 안내', '입원-수면검사 입원 안내.txt'),
+    ],
+  };
+}
+
+function buildDizzinessCareResponse(message) {
+  const text = String(message || '');
+  if (!/(어지럼|어지러움|어지럼증|이석증|메니에르)/u.test(text) || !/(진료|가능|검사|심한|치료|봐|보나요|상담)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'dizziness_care',
+    answer: '어지럼증은 이비인후과 귀 질환 영역에서도 진료 가능합니다. 빙글 도는 느낌이나 기울어지는 느낌이 움직일 때 심해진다면 귀에 의한 말초성 어지러움 가능성이 있어 전정기능검사 등을 통해 확인할 수 있습니다.',
+    followUp: [
+      '층별안내도 기준 어지러움검사실과 동적자세검사실은 지하 2층에 있습니다.',
+      '증상이 심하거나 갑작스러운 신경학적 증상이 함께 있으면 응급 진료가 필요할 수 있습니다.',
+      '검사 진행 상황에 따라 당일검사 또는 예약검사로 안내될 수 있습니다.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('기타-층별안내도', '기타-층별안내도.txt'),
+    ],
+  };
+}
+
+function buildHearingAidConsultResponse(message) {
+  const text = String(message || '');
+  if (!/(보청기|청각\s*보조기|청각보조기)/u.test(text) || !/(상담|문의|가능|맞추|착용|검사|어디|위치)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'hearing_aid_consult',
+    answer: '보청기는 종류와 특성이 다양하기 때문에 정확한 청력검사 후 전문의와 상담을 받아 알맞은 보청기를 착용하는 것이 중요합니다. 층별안내도 기준 보청기상담실은 1층에 있습니다.',
+    followUp: [
+      '난청 정도와 종류를 확인하기 위해 순음청력검사, 어음청력검사 등 청력검사가 필요할 수 있습니다.',
+      '보청기 관련 상담은 귀 질환 센터 진료와 함께 확인해 주세요.',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-보청기', '홈페이지-보청기.txt'),
+      buildLocalDocSource('기타-층별안내도', '기타-층별안내도.txt'),
+    ],
+  };
+}
+
+function buildParkingAndClinicHoursResponse(message) {
+  const text = String(message || '');
+  const asksParking = /(주차|발렛|주차장|차\s*가지고|차량)/u.test(text);
+  const asksHours = /(진료시간|진료\s*시간|몇\s*시|운영시간|접수시간|접수\s*시간)/u.test(text);
+  if (!asksParking || !asksHours) {
+    return null;
+  }
+
+  return {
+    type: 'parking_and_clinic_hours',
+    answer: '문의하신 주차와 진료시간을 나눠서 안내드릴게요. 주차는 가능하며 환자 및 방문객은 주차권 또는 영수증 제출 시 무료주차가 가능하고, 무료 발렛파킹 서비스도 운영됩니다. 진료시간은 평일 오전 9시부터 오후 6시까지, 토요일은 오전 9시부터 오후 1시 30분까지이며 일요일과 공휴일은 휴진입니다.',
+    followUp: [
+      '평일 접수 마감은 오후 5시 30분, 토요일 접수 마감은 오후 1시입니다.',
+      '입원 환자는 밤샘 주차가 불가능하며, 퇴원 시 운전이 어려울 수 있어 차량 이용이 권장되지 않습니다.',
+      '주차장이 협소할 수 있어 내원 상황에 따라 대중교통 이용이 편할 수 있습니다.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('홈페이지-외래진료안내', '홈페이지-외래진료안내.txt'),
+      buildLocalDocSource('홈페이지-셔틀버스 및 오시는길', '홈페이지-셔틀버스 및 오시는길.txt'),
     ],
   };
 }
@@ -4107,7 +4235,7 @@ function buildTonsillectomyInfoResponse(message) {
     return null;
   }
 
-  const asksIndication = /(언제|필요|해야|하나요|하는가|고려|적응증|대상)/u.test(text);
+  const asksIndication = /(언제|필요|해야|하나요|하는가|고려|적응증|대상|상담|자주\s*붓|열이\s*나|열나)/u.test(text);
   const asksGeneral = /^(편도|편도수술|편도\s*수술|편도절제|편도\s*절제|편도수숙)$/u.test(text.trim());
   const asksExam = /(검사|뭐\s*있|무슨\s*검사)/u.test(text);
   const asksCost = /(비용|금액|가격|얼마)/u.test(text);
@@ -7968,6 +8096,16 @@ async function buildChatResponse(rawMessage, sessionId) {
     return enrichResponsePayload(createWelcomeResponse(), message);
   }
 
+  const preMeaningParkingAndClinicHoursResponse = buildParkingAndClinicHoursResponse(message);
+  if (preMeaningParkingAndClinicHoursResponse) {
+    return enrichResponsePayload(preMeaningParkingAndClinicHoursResponse, message);
+  }
+
+  const preMeaningSeptoplastyInfoResponse = buildSeptoplastyInfoResponse(message);
+  if (preMeaningSeptoplastyInfoResponse) {
+    return enrichResponsePayload(preMeaningSeptoplastyInfoResponse, message);
+  }
+
   const meaningIntentResponse = resolveMeaningIntentResponse(meaningIntent, message, sessionId);
   if (meaningIntentResponse) {
     return enrichResponsePayload(meaningIntentResponse, message);
@@ -7983,6 +8121,16 @@ async function buildChatResponse(rawMessage, sessionId) {
     return enrichResponsePayload(directMounjaroFeeResponse, message);
   }
 
+  const directParkingAndClinicHoursResponse = buildParkingAndClinicHoursResponse(message);
+  if (directParkingAndClinicHoursResponse) {
+    return enrichResponsePayload(directParkingAndClinicHoursResponse, message);
+  }
+
+  const directSeptoplastyInfoResponse = buildSeptoplastyInfoResponse(message);
+  if (directSeptoplastyInfoResponse) {
+    return enrichResponsePayload(directSeptoplastyInfoResponse, message);
+  }
+
   const directRhinoplastyConsultResponse = buildRhinoplastyConsultResponse(message);
   if (directRhinoplastyConsultResponse) {
     return enrichResponsePayload(directRhinoplastyConsultResponse, message);
@@ -7996,6 +8144,21 @@ async function buildChatResponse(rawMessage, sessionId) {
   const directTonsilPostopBleedingResponse = buildTonsilPostopBleedingResponse(message);
   if (directTonsilPostopBleedingResponse) {
     return enrichResponsePayload(directTonsilPostopBleedingResponse, message);
+  }
+
+  const directSleepApneaExamResponse = buildSleepApneaExamResponse(message);
+  if (directSleepApneaExamResponse) {
+    return enrichResponsePayload(directSleepApneaExamResponse, message);
+  }
+
+  const directDizzinessCareResponse = buildDizzinessCareResponse(message);
+  if (directDizzinessCareResponse) {
+    return enrichResponsePayload(directDizzinessCareResponse, message);
+  }
+
+  const directHearingAidConsultResponse = buildHearingAidConsultResponse(message);
+  if (directHearingAidConsultResponse) {
+    return enrichResponsePayload(directHearingAidConsultResponse, message);
   }
 
   const directPaymentMethodResponse = buildPaymentMethodResponse(message);

@@ -1,5 +1,59 @@
 [
   {
+    "question": "진료시간은?",
+    "caseType": "admin_normal",
+    "expectedIntent": "clinic_hours_night_weekend",
+    "expectedSource": "홈페이지-외래진료안내 / 통합-FAQ",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n진료시간은 평일 오전 9시부터 오후 6시까지이며, 토요일은 오전 9시부터 오후 1시 30분까지입니다. 일요일과 공휴일은 휴진으로 안내되어 있고, 별도 야간진료는 문서에 안내되어 있지 않습니다.\n- 평일 접수 마감은 오후 5시 30분입니다.\n- 토요일 접수 마감은 오후 1시입니다.\n- 응급수술 등 진료 상황에 따라 접수가 조기 마감될 수 있어 내원 전 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777419599992-cdvfth"
+  },
+  {
+    "question": "정종인 경력 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "doctor_career",
+    "expectedSource": "홈페이지-의료진 정보",
+    "expectedAnswerHint": "의료진 관련해서 안내드릴게요.\n\n정종인 의료진의 전문분야는 부비동내시경수술, 비염, 기능적코성형, 비중격만곡증, 수면무호흡, 성인편도입니다. 주요 경력은 다음과 같습니다.\n\n- 성균관대학교 의과대학 의학 석사\n- 삼성서울병원 인턴\n- 삼성서울병원 이비인후과 레지던트\n- 삼성서울병원 이비인후과 임상강사\n- 계명대학교 동산병원 이비인후과 연구강사\n- 계명대학교 동산병원 이비인후과 임상조교수\n- 계명대학교 동산병원 이비인후과 조교수\n- 대한이비인후과학회\n- 대한비과학회\n- 대한안면성형재건학회\n- 대한수면호흡학회\n- 대한내시경뇌수술학회\n- 대한이비인후과학회 대구경북지회 총무이사 (2024) 역임\n- 진료 일정은 외래 진료표와 당일 상황에 따라 달라질 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777419593668-qlqtul"
+  },
+  {
+    "question": "코수술 비용 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "surgery_cost",
+    "expectedSource": "비급여 안내 페이지",
+    "expectedAnswerHint": "수술 관련해서 안내드릴게요.\n\n수술 비용은 수술 종류, 질환명, 보험 적용 여부에 따라 달라집니다. 질환명을 알려주시면 관련 문서를 기준으로 다시 안내해 드릴게요.\n- 비급여 안내 페이지: https://hanaent.co.kr/nonpay.html\n- 대표전화 02-6925-1111",
+    "adminNote": "",
+    "reviewedLogId": "log-1777419516308-e1so1d"
+  },
+  {
+    "question": "내일 모레 입원하는데 준비물 뭐가 필요해?",
+    "caseType": "admin_normal",
+    "expectedIntent": "admission_prep_items",
+    "expectedSource": "통합-FAQ / 입원-입원생활안내문",
+    "expectedAnswerHint": "입원 생활 관련해서 안내드릴게요.\n\n입원 준비물은 병실 종류에 따라 조금 다릅니다. 1인실은 환자용 세면도구(치약, 칫솔, 비누, 수건, 티슈)가 제공되며, 개인컵, 화장품, 드라이기, 샴푸, 린스 등 개인 물품은 지참하셔야 합니다. 2인실과 4인실은 세면도구와 개인용품(티슈, 수건, 개인컵, 슬리퍼, 화장품, 드라이기, 샴푸, 린스 등)을 모두 챙겨오셔야 합니다.\n- 수술 종류나 병실 배정에 따라 추가 준비물이 있을 수 있어 입원 전 안내를 함께 확인해 주세요.\n- 대표전화 02-6925-1111",
+    "adminNote": "",
+    "reviewedLogId": "log-1777418650948-j3fy0k"
+  },
+  {
+    "question": "마운자로 주사 가능해?",
+    "caseType": "admin_normal",
+    "expectedIntent": "mounjaro_fee",
+    "expectedSource": "기타-비급여비용",
+    "expectedAnswerHint": "비급여비용 문서 기준으로 마운자로프리필드펜주는 용량별 비용이 다르게 안내되어 있습니다. 2.5mg/0.5mL는 340,000원, 5mg/0.5mL는 440,000원, 7.5mg/0.5mL는 580,000원입니다.\n- 약제 처방 가능 여부와 실제 적용 용량은 진료 후 의료진 판단이 필요합니다.\n- 비급여 금액은 변경될 수 있어 내원 전 대표전화 02-6925-1111로 확인해 주세요.\n- 비급여 안내 페이지: https://hanaent.co.kr/nonpay.html",
+    "adminNote": "",
+    "reviewedLogId": "log-1777418298485-gjv0n3"
+  },
+  {
+    "question": "카드결제 되나?",
+    "caseType": "admin_normal",
+    "expectedIntent": "payment_method",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "비용 관련해서 안내드릴게요.\n\n진료비 결제는 카드와 현금 모두 가능합니다. 카드 결제 후 환불이나 카드 교체가 필요한 경우에는 결제하신 카드를 가지고 내원하시면 환불 처리가 가능합니다.\n- 일반 진료 후 건강보험 피보험자 또는 피부양자로 등록된 경우 환불은 2주 이내 내원이 필요할 수 있습니다.\n- 자세한 수납 관련 문의는 대표전화 02-6925-1111로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777418199427-0doj8l"
+  },
+  {
     "question": "정종인 성형",
     "caseType": "admin_normal",
     "expectedIntent": "ai",
