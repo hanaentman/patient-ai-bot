@@ -2187,6 +2187,12 @@ function shouldUseConsultationTone(payload) {
     'hospital_history',
     'discharge_process',
     'same_day_exam_availability',
+    'insurance_coverage',
+    'reservation_cancel',
+    'tonsil_doctor',
+    'nose_surgery_cost',
+    'postop_driving',
+    'nasal_symptom_center',
   ].includes(type);
 }
 
@@ -2325,6 +2331,12 @@ function enrichResponsePayload(payload, question) {
     'hospital_history',
     'discharge_process',
     'same_day_exam_availability',
+    'insurance_coverage',
+    'reservation_cancel',
+    'tonsil_doctor',
+    'nose_surgery_cost',
+    'postop_driving',
+    'nasal_symptom_center',
   ].includes(localizedPayload.type);
 
   return sanitizeOutgoingPayload({
@@ -3723,6 +3735,10 @@ function buildParkingAndClinicHoursResponse(message) {
 
 function buildReceptionDeadlineResponse(message) {
   const text = String(message || '');
+  if (/(코세척|세척)/u.test(text)) {
+    return null;
+  }
+
   const asksDeadline = /(몇\s*시|언제|시간|마감|점심\s*시간|점심시간).{0,16}(가야|까지|진료\s*볼|진료받|진료\s*받|접수|진료|하나|하나요)|접수\s*마감|마감\s*시간|점심\s*시간|점심시간/u.test(text);
   if (!asksDeadline) {
     return null;
@@ -3856,6 +3872,28 @@ function buildNasalCongestionSinusitisResponse(message) {
   };
 }
 
+function buildNasalSymptomCenterResponse(message) {
+  const text = String(message || '');
+  if (!/(코막힘|코가\s*막|냄새|후각|냄새가\s*안|냄새\s*안)/u.test(text) || !/(센터|어느\s*진료|어디로|어디\s*가|진료과)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'nasal_symptom_center',
+    answer: '코막힘이나 냄새가 잘 안 나는 증상은 코 질환 센터 진료로 안내드릴 수 있습니다. 비염, 비중격만곡증, 축농증, 후각장애 등 여러 원인이 있을 수 있어 진료와 필요한 검사를 통해 확인하는 것이 좋습니다.',
+    followUp: [
+      '증상이 오래 지속되거나 후각 저하가 함께 있으면 내원 상담을 권장드립니다.',
+      '코센터 의료진 일정은 외래 진료표와 당일 상황에 따라 달라질 수 있습니다.',
+      '대표전화 02-6925-1111',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-후각장애', '홈페이지-후각장애.txt'),
+      buildLocalDocSource('홈페이지-만성비염', '홈페이지-만성비염.txt'),
+      buildLocalDocSource('홈페이지-축농증', '홈페이지-축농증.txt'),
+    ],
+  };
+}
+
 function buildReceptionProcessResponse(message) {
   const text = String(message || '');
   if (!/(접수|수납|원무과)/u.test(text) || !/(어떻게|어디|위치|방법|하나요|하나|절차)/u.test(text)) {
@@ -3904,8 +3942,8 @@ function buildDocumentApplicationResponse(message) {
 function buildVisitorPolicyResponse(message) {
   const text = String(message || '');
   const asksVisitPolicy = /(면회|병문안)/u.test(text)
-    || (/(병실|입원|보호자|환자)/u.test(text) && /(방문|방문객)/u.test(text));
-  if (!asksVisitPolicy || !/(시간|가능|안내|병실|되나요|되나|방문)/u.test(text)) {
+    || (/(병실|병동|입원|보호자|환자)/u.test(text) && /(방문|방문객|올라|들어|동반)/u.test(text));
+  if (!asksVisitPolicy || !/(시간|가능|안내|병실|병동|되나요|되나|방문|올라|들어|동반)/u.test(text)) {
     return null;
   }
 
@@ -3979,6 +4017,123 @@ function buildSameDayExamAvailabilityResponse(message) {
   };
 }
 
+function buildPrescriptionPharmacyResponse(message) {
+  const text = String(message || '');
+  if (!/(처방약|처방전|약\s*받|약\s*타|약국)/u.test(text) || !/(병원\s*안|병원\s*내|내부|어디|위치|받나요|받나|받을|타나요|타나)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'pharmacy_location',
+    answer: '외래 환자의 처방약은 병원 내부 약국이 아니라 병원 입구 기준 양쪽에 있는 외부 약국을 이용하시면 됩니다. 병원 4층에는 약제과가 있으나 주로 입원환자 이용과 관련된 공간으로 안내되어 있습니다.',
+    followUp: [
+      '처방전이나 약 수령 위치가 헷갈리면 1층 원무과 또는 가까운 직원에게 문의해 주세요.',
+      '복용 방법이나 처방 변경은 의료진 또는 약사와 직접 확인해 주세요.',
+    ],
+    sources: [
+      buildLocalDocSource('기타-층별안내도', '기타-층별안내도.txt'),
+      buildIntegratedFaqDocSource(),
+    ],
+  };
+}
+
+function buildInsuranceCoverageResponse(message) {
+  const text = String(message || '');
+  if (!/(보험|실비|실손|급여|비급여|적용)/u.test(text) || !/(검사비|검사|수술비|진료비|비용|금액)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'insurance_coverage',
+    answer: '보험 적용 여부는 검사나 치료 종류, 환자 상태, 가입하신 보험 약관에 따라 달라질 수 있습니다. 실비보험은 대부분 적용 가능하다고 안내되어 있지만 보험사 약관에 따라 차이가 있을 수 있어, 가입하신 보험사에 직접 확인하시는 것이 가장 정확합니다.',
+    followUp: [
+      '비급여 항목은 병원 비급여 안내에서 금액을 확인할 수 있습니다.',
+      '진료 후 필요한 서류가 있으면 원무과에 문의해 주세요.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('기타-비급여비용', '기타-비급여비용.txt'),
+    ],
+  };
+}
+
+function buildReservationCancelResponse(message) {
+  const text = String(message || '');
+  if (!/(예약)/u.test(text) || !/(취소|변경|미루|못\s*가|못가)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'reservation_cancel',
+    answer: '예약 취소나 변경은 대표전화 02-6925-1111로 전화하신 뒤 상담원에게 말씀해 주세요. 전화 연결 후 0번을 눌러 상담원 연결로 진행할 수 있습니다.',
+    followUp: [
+      '내원 예정 시간이 임박한 경우에는 가능한 빨리 전화로 확인해 주세요.',
+      '온라인 예약도 상담원이 확인 후 확정하는 방식으로 안내되어 있습니다.',
+    ],
+    sources: [buildIntegratedFaqDocSource()],
+  };
+}
+
+function buildTonsilDoctorResponse(message) {
+  const text = String(message || '');
+  if (!/(편도|편도선|편도수술|편도\s*수술|편도절제|편도\s*절제)/u.test(text) || !/(누가|의사|의료진|원장|선생|집도|하시나요|하나요)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'tonsil_doctor',
+    answer: '홈페이지 의료진 정보의 전문분야 기준으로 편도수술 상담은 주형로 원장과 정종인 진료부장이 관련 의료진으로 안내됩니다. 실제 수술 가능 여부와 담당 의료진은 진료와 검사 후 결정되므로 예약 시 편도수술 상담이라고 말씀해 주세요.',
+    followUp: [
+      '주형로 원장은 두경부종양, 갑상선질환, 음성질환, 성인편도, 소아이비인후과 분야로 안내되어 있습니다.',
+      '정종인 진료부장은 부비동내시경수술, 비염, 기능적코성형, 비중격만곡증, 수면무호흡, 성인편도 분야로 안내되어 있습니다.',
+      '대표전화 02-6925-1111',
+    ],
+    sources: [buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt')],
+  };
+}
+
+function buildNoseSurgeryCostResponse(message) {
+  const text = String(message || '');
+  if (!/(코\s*수술|코수술)/u.test(text) || !/(비용|금액|가격|얼마)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'nose_surgery_cost',
+    answer: '대표적인 코수술 비용은 질환과 수술 종류에 따라 다릅니다. 홈페이지 안내 기준으로 비중격만곡증 수술은 약 150~200만원, 축농증 또는 코물혹 관련 부비동 내시경 수술은 약 160~450만원으로 안내되어 있습니다.',
+    followUp: [
+      '실제 비용은 검사 결과, 수술 범위, 보험 적용 여부에 따라 달라질 수 있습니다.',
+      '비염 수술은 약 150~200만원으로 안내되어 있습니다.',
+      '정확한 견적은 진료 후 확인이 필요합니다.',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-비중격만곡증', '홈페이지-비중격만곡증.txt'),
+      buildLocalDocSource('홈페이지-축농증', '홈페이지-축농증.txt'),
+      buildLocalDocSource('홈페이지-코물혹', '홈페이지-코물혹.txt'),
+    ],
+  };
+}
+
+function buildPostopDrivingResponse(message) {
+  const text = String(message || '');
+  if (!/(수술\s*후|퇴원\s*후|퇴원\s*당일)/u.test(text) || !/(운전|차\s*몰|차로\s*가|자가\s*운전)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'postop_driving',
+    answer: '수술 후나 퇴원 당일에는 운전이 어려울 수 있어 직접 운전은 권장되지 않습니다. 가능하면 보호자 동행이나 대중교통, 택시 이용을 권장드립니다.',
+    followUp: [
+      '입원 환자는 밤샘 주차가 불가능하며 퇴원 시 운전이 어려울 수 있다고 안내되어 있습니다.',
+      '마취나 수술 종류에 따라 주의사항이 달라질 수 있으니 퇴원 안내 시 다시 확인해 주세요.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('홈페이지-입퇴원 안내', '홈페이지-입퇴원 안내.txt'),
+    ],
+  };
+}
+
 function buildPaymentMethodResponse(message) {
   const text = String(message || '');
   if (!/(결제|수납|진료비)/u.test(text) || !/(카드|현금)/u.test(text)) {
@@ -3998,7 +4153,7 @@ function buildPaymentMethodResponse(message) {
 
 function buildFirstReturnVisitResponse(message) {
   const text = String(message || '');
-  if (!/(초진|신환|처음\s*내원|첫\s*방문|재진)/u.test(text) || !/(절차|접수|다른|차이|어떻게)/u.test(text)) {
+  if (!/(초진|신환|처음\s*내원|첫\s*방문|재진)/u.test(text) || !/(절차|접수|다른|차이|어떻게|신분증|필요|준비|챙겨)/u.test(text)) {
     return null;
   }
 
@@ -4080,7 +4235,7 @@ function buildReferralDocumentResponse(message) {
 
 function buildHospitalLocationResponse(message) {
   const text = String(message || '');
-  if (!/(병원\s*위치|병원위치|병원\s*주소|주소|어디\s*있|어디에\s*있|오시는\s*길|찾아\s*가|건물\s*주소)/u.test(text)) {
+  if (!/(병원\s*위치|병원위치|병원\s*주소|주소|어디\s*있|어디에\s*있|오시는\s*길|찾아\s*가|건물\s*주소|지하철|대중교통|어떻게\s*가|가는\s*방법)/u.test(text)) {
     return null;
   }
 
@@ -4222,13 +4377,13 @@ function buildSymptomVisitGuidanceResponse(message) {
 
 function buildEarFullnessHearingLossResponse(message) {
   const text = String(message || '');
-  if (!/(귀.{0,8}(먹먹|답답|안\s*들|안들|소리.{0,6}안)|먹먹.{0,8}귀|청력.{0,8}(떨어|저하)|소리.{0,8}안\s*들|소리.{0,8}안들)/u.test(text)) {
+  if (!/(귀.{0,8}(먹먹|답답|안\s*들|안들|소리.{0,6}안|삐|이명)|먹먹.{0,8}귀|청력.{0,8}(떨어|저하)|소리.{0,8}안\s*들|소리.{0,8}안들|삐\s*소리|이명)/u.test(text)) {
     return null;
   }
 
   return {
     type: 'ear_fullness_hearing_loss',
-    answer: '귀가 먹먹하거나 소리가 잘 안 들리는 증상은 단순한 이관기능장애일 수도 있지만, 실제로 청력이 떨어진 경우에는 빠른 치료를 받지 못하면 영구적 난청이 남을 수 있어 내원해서 검사를 받으시는 것이 좋습니다.',
+    answer: '귀가 먹먹하거나 삐 소리가 나거나 소리가 잘 안 들리는 증상은 이명, 이관기능장애, 난청 등 여러 원인에서 생길 수 있습니다. 실제로 청력이 떨어진 경우에는 빠른 치료를 받지 못하면 영구적 난청이 남을 수 있어 내원해서 청력검사와 귀 진료를 받으시는 것이 좋습니다.',
     followUp: [
       '청력검사와 귀 진료를 통해 난청 여부를 확인할 수 있습니다.',
       '갑자기 청력이 떨어졌거나 한쪽 귀가 잘 안 들리면 늦추지 말고 진료를 권장드립니다.',
@@ -4299,7 +4454,7 @@ function buildSinusitisCareResponse(message) {
 
 function buildThroatMassCareResponse(message) {
   const text = String(message || '');
-  if (!/(성대\s*물혹|성대물혹|목의\s*혹|목\s*혹|후두\s*혹|후두혹|성대\s*혹|성대혹)/u.test(text)) {
+  if (!/(성대\s*물혹|성대물혹|목의\s*혹|목\s*혹|목에\s*혹|목에서\s*혹|혹이\s*만져|후두\s*혹|후두혹|성대\s*혹|성대혹)/u.test(text)) {
     return null;
   }
 
@@ -4364,7 +4519,7 @@ function buildFacilityLocationResponse(message) {
     };
   }
 
-  if (/(약국|약제과|약\s*타|약\s*받)/u.test(text)) {
+  if (/(약국|약제과|약\s*타|약\s*받|처방약|처방전)/u.test(text)) {
     return {
       type: 'pharmacy_location',
       answer: '병원 4층에 약제과가 있으나 주로 입원환자 이용과 관련된 공간입니다. 외래 환자의 처방약은 병원 내부 약국이 아니라 병원 입구 기준 양쪽에 있는 외부 약국을 이용하시면 됩니다.',
@@ -4517,7 +4672,7 @@ function buildTonsillectomyInfoResponse(message) {
     return null;
   }
 
-  const asksIndication = /(언제|필요|해야|하나요|하는가|고려|적응증|대상|상담|자주\s*붓|열이\s*나|열나)/u.test(text);
+  const asksIndication = /(언제|필요|해야|하나요|하는가|고려|적응증|대상|상담|진료|받을|있나요|가능|자주\s*붓|열이\s*나|열나)/u.test(text);
   const asksGeneral = /^(편도|편도수술|편도\s*수술|편도절제|편도\s*절제|편도수숙)$/u.test(text.trim());
   const asksExam = /(검사|뭐\s*있|무슨\s*검사)/u.test(text);
   const asksCost = /(비용|금액|가격|얼마)/u.test(text);
@@ -8378,6 +8533,52 @@ async function buildChatResponse(rawMessage, sessionId) {
     return enrichResponsePayload(createWelcomeResponse(), message);
   }
 
+  const preMeaningNasalIrrigationMode = getNasalIrrigationMode(message);
+  if (preMeaningNasalIrrigationMode === 'surgery' || preMeaningNasalIrrigationMode === 'general') {
+    clearConversationState(sessionId);
+    return enrichResponsePayload(createNasalIrrigationResponse(preMeaningNasalIrrigationMode), message);
+  }
+
+  const preMeaningPrescriptionPharmacyResponse = buildPrescriptionPharmacyResponse(message);
+  if (preMeaningPrescriptionPharmacyResponse) {
+    return enrichResponsePayload(preMeaningPrescriptionPharmacyResponse, message);
+  }
+
+  const preMeaningInsuranceCoverageResponse = buildInsuranceCoverageResponse(message);
+  if (preMeaningInsuranceCoverageResponse) {
+    return enrichResponsePayload(preMeaningInsuranceCoverageResponse, message);
+  }
+
+  const preMeaningReservationCancelResponse = buildReservationCancelResponse(message);
+  if (preMeaningReservationCancelResponse) {
+    return enrichResponsePayload(preMeaningReservationCancelResponse, message);
+  }
+
+  const preMeaningTonsilDoctorResponse = buildTonsilDoctorResponse(message);
+  if (preMeaningTonsilDoctorResponse) {
+    return enrichResponsePayload(preMeaningTonsilDoctorResponse, message);
+  }
+
+  const preMeaningNoseSurgeryCostResponse = buildNoseSurgeryCostResponse(message);
+  if (preMeaningNoseSurgeryCostResponse) {
+    return enrichResponsePayload(preMeaningNoseSurgeryCostResponse, message);
+  }
+
+  const preMeaningPostopDrivingResponse = buildPostopDrivingResponse(message);
+  if (preMeaningPostopDrivingResponse) {
+    return enrichResponsePayload(preMeaningPostopDrivingResponse, message);
+  }
+
+  const preMeaningFirstReturnVisitResponse = buildFirstReturnVisitResponse(message);
+  if (preMeaningFirstReturnVisitResponse) {
+    return enrichResponsePayload(preMeaningFirstReturnVisitResponse, message);
+  }
+
+  const preMeaningTonsillectomyResponse = buildTonsillectomyInfoResponse(message);
+  if (preMeaningTonsillectomyResponse) {
+    return enrichResponsePayload(preMeaningTonsillectomyResponse, message);
+  }
+
   const preMeaningNamedDoctorScheduleResponse = buildNamedDoctorScheduleResponse(message);
   if (preMeaningNamedDoctorScheduleResponse) {
     return enrichResponsePayload(preMeaningNamedDoctorScheduleResponse, message);
@@ -8401,6 +8602,11 @@ async function buildChatResponse(rawMessage, sessionId) {
   const preMeaningNasalCongestionSinusitisResponse = buildNasalCongestionSinusitisResponse(message);
   if (preMeaningNasalCongestionSinusitisResponse) {
     return enrichResponsePayload(preMeaningNasalCongestionSinusitisResponse, message);
+  }
+
+  const preMeaningNasalSymptomCenterResponse = buildNasalSymptomCenterResponse(message);
+  if (preMeaningNasalSymptomCenterResponse) {
+    return enrichResponsePayload(preMeaningNasalSymptomCenterResponse, message);
   }
 
   const preMeaningReceptionProcessResponse = buildReceptionProcessResponse(message);
