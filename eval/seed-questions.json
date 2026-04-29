@@ -1,5 +1,320 @@
 [
   {
+    "question": "퇴원 시간은 수술 종류마다 다른가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "discharge_process",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "퇴원은 수술 종류와 회복 상태에 따라 시간이 달라질 수 있습니다. 통합 FAQ 기준으로 코 수술은 오전 9시부터 9시 30분 또는 오후 2시 전후, 목 수술은 오전 9시부터 9시 30분 전후, 귀 수술은 오전 9시부터 9시 30분 또는 오후 2시 전후 퇴원으로 안내되어 있습니다.\n- 최종 퇴원 가능 여부와 시간은 담당 의료진과 병동 안내에 따라 결정됩니다.\n- 입퇴원확인서 등 제증명 서류가 필요하면 입원 중 병동 간호사에게 미리 신청하거나 퇴원 후 외래에서 신청할 수 있습니다.\n- 퇴원 당일 운전이 어려울 수 있어 보호자 동행을 권장드립니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777444228827-zt07r2"
+  },
+  {
+    "question": "입원 중 보호자 교대가 가능한가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "integrated_faq",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "입원 생활 관련해서 안내드릴게요.\n\n간호간병통합서비스 병동에는 환자 치료 집중, 감염 예방 등 쾌적한 입원 환경 제공을 위해 보호자 상주를 원칙적으로 제한하고 있으나, 불가피하게 보호자 상주가 필요한 경우 의료진의 판단에 따라 한시적으로 상주를 허용합니다. 상주 보호자 교대는 가능하나 치료 및 감염 예방을 위해 불가피한 경우에만 교대해 주시길 바랍니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777444227361-igic5c"
+  },
+  {
+    "question": "진단서 발급 비용은 얼마인가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "certificate_fee",
+    "expectedSource": "기타-비급여비용",
+    "expectedAnswerHint": "비용 관련해서 안내드릴게요.\n\n진단서 비용은 20,000입니다.\n- 기준 문서는 기타-비급여비용입니다.\n- 초발급 비용 기준으로 안내드렸습니다.\n- 발급 절차는 원무과 또는 대표전화 02-6925-1111로 다시 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777444224463-iu19tk"
+  },
+  {
+    "question": "보청기 상담실은 병원 몇 층인가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "hearing_aid_consult",
+    "expectedSource": "홈페이지-보청기 / 기타-층별안내도",
+    "expectedAnswerHint": "보청기는 종류와 특성이 다양하기 때문에 정확한 청력검사 후 전문의와 상담을 받아 알맞은 보청기를 착용하는 것이 중요합니다. 층별안내도 기준 보청기상담실은 1층에 있습니다.\n- 난청 정도와 종류를 확인하기 위해 순음청력검사, 어음청력검사 등 청력검사가 필요할 수 있습니다.\n- 보청기 관련 상담은 귀 질환 센터 진료와 함께 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777444221649-h97ro9"
+  },
+  {
+    "question": "이명 진료를 받을 수 있는 센터가 있나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "ear_fullness_hearing_loss",
+    "expectedSource": "통합-FAQ / 홈페이지-난청",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n귀가 먹먹하거나 삐 소리가 나거나 소리가 잘 안 들리는 증상은 이명, 이관기능장애, 난청 등 여러 원인에서 생길 수 있습니다. 실제로 청력이 떨어진 경우에는 빠른 치료를 받지 못하면 영구적 난청이 남을 수 있어 내원해서 청력검사와 귀 진료를 받으시는 것이 좋습니다.\n- 청력검사와 귀 진료를 통해 난청 여부를 확인할 수 있습니다.\n- 갑자기 청력이 떨어졌거나 한쪽 귀가 잘 안 들리면 늦추지 말고 진료를 권장드립니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777444220245-1zaf2t"
+  },
+  {
+    "question": "후각이 떨어졌을 때 어떤 검사를 하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "integrated_faq",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "검사 관련해서 안내드릴게요.\n\n고막내시경, 청력검사 및 측두골 CT 등의 검사가 필요합니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777444218847-gc6c5s"
+  },
+  {
+    "question": "비중격 수술 후 회복은 몇 주 정도 걸리나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "septoplasty_info",
+    "expectedSource": "홈페이지-비중격만곡증",
+    "expectedAnswerHint": "비중격만곡증은 문진, 코내시경 검사, X-ray 또는 이비인후과 전용 CT 검사, 비강음향통기도검사 등을 통해 상태를 확인합니다. 약물치료 효과가 미비하거나 비염, 축농증 같은 동반질환이 있는 경우 비중격교정술을 고려할 수 있습니다. 하나이비인후과병원 안내 기준으로 비중격만곡증 수술비용은 약 150~200만원, 수술시간은 약 30분, 마취방법은 수면마취+국소마취, 입원기간은 1박 2일 또는 2박 3일, 회복기간은 약 3~4주로 안내되어 있습니다.\n- 실비보험 적용 가능 여부와 실제 비용은 상태와 보험 조건에 따라 달라질 수 있습니다.\n- 수술 여부는 진료와 검사 후 의료진 판단이 필요합니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777444216042-c0is2u"
+  },
+  {
+    "question": "2인실 입원 준비물은 무엇이 다른가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "admission_prep_items",
+    "expectedSource": "통합-FAQ / 입원-입원생활안내문",
+    "expectedAnswerHint": "입원 생활 관련해서 안내드릴게요.\n\n입원 준비물은 병실 종류에 따라 조금 다릅니다. 1인실은 환자용 세면도구(치약, 칫솔, 비누, 수건, 티슈)가 제공되며, 개인컵, 화장품, 드라이기, 샴푸, 린스 등 개인 물품은 지참하셔야 합니다. 2인실과 4인실은 세면도구와 개인용품(티슈, 수건, 개인컵, 슬리퍼, 화장품, 드라이기, 샴푸, 린스 등)을 모두 챙겨오셔야 합니다.\n- 수술 종류나 병실 배정에 따라 추가 준비물이 있을 수 있어 입원 전 안내를 함께 확인해 주세요.\n- 대표전화 02-6925-1111",
+    "adminNote": "",
+    "reviewedLogId": "log-1777444211826-6ypdew"
+  },
+  {
+    "question": "입원할 때 슬리퍼를 챙겨야 하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "admission_prep_items",
+    "expectedSource": "통합-FAQ / 입원-입원생활안내문",
+    "expectedAnswerHint": "입원 생활 관련해서 안내드릴게요.\n\n입원 준비물은 병실 종류에 따라 조금 다릅니다. 1인실은 환자용 세면도구(치약, 칫솔, 비누, 수건, 티슈)가 제공되며, 개인컵, 화장품, 드라이기, 샴푸, 린스 등 개인 물품은 지참하셔야 합니다. 2인실과 4인실은 세면도구와 개인용품(티슈, 수건, 개인컵, 슬리퍼, 화장품, 드라이기, 샴푸, 린스 등)을 모두 챙겨오셔야 합니다.\n- 수술 종류나 병실 배정에 따라 추가 준비물이 있을 수 있어 입원 전 안내를 함께 확인해 주세요.\n- 대표전화 02-6925-1111",
+    "adminNote": "",
+    "reviewedLogId": "log-1777444210411-waedqn"
+  },
+  {
+    "question": "전화 예약은 어떤 번호로 하면 되나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "integrated_faq",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "예약과 접수 관련해서 안내드릴게요.\n\n예약은 “ 방문 예약”, \" 온라인 예약\", \" 전화 예약\" 이 가능합니다. 온라인 예약은 본원 홈페이지에 접속하여 이용할 수 있으며, 전화 예약은 대표전화 [대표전화 02-6925-1111] 로 전화주신 후 0 번(상담원 연결) 을 눌러 상담원을 통하여 예약을 하시면 됩니다. 온라인 예약의 경우, 홈페이지를 통해 원하시는 날짜와 시간을 신청하시면 상담원이 예약 상황을 확인한 후 전화를 드려 예약을 확정합니다. 예약 후 본원에 내원 하실 경우 1 층 접수 데스크에서 예약 사항을 확인하고 내원 등록을 하신 후 해당 진료실에서 진료를 받으실 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777444208961-k954os"
+  },
+  {
+    "question": "간호간병통합서비스가 뭐야",
+    "caseType": "admin_normal",
+    "expectedIntent": "ai",
+    "expectedSource": "자주 묻는 질문",
+    "expectedAnswerHint": "간단히 말씀드리면, 간호간병통합서비스는 병원의 간호사·간호조무사가 24 시간 환자 돌봄을 제공하는 제도로 보호자가 상주하지 않아도 간호서비스를 받을 수 있는 시스템입니다.\n본원은 이 서비스를 운영하는 병원으로 소아(만 15 세 이하)나 의료진이 환자 안전·정서적 지지가 필요하다고 판단한 경우를 제외하고는 보호자 상주가 원칙적으로 제한됩니다.\n불가피한 경우에는 의료진 판단 하에 한시적으로 보호자 상주나 교대가 허용될 수 있으니, 필요하시면 입원 전 병동과 상의해 주세요.\n병동별 상세한 운영 방식(예: 상주 허용 절차나 시간 등)은 문서에 없으므로 확인이 필요하시면 알려드리면 병동으로 확인해 드리겠습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777444127365-qk2v1k"
+  },
+  {
+    "question": "입퇴원확인서는 비용이 얼마인가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "서류,비용",
+    "expectedSource": "기타-비급여비용.txt,홈페이지-서류발급",
+    "expectedAnswerHint": "병원 비급여 안내 기준으로 입퇴원확인서 발급 비용 3,000원, 입퇴원확인서 재발행 비용은 1,000원입니다.\n-원하시는 서류명이 정해져 있으면 해당 서류명으로 문의해 주시면 더 정확히 안내드릴 수 있습니다.\n-서류 발급은 본인 확인이 필요할 수 있어 신분증을 지참해 주세요.\n-대리 발급은 관계 확인 서류나 위임 서류가 필요할 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777442675282-51x834"
+  },
+  {
+    "question": "보호자 식사 가능해",
+    "caseType": "admin_normal",
+    "expectedIntent": "guardian_meal",
+    "expectedSource": "기타-비급여비용",
+    "expectedAnswerHint": "비급여비용 문서에 보호자 식대 9,000 항목이 있어 보호자 식사가 제공되거나 신청 가능한 운영일 가능성이 높습니다. 다만 문서에 신청 방법이나 제공 기준이 직접 적혀 있지는 않아 정확한 운영 방식은 병동 또는 대표전화 02-6925-1111로 확인해 주세요.\n\n비급여 안내 페이지: https://hanaent.co.kr/nonpay.html\n- 문서 근거: 보호자식대\t보호자 일반식\tY2300001 9,000 2022-12-01\n- 이 답변은 문서의 간접 근거를 바탕으로 한 추정입니다.\n- 정확한 신청 방법이나 제공 기준은 병동 또는 대표전화 02-6925-1111로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777442672181-jp6hp0"
+  },
+  {
+    "question": "진료비 영수증은 나중에 다시 발급받을 수 있나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "영수증,서류발급",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "네 다시 내원해서 발급가능하며 영수증은 팩스로도 발급가능합니다.\n본인 내원시 신분증이 지참후 발급 신청해주시고\n대리 발급은 관계 확인 서류나 위임 서류가 필요할 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777442665067-46ioec"
+  },
+  {
+    "question": "보호자 식사 가능해",
+    "caseType": "admin_normal",
+    "expectedIntent": "guardian_meal",
+    "expectedSource": "기타-비급여비용",
+    "expectedAnswerHint": "비급여비용 문서에 보호자 식대 9,000 항목이 있어 보호자 식사가 제공되거나 신청 가능한 운영일 가능성이 높습니다. 다만 문서에 신청 방법이나 제공 기준이 직접 적혀 있지는 않아 정확한 운영 방식은 병동 또는 대표전화 02-6925-1111로 확인해 주세요.\n\n비급여 안내 페이지: https://hanaent.co.kr/nonpay.html\n- 문서 근거: 보호자식대\t보호자 일반식\tY2300001 9,000 2022-12-01\n- 이 답변은 문서의 간접 근거를 바탕으로 한 추정입니다.\n- 정확한 신청 방법이나 제공 기준은 병동 또는 대표전화 02-6925-1111로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777442637854-rmhr4p"
+  },
+  {
+    "question": "병원 대표전화 번호가 어떻게 되나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "대표번호, 전화,",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "병원대표번호 02-6925-1111 입니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777441531245-nula8x"
+  },
+  {
+    "question": "입퇴원확인서는 비용이 얼마인가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "document_fee_overview",
+    "expectedSource": "기타-비급여비용 / 통합-FAQ",
+    "expectedAnswerHint": "서류 비용은 서류 종류에 따라 다릅니다. 병원 비급여 안내 기준으로 입퇴원확인서는 3,000원, 입퇴원확인서 재발행은 1,000원, 진료기록사본은 1,000원으로 안내되어 있습니다.\n- 원하시는 서류명이 정해져 있으면 해당 서류명으로 문의해 주시면 더 정확히 안내드릴 수 있습니다.\n- 서류 발급은 본인 확인이 필요할 수 있어 신분증을 지참해 주세요.\n- 대리 발급은 관계 확인 서류나 위임 서류가 필요할 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777441529844-w37l1h"
+  },
+  {
+    "question": "진료비 영수증은 나중에 다시 발급받을 수 있나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "영수증,발급",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "1층원무과에서 다시 발급 받으실 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777441528440-3uxkl3"
+  },
+  {
+    "question": "보호자 식사는 따로 신청할 수 있나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "guardian_meal",
+    "expectedSource": "기타-비급여비용",
+    "expectedAnswerHint": "비급여비용 문서에 보호자 식대 9,000 항목이 있어 보호자 식사가 제공되거나 신청 가능한 운영일 가능성이 높습니다. 다만 문서에 신청 방법이나 제공 기준이 직접 적혀 있지는 않아 정확한 운영 방식은 병동 또는 대표전화 02-6925-1111로 확인해 주세요.\n\n비급여 안내 페이지: https://hanaent.co.kr/nonpay.html\n- 문서 근거: 보호자식대\t보호자 일반식\tY2300001 9,000 2022-12-01\n- 이 답변은 문서의 간접 근거를 바탕으로 한 추정입니다.\n- 정확한 신청 방법이나 제공 기준은 병동 또는 대표전화 02-6925-1111로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777441527046-h23l1f"
+  },
+  {
+    "question": "입원 중 배달음식 받을 수 있나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "입원, 배달, 음식",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "배달음식은 가능하나 외부 음식 섭취 시 소화 불편이나 합병증 발생 가능성을 고려하여 주문하여 주시기 바랍니다. 배달음식 가능시간: 오전 7시 ~ 오후 9시, 지하 1층에서 수령",
+    "adminNote": "",
+    "reviewedLogId": "log-1777441525647-1xeyfj"
+  },
+  {
+    "question": "수면다원검사는 입원이 필요한 검사인가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "수면다원검사, 입원",
+    "expectedSource": "입원-수면검사 입원 안내",
+    "expectedAnswerHint": "1박2일 입원하여 진행됩니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777441524230-y0zih8"
+  },
+  {
+    "question": "청력검사실은 몇 층에 있나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "층별위치, 청력검사실",
+    "expectedSource": "기타-층별안내도",
+    "expectedAnswerHint": "지하2층입니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777441522773-p14k7i"
+  },
+  {
+    "question": "어지럼증 검사는 어디에서 받나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "청력검사, 어지럼증검사, 층별안내도, 위치",
+    "expectedSource": "기타-층별안내도",
+    "expectedAnswerHint": "지하2층 청력검사실입니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777441521352-kytr8q"
+  },
+  {
+    "question": "코물혹 수술 비용 범위를 알 수 있을까요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "homepage_surgery_cost",
+    "expectedSource": "홈페이지-코물혹",
+    "expectedAnswerHint": "수술 관련해서 안내드릴게요.\n\n코물혹 수술 안내드립니다. 하나이비인후과병원 기준으로 수술비용은 약 160~450만원(실비보험 적용 가능)입니다. 수술시간은 약 30분~1시간입니다. 마취방법은 수면마취+국소마취입니다. 입원기간은 1박 2일 또는 2박 3일입니다. 수술 후 내원치료는 수술 후 8~12회입니다. 회복기간은 약 3주~4주 하나이비인후과병원 코물혹 치료 장점 물혹 위치, 크기, 동반질환 등에 따라 맞춤 치료입니다. 정확한 수술 적응증과 비용 적용 방식은 진료와 검사 후 결정되므로 자세한 상담이나 예약은 대표전화 02-6925-1111로 문의해 주세요.\n- 보험 적용 여부와 실제 비용은 질환 상태와 검사 결과에 따라 달라질 수 있습니다.\n- 다른 수술이나 질환명을 말씀해 주시면 해당 문서 기준으로 다시 안내해 드릴게요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777441519947-q9of1d"
+  },
+  {
+    "question": "축농증 수술 회복기간은 얼마나 걸리나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "축농증수술, 회복기간, 치료",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "일반적으로 통원치료는 4 주 정도 소요됩니다. 단, 환자분의 경과에 따라 회복기간은 달라질 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777441518545-oua23p"
+  },
+  {
+    "question": "비염 수술은 보통 며칠 입원하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "homepage_surgery_info",
+    "expectedSource": "홈페이지-만성비염",
+    "expectedAnswerHint": "수술 관련해서 안내드릴게요.\n\n비염 수술 안내드립니다. 수술비용은 약 150~200만원(실비보험 적용 가능)입니다. 수술시간은 약 20분입니다. 마취방법은 수면마취+국소마취입니다. 입원기간은 1박 2일 또는 2박 3일입니다. 수술 후 내원치료는 수술 후 8~12회입니다. 회복기간은 약 3주~4주입니다. 정확한 수술 적응증과 방법은 진료와 검사 후 결정되므로 자세한 상담이나 예약은 대표전화 02-6925-1111로 문의해 주세요.\n\n비염 관련 영상 보기: https://www.youtube.com/watch?v=qqeKjEeTjIE\n- 원하시는 수술명을 구체적으로 말씀해 주시면 비용, 입원기간, 회복기간 기준으로 다시 안내해 드릴게요.\n- 보험 적용 여부와 실제 비용은 질환 상태와 검사 결과에 따라 달라질 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777441517144-5omdwl"
+  },
+  {
+    "question": "주차장 높이 제한이 있나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "parking_info",
+    "expectedSource": "통합-FAQ / 홈페이지-셔틀버스 및 오시는길",
+    "expectedAnswerHint": "주차는 가능합니다. 문서 기준으로 환자 및 방문객은 주차권 또는 영수증 제출 시 무료주차가 가능하고, 무료 발렛파킹 서비스도 운영됩니다. 다만 입원 환자는 밤샘 주차가 불가능하며, 퇴원 시 운전이 어려울 수 있어 차량 이용이 권장되지 않습니다.\n- 외래 방문 주차 안내\n- 입원 환자 주차 안내\n- 주차장 높이 1.9m 이상 차량은 주차가 어려울 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777441515718-m3fslb"
+  },
+  {
+    "question": "발렛파킹은 누구나 이용할 수 있나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "parking_info",
+    "expectedSource": "통합-FAQ / 홈페이지-셔틀버스 및 오시는길",
+    "expectedAnswerHint": "주차는 가능합니다. 문서 기준으로 환자 및 방문객은 주차권 또는 영수증 제출 시 무료주차가 가능하고, 무료 발렛파킹 서비스도 운영됩니다. 다만 입원 환자는 밤샘 주차가 불가능하며, 퇴원 시 운전이 어려울 수 있어 차량 이용이 권장되지 않습니다.\n- 외래 방문 주차 안내\n- 입원 환자 주차 안내\n- 주차장 높이 1.9m 이상 차량은 주차가 어려울 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777441514320-xhjlvy"
+  },
+  {
+    "question": "병원 셔틀은 점심시간에도 운행하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "셔틀시간표,운행,점심시간,",
+    "expectedSource": "기타-병원셔틀시간표",
+    "expectedAnswerHint": "점심시간에는 운행하지 않습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777441512931-joph86"
+  },
+  {
+    "question": "타 병원 CT 자료를 가져가면 도움이 되나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "integrated_faq",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n타 병원 CT 나 기타 검사 결과지가 있는 경우 복사하여 가져오시면, 진료에 도움이 될 수 있습니다. 다만 필요에 따라서 추가적인 검사가 있을 수 있는 점 알려드립니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777441511535-p03stv"
+  },
+  {
+    "question": "진료의뢰서 없이도 처음 진료를 볼 수 있나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "진료의뢰서, 진료",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "필수 지참은 아니며 진료의뢰서가 있으면 진료시 참고 할 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777441510052-9elnx3"
+  },
+  {
+    "question": "1인실에는 세면도구가 제공되나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "ai",
+    "expectedSource": "입퇴원안내",
+    "expectedAnswerHint": "네, 1 인실에는 환자용 세면도구(치약, 칫솔, 비누, 수건, 티슈)가 제공됩니다.\n다만 샴푸·린스, 드라이기, 화장품, 개인컵 등 개인용품은 제공되지 않으니 지참해 주세요.\n참고로 2 인실·4 인실은 세면도구와 개인용품을 모두 준비하셔야 합니다.\n다른 입원 준비물도 필요하시면 알려주시면 안내해 드릴게요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777441508645-41xqt0"
+  },
+  {
+    "question": "입원 전에 수건을 챙겨가야 하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "admission_prep_items",
+    "expectedSource": "통합-FAQ / 입원-입원생활안내문",
+    "expectedAnswerHint": "입원 생활 관련해서 안내드릴게요.\n\n입원 준비물은 병실 종류에 따라 조금 다릅니다. 1인실은 환자용 세면도구(치약, 칫솔, 비누, 수건, 티슈)가 제공되며, 개인컵, 화장품, 드라이기, 샴푸, 린스 등 개인 물품은 지참하셔야 합니다. 2인실과 4인실은 세면도구와 개인용품(티슈, 수건, 개인컵, 슬리퍼, 화장품, 드라이기, 샴푸, 린스 등)을 모두 챙겨오셔야 합니다.\n- 수술 종류나 병실 배정에 따라 추가 준비물이 있을 수 있어 입원 전 안내를 함께 확인해 주세요.\n- 대표전화 02-6925-1111",
+    "adminNote": "",
+    "reviewedLogId": "log-1777441489819-txjvlg"
+  },
+  {
+    "question": "일요일에는 병원 문을 여나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "clinic_hours_night_weekend",
+    "expectedSource": "홈페이지-외래진료안내 / 통합-FAQ",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n진료시간은 평일 오전 9시부터 오후 6시까지이며, 토요일은 오전 9시부터 오후 1시 30분까지입니다. 일요일과 공휴일은 휴진으로 안내되어 있고, 별도 야간진료는 문서에 안내되어 있지 않습니다.\n- 평일 접수 마감은 오후 5시 30분입니다.\n- 토요일 접수 마감은 오후 1시입니다.\n- 응급수술 등 진료 상황에 따라 접수가 조기 마감될 수 있어 내원 전 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777441488345-ec2cjb"
+  },
+  {
+    "question": "토요일에도 수술 상담 가능한가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "수술상담, 수술, 예약",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "토요일에도 수술상담 진행합니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777441422147-rplzqi"
+  },
+  {
     "question": "진료확인서 발급은 어디서 하나요?",
     "caseType": "admin_normal",
     "expectedIntent": "확인서, 발급",
@@ -27,6 +342,15 @@
     "reviewedLogId": "log-1777439682640-8vievh"
   },
   {
+    "question": "목에 혹이 만져지면 어떤 검사를 하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "목, 혹, 검사",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "목에 혹이 만져지면 CT 또는 초음파검사를 진행 할 수 있으며, 상황에 따라 당일 또는 예약진행 됩니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777439681246-yqoqvh"
+  },
+  {
     "question": "보청기 상담은 예약해야 하나요?",
     "caseType": "admin_normal",
     "expectedIntent": "hearing_aid_consult",
@@ -43,6 +367,15 @@
     "expectedAnswerHint": "입원 생활 관련해서 안내드릴게요.\n\n배달음식은 가능하나 외부 음식 섭취 시 소화 불편이나 합병증 발생 가능성을 고려하여 주문하여 주시기 바랍니다. 배달음식 가능시간: 오전 7시 ~ 오후 9시, 지하 1층에서 수령",
     "adminNote": "",
     "reviewedLogId": "log-1777439674059-2da1u0"
+  },
+  {
+    "question": "진료 끝나고 처방약은 병원 안에서 받나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "약처방, 약국위치",
+    "expectedSource": "통합-FAQ.txt",
+    "expectedAnswerHint": "외래환자인 경우 본원 입구 양쪽에 외부 약국이 있습니다. 입원환자인 경우 4층에 약국이 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777439668443-0u6lw6"
   },
   {
     "question": "수면무호흡이 의심되면 어떤 검사를 하나요?",
@@ -99,13 +432,13 @@
     "reviewedLogId": "log-1777439475245-2aosxn"
   },
   {
-    "question": "병원 대표전화번호를 알려주세요.",
+    "question": "진료 접수는 몇 시부터 시작하나요?",
     "caseType": "admin_normal",
-    "expectedIntent": "전화번호,대표번호,",
-    "expectedSource": "통합-FAQ 병원 전화번호 알려주세요",
-    "expectedAnswerHint": "대표번호는 02-6925-1111 입니다.",
+    "expectedIntent": "진료,접수,시간",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "진료시간은 평일 오전 9 시~ 오후 6 시( 점심시간은 오후 1 시2 시) 이며 토요일은 오전 9 시 오후 1 시 30 분( 점심시간 없음) 입니다. \n\n평일 접수는 오전 8 시 30 분~ 오후 5 시 30 분이며, 토요일 접수는 오전 8 시 30 분~ 오후 1 시입니다. \n1) 오전 진료를 원하시면 초진인 경우 11 시 30 분까지, 재진인 경우 12 시까지 접수해 주시기바랍니다. \n2) 오후 진료를 원하시면 초진인 경우 오후 5 시까지 재진인 경우 5 시 30 분까지 접수해 주시기 바랍니다. \n단, 접수시 초진은 진료 종료 1 시간 전까지, 재진은 진료 종료 30 분전까지 하셔야 하며, 당일 진료실 상황에 따라 차이가 있을 수 있습니다.\n늦게 오시면 필요한 검사나 검사 결과 확인을 진료 당일에 못하실 수 있기 때문에 되도록 일찍 내원하셔서 진료 받으시는 것이 좋습니다.\n진료과와 의료진 상황에 따라 달라질 수 있어 늦게 도착할 예정이면 대표전화 02-6925-1111로 확인해 주세요.",
     "adminNote": "",
-    "reviewedLogId": "log-1777438542529-5q34j1"
+    "reviewedLogId": "log-1777439472274-xnk9lm"
   },
   {
     "question": "실손보험 청구용 서류는 무엇을 발급받아야 하나요?",
@@ -142,6 +475,15 @@
     "expectedAnswerHint": "서류발급은 개인정보보호법에 따라 본인이 신분증 지참 후 직접 내원하여 본인 확인절차를 거쳐 발급하는 것을 원칙으로 하며 보호자나 대리인이 내원 하시는 경우 본원 홈페이지 서류발급절차 기준에 따라 발급됩니다. 발급 시 필요한 [구비서류] 를 꼭 참고하시기 바랍니다",
     "adminNote": "",
     "reviewedLogId": "log-1777438504509-jlk73p"
+  },
+  {
+    "question": "퇴원 절차를 알려주세요.",
+    "caseType": "admin_normal",
+    "expectedIntent": "discharge_process",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "퇴원은 수술 종류와 회복 상태에 따라 시간이 달라질 수 있습니다. 통합 FAQ 기준으로 코 수술은 오전 9시부터 9시 30분 또는 오후 2시 전후, 목 수술은 오전 9시부터 9시 30분 전후, 귀 수술은 오전 9시부터 9시 30분 또는 오후 2시 전후 퇴원으로 안내되어 있습니다.\n- 최종 퇴원 가능 여부와 시간은 담당 의료진과 병동 안내에 따라 결정됩니다.\n- 입퇴원확인서 등 제증명 서류가 필요하면 입원 중 병동 간호사에게 미리 신청하거나 퇴원 후 외래에서 신청할 수 있습니다.\n- 퇴원 당일 운전이 어려울 수 있어 보호자 동행을 권장드립니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777438439517-56oo33"
   },
   {
     "question": "병원 위치를 알려주세요.",

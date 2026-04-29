@@ -2193,6 +2193,13 @@ function shouldUseConsultationTone(payload) {
     'nose_surgery_cost',
     'postop_driving',
     'nasal_symptom_center',
+    'hospital_phone',
+    'address_sms',
+    'delivery_food',
+    'preop_exam_timing',
+    'same_day_discharge',
+    'smell_exam',
+    'voice_center',
   ].includes(type);
 }
 
@@ -2337,6 +2344,13 @@ function enrichResponsePayload(payload, question) {
     'nose_surgery_cost',
     'postop_driving',
     'nasal_symptom_center',
+    'hospital_phone',
+    'address_sms',
+    'delivery_food',
+    'preop_exam_timing',
+    'same_day_discharge',
+    'smell_exam',
+    'voice_center',
   ].includes(localizedPayload.type);
 
   return sanitizeOutgoingPayload({
@@ -3735,11 +3749,11 @@ function buildParkingAndClinicHoursResponse(message) {
 
 function buildReceptionDeadlineResponse(message) {
   const text = String(message || '');
-  if (/(코세척|세척)/u.test(text)) {
+  if (/(코세척|세척|셔틀|수술\s*전\s*검사|수술전\s*검사)/u.test(text)) {
     return null;
   }
 
-  const asksDeadline = /(몇\s*시|언제|시간|마감|점심\s*시간|점심시간).{0,16}(가야|까지|진료\s*볼|진료받|진료\s*받|접수|진료|하나|하나요)|접수\s*마감|마감\s*시간|점심\s*시간|점심시간/u.test(text);
+  const asksDeadline = /(몇\s*시|언제|시간|마감|점심\s*시간|점심시간).{0,16}(가야|까지|진료\s*볼|진료받|진료\s*받|접수|진료|하나|하나요|가능|시작)|접수\s*마감|접수.{0,10}(시작|몇\s*시|가능)|마감\s*시간|점심\s*시간|점심시간/u.test(text);
   if (!asksDeadline) {
     return null;
   }
@@ -4039,6 +4053,10 @@ function buildPrescriptionPharmacyResponse(message) {
 
 function buildInsuranceCoverageResponse(message) {
   const text = String(message || '');
+  if (/건강\s*보험증|건강보험증/u.test(text)) {
+    return null;
+  }
+
   if (!/(보험|실비|실손|급여|비급여|적용)/u.test(text) || !/(검사비|검사|수술비|진료비|비용|금액)/u.test(text)) {
     return null;
   }
@@ -4114,6 +4132,185 @@ function buildNoseSurgeryCostResponse(message) {
   };
 }
 
+function buildHospitalPhoneResponse(message) {
+  const text = String(message || '');
+  if (!/(대표\s*전화|대표전화|전화\s*번호|전화번호|대표\s*번호|대표번호)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'hospital_phone',
+    answer: '하나이비인후과병원 대표전화는 02-6925-1111입니다.',
+    followUp: [
+      '전화 예약이나 예약 변경은 대표전화 연결 후 0번 상담원 연결로 진행할 수 있습니다.',
+      '진료시간은 평일 오전 9시부터 오후 6시, 토요일 오전 9시부터 오후 1시 30분까지입니다.',
+    ],
+    sources: [buildIntegratedFaqDocSource()],
+  };
+}
+
+function buildAddressSmsResponse(message) {
+  const text = String(message || '');
+  if (!/(주소|약도|위치)/u.test(text) || !/(문자|문자발송|보내|알려줄\s*수)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'address_sms',
+    answer: '상담봇에서는 주소를 문자로 직접 발송해 드리기는 어렵습니다. 하나이비인후과병원 주소는 서울특별시 강남구 역삼로 245입니다.',
+    followUp: [
+      '대중교통 이용 시 2호선 역삼역 1번 출구를 이용하시면 됩니다.',
+      '병원 셔틀버스는 역삼역 1번 출구 인근에서 이용할 수 있습니다.',
+      '대표전화 02-6925-1111',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-셔틀버스 및 오시는길', '홈페이지-셔틀버스 및 오시는길.txt'),
+      buildIntegratedFaqDocSource(),
+    ],
+  };
+}
+
+function buildReceiptReissueResponse(message) {
+  const text = String(message || '');
+  if (!/(영수증|진료비\s*영수증)/u.test(text) || !/(다시|나중|재발급|재발행|발급|팩스|받을|받나요)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'receipt_issuance',
+    answer: '진료비 영수증은 다시 발급받을 수 있습니다. 영수증은 팩스 발급도 가능하지만, 진료비 세부내역서는 팩스 발급이 불가능합니다. 직접 내원하시는 경우 본인 확인을 위해 신분증을 지참해 원무과에서 신청해 주세요.',
+    followUp: [
+      '보호자나 대리인이 발급받는 경우 관계 확인 서류와 위임 서류가 필요할 수 있습니다.',
+      '입원 환자는 퇴원 하루 전 병동에 미리 신청하고 퇴원 수납 시 원무과에서 받을 수 있습니다.',
+      '대표전화 02-6925-1111',
+    ],
+    sources: [buildIntegratedFaqDocSource()],
+  };
+}
+
+function buildDeliveryFoodResponse(message) {
+  const text = String(message || '');
+  if (!/(배달\s*음식|배달음식|외부\s*음식|음식\s*반입)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'delivery_food',
+    answer: '입원 중 배달음식은 가능합니다. 다만 외부 음식 섭취 시 소화 불편이나 합병증 발생 가능성을 고려해 주문해 주세요. 문서 기준 배달음식 가능시간은 오전 7시부터 오후 9시까지이며, 지하 1층에서 수령합니다.',
+    followUp: [
+      '수술 종류나 식이 제한이 있는 경우 병동 간호사에게 먼저 확인해 주세요.',
+      '회복 중에는 의료진이 안내한 식이 기준을 우선 따라 주세요.',
+    ],
+    sources: [buildIntegratedFaqDocSource()],
+  };
+}
+
+function buildShuttleLunchResponse(message) {
+  const text = String(message || '');
+  if (!/셔틀/u.test(text) || !/(점심|점심시간|운행|시간)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'shuttle_bus',
+    answer: '셔틀버스는 점심시간에는 운행하지 않습니다. 통합 FAQ 기준으로 오후 12시 30분부터 1시 45분까지는 점심시간으로 셔틀버스를 운행하지 않는다고 안내되어 있습니다.',
+    followUp: [
+      '평일 셔틀버스는 오전 8시 55분부터 12시 25분까지, 오후 1시 40분부터 5시 40분까지 약 15분 간격으로 안내됩니다.',
+      '토요일은 약 30분 간격으로 오전 8시 55분부터 12시 55분까지 운행합니다.',
+      '셔틀 승차 위치는 역삼역 1번 출구 인근입니다.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('기타-병원셔틀시간표', '기타-병원셔틀시간표.txt'),
+      buildLocalDocSource('홈페이지-셔틀버스 및 오시는길', '홈페이지-셔틀버스 및 오시는길.txt'),
+    ],
+  };
+}
+
+function buildPreopExamTimingResponse(message) {
+  const text = String(message || '');
+  if (!/(수술\s*전\s*검사|수술전\s*검사)/u.test(text) || !/(언제|까지|시기|받아|해야|하나요|무엇|뭔가요)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'preop_exam_timing',
+    answer: '수술 전 검사는 수술하기 전 환자의 전반적인 건강 상태를 확인하기 위한 검사입니다. 문서 기준 혈액, 소변, 심전도, 흉부 X선 촬영 등이 있으며, 수술 1주일 전까지 반드시 받아야 수술 진행 여부가 결정됩니다.',
+    followUp: [
+      '코 질환은 6개월 이상, 목 질환은 3개월 이상 지난 검사 결과의 경우 재검사가 필요할 수 있습니다.',
+      '수술 전 검사 결과 이상 소견이 있거나 수술이 부적합하다고 나오면 수술이 연기될 수 있습니다.',
+      '정확한 일정은 수술 상담 시 안내받으신 기준을 따라 주세요.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('홈페이지-입퇴원 안내', '홈페이지-입퇴원 안내.txt'),
+    ],
+  };
+}
+
+function buildSameDayDischargeResponse(message) {
+  const text = String(message || '');
+  if (!/(수술\s*당일|당일)/u.test(text) || !/(퇴원|바로\s*퇴원)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'same_day_discharge',
+    answer: '수술 당일 바로 퇴원 가능한지는 수술 종류와 환자 상태에 따라 다릅니다. 통합 FAQ 기준으로 당일 수술은 가능하지 않으며 보통 1박 2일 또는 2박 3일 입원이 필요하다고 안내되어 있습니다. 다만 일부 항목에는 1인실 당일퇴원 비용이 비급여 항목으로 안내되어 있어, 실제 가능 여부는 진료와 수술 안내 과정에서 확인이 필요합니다.',
+    followUp: [
+      '최종 퇴원 가능 여부와 시간은 담당 의료진과 병동 안내에 따라 결정됩니다.',
+      '퇴원 당일 운전은 어려울 수 있어 보호자 동행을 권장드립니다.',
+      '대표전화 02-6925-1111',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('기타-비급여비용', '기타-비급여비용.txt'),
+    ],
+  };
+}
+
+function buildSmellExamResponse(message) {
+  const text = String(message || '');
+  if (!/(후각|냄새)/u.test(text) || !/(검사|떨어|저하|안\s*나|안나|맡)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'smell_exam',
+    answer: '후각이 떨어졌을 때는 후각장애 진료에서 원인을 확인합니다. 홈페이지 후각장애 안내 기준으로 후각검사, 이비인후과 전용 CT 검사, 필요 시 MRI 검사 등이 안내되어 있습니다.',
+    followUp: [
+      '후각장애는 코 질환 센터 영역으로 안내됩니다.',
+      '비염, 축농증, 후각 신경 손상 등 원인에 따라 치료 방향이 달라질 수 있습니다.',
+      '비급여비용 문서에는 후각기능검사 항목이 안내되어 있습니다.',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-후각장애', '홈페이지-후각장애.txt'),
+      buildLocalDocSource('기타-비급여비용', '기타-비급여비용.txt'),
+    ],
+  };
+}
+
+function buildVoiceCenterResponse(message) {
+  const text = String(message || '');
+  if (!/(목소리|쉰\s*목소리|음성|소리\s*안\s*나|소리가\s*안\s*나)/u.test(text) || !/(센터|어느\s*진료|어디로|어디\s*가|진료과|진료)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'voice_center',
+    answer: '목소리가 잘 안 나오거나 쉰 목소리가 지속되는 경우 목질환 또는 음성질환 진료로 안내드릴 수 있습니다. 홈페이지 의료진 정보 기준으로 두경부질환, 음성질환, 목질환을 전문분야로 보는 의료진이 안내되어 있습니다.',
+    followUp: [
+      '남순열 두경부 센터장은 두경부질환, 음성질환, 목질환 등을 전문분야로 안내하고 있습니다.',
+      '증상에 따라 후두내시경검사 등 필요한 검사가 결정될 수 있습니다.',
+      '대표전화 02-6925-1111',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt'),
+      buildLocalDocSource('홈페이지-목의 혹', '홈페이지-목의 혹.txt'),
+    ],
+  };
+}
+
 function buildPostopDrivingResponse(message) {
   const text = String(message || '');
   if (!/(수술\s*후|퇴원\s*후|퇴원\s*당일)/u.test(text) || !/(운전|차\s*몰|차로\s*가|자가\s*운전)/u.test(text)) {
@@ -4153,7 +4350,7 @@ function buildPaymentMethodResponse(message) {
 
 function buildFirstReturnVisitResponse(message) {
   const text = String(message || '');
-  if (!/(초진|신환|처음\s*내원|첫\s*방문|재진)/u.test(text) || !/(절차|접수|다른|차이|어떻게|신분증|필요|준비|챙겨)/u.test(text)) {
+  if (!/(초진|신환|처음\s*내원|처음\s*방문|첫\s*방문|재진)/u.test(text) || !/(절차|접수|다른|차이|어떻게|신분증|건강\s*보험증|건강보험증|필요|준비|챙겨|가져)/u.test(text)) {
     return null;
   }
 
@@ -8537,6 +8734,51 @@ async function buildChatResponse(rawMessage, sessionId) {
   if (preMeaningNasalIrrigationMode === 'surgery' || preMeaningNasalIrrigationMode === 'general') {
     clearConversationState(sessionId);
     return enrichResponsePayload(createNasalIrrigationResponse(preMeaningNasalIrrigationMode), message);
+  }
+
+  const preMeaningHospitalPhoneResponse = buildHospitalPhoneResponse(message);
+  if (preMeaningHospitalPhoneResponse) {
+    return enrichResponsePayload(preMeaningHospitalPhoneResponse, message);
+  }
+
+  const preMeaningAddressSmsResponse = buildAddressSmsResponse(message);
+  if (preMeaningAddressSmsResponse) {
+    return enrichResponsePayload(preMeaningAddressSmsResponse, message);
+  }
+
+  const preMeaningReceiptReissueResponse = buildReceiptReissueResponse(message);
+  if (preMeaningReceiptReissueResponse) {
+    return enrichResponsePayload(preMeaningReceiptReissueResponse, message);
+  }
+
+  const preMeaningDeliveryFoodResponse = buildDeliveryFoodResponse(message);
+  if (preMeaningDeliveryFoodResponse) {
+    return enrichResponsePayload(preMeaningDeliveryFoodResponse, message);
+  }
+
+  const preMeaningShuttleLunchResponse = buildShuttleLunchResponse(message);
+  if (preMeaningShuttleLunchResponse) {
+    return enrichResponsePayload(preMeaningShuttleLunchResponse, message);
+  }
+
+  const preMeaningPreopExamTimingResponse = buildPreopExamTimingResponse(message);
+  if (preMeaningPreopExamTimingResponse) {
+    return enrichResponsePayload(preMeaningPreopExamTimingResponse, message);
+  }
+
+  const preMeaningSameDayDischargeResponse = buildSameDayDischargeResponse(message);
+  if (preMeaningSameDayDischargeResponse) {
+    return enrichResponsePayload(preMeaningSameDayDischargeResponse, message);
+  }
+
+  const preMeaningSmellExamResponse = buildSmellExamResponse(message);
+  if (preMeaningSmellExamResponse) {
+    return enrichResponsePayload(preMeaningSmellExamResponse, message);
+  }
+
+  const preMeaningVoiceCenterResponse = buildVoiceCenterResponse(message);
+  if (preMeaningVoiceCenterResponse) {
+    return enrichResponsePayload(preMeaningVoiceCenterResponse, message);
   }
 
   const preMeaningPrescriptionPharmacyResponse = buildPrescriptionPharmacyResponse(message);
