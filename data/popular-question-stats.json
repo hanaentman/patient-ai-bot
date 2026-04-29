@@ -1,18 +1,23 @@
 [
   {
     "question": "편도 절제 수술은 언제 필요한가요?",
-    "count": 27,
-    "updatedAt": 1777420645002
+    "count": 31,
+    "updatedAt": 1777426911581
   },
   {
     "question": "대기 시간이 얼마나 되나요? 예약 없이 방문해도 되나요?",
-    "count": 26,
-    "updatedAt": 1777420644179
+    "count": 30,
+    "updatedAt": 1777426910347
   },
   {
     "question": "나 목아파서 진료보러 가는데 오늘 가능해?",
-    "count": 19,
-    "updatedAt": 1777420641450
+    "count": 23,
+    "updatedAt": 1777426906343
+  },
+  {
+    "question": "편도 수술 후 목에 출혈이ㅡ있어",
+    "count": 20,
+    "updatedAt": 1777426904419
   },
   {
     "question": "이상덕 전문분야 뭐야",
@@ -20,199 +25,249 @@
     "updatedAt": 1777247055702
   },
   {
-    "question": "편도 수술 후 목에 출혈이ㅡ있어",
-    "count": 16,
-    "updatedAt": 1777420640069
+    "question": "흡연하고 싶어",
+    "count": 18,
+    "updatedAt": 1777426905223
   },
   {
     "question": "외래 비염검사 뭐가 있나요?",
-    "count": 15,
-    "updatedAt": 1777420645249
+    "count": 17,
+    "updatedAt": 1777426911970
   },
   {
     "question": "검사 종류",
-    "count": 15,
-    "updatedAt": 1777420645131
+    "count": 17,
+    "updatedAt": 1777426911779
   },
   {
     "question": "청력검사는 어떻게 진행 되?>",
-    "count": 15,
-    "updatedAt": 1777420644401
+    "count": 17,
+    "updatedAt": 1777426910676
   },
   {
     "question": "동헌종 경력 알려주세요",
-    "count": 14,
-    "updatedAt": 1777420644626
+    "count": 16,
+    "updatedAt": 1777426911017
   },
   {
     "question": "장애인이나 휠체어 이용자를 위한 편의시설이 있나요?",
-    "count": 14,
-    "updatedAt": 1777420644053
+    "count": 16,
+    "updatedAt": 1777426910171
   },
   {
     "question": "검사(청력검사, 내시경 등)는 같은 건물에서 모두 가능한가요?",
-    "count": 14,
-    "updatedAt": 1777420643937
+    "count": 16,
+    "updatedAt": 1777426909994
   },
   {
     "question": "병원 내부에 약국이 함께 있나요?",
-    "count": 14,
-    "updatedAt": 1777420643822
+    "count": 16,
+    "updatedAt": 1777426909822
   },
   {
     "question": "야간 진료나 주말 진료도 가능한가요?",
-    "count": 14,
-    "updatedAt": 1777420643699
+    "count": 16,
+    "updatedAt": 1777426909643
   },
   {
     "question": "입원실이나 회복실 같은 시설도 갖추고 있나요?",
-    "count": 14,
-    "updatedAt": 1777420643574
+    "count": 16,
+    "updatedAt": 1777426909462
   },
   {
     "question": "진료비는 카드와 현금 모두 결제 가능한가요?",
-    "count": 14,
-    "updatedAt": 1777420643333
+    "count": 16,
+    "updatedAt": 1777426909118
   },
   {
     "question": "초진과 재진 절차가 어떻게 다른가요?",
-    "count": 14,
-    "updatedAt": 1777420643213
+    "count": 16,
+    "updatedAt": 1777426908930
   },
   {
     "question": "진료 기록이나 검사 결과를 복사해서 받을 수 있나요?",
-    "count": 14,
-    "updatedAt": 1777420643096
-  },
-  {
-    "question": "흡연하고 싶어",
-    "count": 14,
-    "updatedAt": 1777420640654
-  },
-  {
-    "question": "청력검사는 어떻게 진행되?",
-    "count": 12,
-    "updatedAt": 1777420644877
-  },
-  {
-    "question": "편도수술",
-    "count": 12,
-    "updatedAt": 1777420644744
-  },
-  {
-    "question": "휠체어를 탔는데 진료 가능하나요",
-    "count": 12,
-    "updatedAt": 1777420642962
-  },
-  {
-    "question": "휠체어는 어디서 접수하나요",
-    "count": 12,
-    "updatedAt": 1777420642857
-  },
-  {
-    "question": "항노화클리닉은 몇층인가요",
-    "count": 12,
-    "updatedAt": 1777420642749
-  },
-  {
-    "question": "퇴원시간은 언제인가요?",
-    "count": 12,
-    "updatedAt": 1777420642632
-  },
-  {
-    "question": "약국은 어디있어?",
-    "count": 12,
-    "updatedAt": 1777420642522
-  },
-  {
-    "question": "외래진료표",
-    "count": 12,
-    "updatedAt": 1777420642415
-  },
-  {
-    "question": "오늘 진료 가능한 의료진이 있나요",
-    "count": 12,
-    "updatedAt": 1777420642294
-  },
-  {
-    "question": "병원위치",
-    "count": 12,
-    "updatedAt": 1777420642151
-  },
-  {
-    "question": "진료의뢰서 있는데 어떻게 해요",
-    "count": 12,
-    "updatedAt": 1777420642035
+    "count": 16,
+    "updatedAt": 1777426908760
   },
   {
     "question": "진료시간 알려줘",
-    "count": 12,
-    "updatedAt": 1777420637228
+    "count": 16,
+    "updatedAt": 1777426897720
+  },
+  {
+    "question": "청력검사는 어떻게 진행되?",
+    "count": 14,
+    "updatedAt": 1777426911409
+  },
+  {
+    "question": "편도수술",
+    "count": 14,
+    "updatedAt": 1777426911188
+  },
+  {
+    "question": "휠체어를 탔는데 진료 가능하나요",
+    "count": 14,
+    "updatedAt": 1777426908585
+  },
+  {
+    "question": "휠체어는 어디서 접수하나요",
+    "count": 14,
+    "updatedAt": 1777426908418
+  },
+  {
+    "question": "항노화클리닉은 몇층인가요",
+    "count": 14,
+    "updatedAt": 1777426908251
+  },
+  {
+    "question": "퇴원시간은 언제인가요?",
+    "count": 14,
+    "updatedAt": 1777426908073
+  },
+  {
+    "question": "약국은 어디있어?",
+    "count": 14,
+    "updatedAt": 1777426907888
+  },
+  {
+    "question": "외래진료표",
+    "count": 14,
+    "updatedAt": 1777426907713
+  },
+  {
+    "question": "오늘 진료 가능한 의료진이 있나요",
+    "count": 14,
+    "updatedAt": 1777426907537
+  },
+  {
+    "question": "병원위치",
+    "count": 14,
+    "updatedAt": 1777426907362
+  },
+  {
+    "question": "진료의뢰서 있는데 어떻게 해요",
+    "count": 14,
+    "updatedAt": 1777426907191
   },
   {
     "question": "성대물혹 수술",
-    "count": 11,
-    "updatedAt": 1777420641921
+    "count": 13,
+    "updatedAt": 1777426907028
   },
   {
     "question": "성대물혹 진료",
-    "count": 11,
-    "updatedAt": 1777420641805
+    "count": 13,
+    "updatedAt": 1777426906847
   },
   {
     "question": "부비동염 진료 가능한가요?",
-    "count": 11,
-    "updatedAt": 1777420641693
+    "count": 13,
+    "updatedAt": 1777426906680
   },
   {
     "question": "코진료 의료진",
-    "count": 10,
-    "updatedAt": 1777420641575
+    "count": 12,
+    "updatedAt": 1777426906494
   },
   {
     "question": "코막혀서 진료보러 가는데 가능해?",
-    "count": 10,
-    "updatedAt": 1777420641109
+    "count": 12,
+    "updatedAt": 1777426905879
+  },
+  {
+    "question": "코성형 가능해?",
+    "count": 12,
+    "updatedAt": 1777426904923
   },
   {
     "question": "성대 물혹 진료",
-    "count": 10,
-    "updatedAt": 1777420638291
+    "count": 12,
+    "updatedAt": 1777426899241
   },
   {
     "question": "오늘 진료 가능해?",
-    "count": 9,
-    "updatedAt": 1777420641223
+    "count": 11,
+    "updatedAt": 1777426906037
   },
   {
     "question": "입원료 문의",
-    "count": 9,
-    "updatedAt": 1777420640998
+    "count": 11,
+    "updatedAt": 1777426905717
   },
   {
     "question": "병실비용",
-    "count": 9,
-    "updatedAt": 1777420640877
+    "count": 11,
+    "updatedAt": 1777426905552
   },
   {
     "question": "4인실 병실비용",
-    "count": 9,
-    "updatedAt": 1777420640768
+    "count": 11,
+    "updatedAt": 1777426905394
   },
   {
     "question": "귀가 갑자기 먹먹하고 소리가 안들려",
-    "count": 9,
-    "updatedAt": 1777420638648
+    "count": 11,
+    "updatedAt": 1777426899696
   },
   {
     "question": "남순열 경력",
-    "count": 9,
-    "updatedAt": 1777420638402
+    "count": 11,
+    "updatedAt": 1777426899388
   },
   {
     "question": "당일 진료 가능해?",
+    "count": 11,
+    "updatedAt": 1777426899081
+  },
+  {
+    "question": "비중격수술하면서 성형수술 같이 하나요?",
+    "count": 10,
+    "updatedAt": 1777426905064
+  },
+  {
+    "question": "마운자로 얼마야",
+    "count": 10,
+    "updatedAt": 1777426904757
+  },
+  {
+    "question": "마운자로",
+    "count": 10,
+    "updatedAt": 1777426904591
+  },
+  {
+    "question": "감기기운 있는데 진료 가능해?",
+    "count": 10,
+    "updatedAt": 1777426904105
+  },
+  {
+    "question": "의료진 전체 경력",
+    "count": 10,
+    "updatedAt": 1777426903933
+  },
+  {
+    "question": "비중격만곡증 수술",
+    "count": 10,
+    "updatedAt": 1777426902562
+  },
+  {
+    "question": "정종인 성형",
+    "count": 10,
+    "updatedAt": 1777426896138
+  },
+  {
+    "question": "대표적인 비급여 알려줘",
     "count": 9,
-    "updatedAt": 1777420638173
+    "updatedAt": 1777426897564
+  },
+  {
+    "question": "편도수숙",
+    "count": 9,
+    "updatedAt": 1777426896915
+  },
+  {
+    "question": "오늘 진료잉정 알려줘",
+    "count": 9,
+    "updatedAt": 1777426896440
   },
   {
     "question": "병동에 가습기 있어?",
@@ -220,54 +275,84 @@
     "updatedAt": 1777247055757
   },
   {
-    "question": "비중격수술하면서 성형수술 같이 하나요?",
+    "question": "주차방법과 진료시간 알려줘",
     "count": 8,
-    "updatedAt": 1777420640516
+    "updatedAt": 1777426903607
   },
   {
-    "question": "코성형 가능해?",
+    "question": "성대 물혹 수술 가능해?",
     "count": 8,
-    "updatedAt": 1777420640398
+    "updatedAt": 1777426899547
   },
   {
-    "question": "마운자로 얼마야",
+    "question": "다른병원에서 진료의뢰서를 받았어",
     "count": 8,
-    "updatedAt": 1777420640291
+    "updatedAt": 1777426898910
   },
   {
-    "question": "마운자로",
+    "question": "내일 입원인데 뭐가져가면되>?",
     "count": 8,
-    "updatedAt": 1777420640178
+    "updatedAt": 1777426898736
   },
   {
-    "question": "감기기운 있는데 진료 가능해?",
+    "question": "외출 가능해?",
     "count": 8,
-    "updatedAt": 1777420639850
+    "updatedAt": 1777426898558
   },
   {
-    "question": "의료진 전체 경력",
+    "question": "셔틀버스 시간 알려줘",
     "count": 8,
-    "updatedAt": 1777420639713
+    "updatedAt": 1777426898217
   },
   {
-    "question": "정종인 성형",
+    "question": "편도수술 입원은 얼마나 하나요?",
     "count": 8,
-    "updatedAt": 1777420635961
+    "updatedAt": 1777426898044
   },
   {
-    "question": "대표적인 비급여 알려줘",
+    "question": "당일 수술 가능한가요?",
+    "count": 8,
+    "updatedAt": 1777426897891
+  },
+  {
+    "question": "내일 주차 가능하나 진료보러 갈거거든",
+    "count": 8,
+    "updatedAt": 1777426897217
+  },
+  {
+    "question": "성대물혹 있어",
+    "count": 8,
+    "updatedAt": 1777426897067
+  },
+  {
+    "question": "진료시간",
+    "count": 8,
+    "updatedAt": 1777426896598
+  },
+  {
+    "question": "장선오 경력",
+    "count": 8,
+    "updatedAt": 1777426896281
+  },
+  {
+    "question": "어지럼증이 심한데 이비인후과에서도 진료가 가능한가요?",
     "count": 7,
-    "updatedAt": 1777420637093
+    "updatedAt": 1777426903260
   },
   {
-    "question": "편도수숙",
+    "question": "편도선이 자주 붓고 열이 나는데 편도수술 상담을 받아야 할까요?",
     "count": 7,
-    "updatedAt": 1777420636586
+    "updatedAt": 1777426903094
   },
   {
-    "question": "오늘 진료잉정 알려줘",
+    "question": "수면무호흡 검사는 어떻게 진행되고 비용은 어느 정도인가요?",
     "count": 7,
-    "updatedAt": 1777420636213
+    "updatedAt": 1777426902935
+  },
+  {
+    "question": "비중격만곡증 비용",
+    "count": 7,
+    "updatedAt": 1777426902763
   },
   {
     "question": "비염수술 얼마야",
@@ -290,59 +375,24 @@
     "updatedAt": 1777118961351
   },
   {
-    "question": "성대 물혹 수술 가능해?",
+    "question": "코막힘이 심한데 축농증인가요?",
     "count": 6,
-    "updatedAt": 1777420638529
+    "updatedAt": 1777426948525
   },
   {
-    "question": "다른병원에서 진료의뢰서를 받았어",
+    "question": "비중격만곡증 수술은 입원이 필요한가요?",
     "count": 6,
-    "updatedAt": 1777420638059
+    "updatedAt": 1777426903430
   },
   {
-    "question": "내일 입원인데 뭐가져가면되>?",
+    "question": "코센터 의료진",
     "count": 6,
-    "updatedAt": 1777420637940
+    "updatedAt": 1777426891707
   },
   {
-    "question": "외출 가능해?",
+    "question": "성대질환 진료 가능?",
     "count": 6,
-    "updatedAt": 1777420637813
-  },
-  {
-    "question": "셔틀버스 시간 알려줘",
-    "count": 6,
-    "updatedAt": 1777420637583
-  },
-  {
-    "question": "편도수술 입원은 얼마나 하나요?",
-    "count": 6,
-    "updatedAt": 1777420637460
-  },
-  {
-    "question": "당일 수술 가능한가요?",
-    "count": 6,
-    "updatedAt": 1777420637348
-  },
-  {
-    "question": "내일 주차 가능하나 진료보러 갈거거든",
-    "count": 6,
-    "updatedAt": 1777420636838
-  },
-  {
-    "question": "성대물혹 있어",
-    "count": 6,
-    "updatedAt": 1777420636725
-  },
-  {
-    "question": "진료시간",
-    "count": 6,
-    "updatedAt": 1777420636336
-  },
-  {
-    "question": "장선오 경력",
-    "count": 6,
-    "updatedAt": 1777420636085
+    "updatedAt": 1777426891559
   },
   {
     "question": "ㅎㅇ",
@@ -355,6 +405,21 @@
     "updatedAt": 1777250546665
   },
   {
+    "question": "몇시까지가면 진료 받을 수 있나요?",
+    "count": 5,
+    "updatedAt": 1777426948420
+  },
+  {
+    "question": "보청기 상담",
+    "count": 5,
+    "updatedAt": 1777426903780
+  },
+  {
+    "question": "코수술 비용 알려줘",
+    "count": 5,
+    "updatedAt": 1777426895494
+  },
+  {
     "question": "실비보험 적용되나요?",
     "count": 5,
     "updatedAt": 1777256782852
@@ -365,14 +430,39 @@
     "updatedAt": 1777247055620
   },
   {
-    "question": "주차방법과 진료시간 알려줘",
+    "question": "서류비용",
     "count": 4,
-    "updatedAt": 1777420639473
+    "updatedAt": 1777426947862
   },
   {
-    "question": "비중격만곡증 수술은 입원이 필요한가요?",
+    "question": "몇시까지 가야 진료 볼수있어?",
     "count": 4,
-    "updatedAt": 1777420639347
+    "updatedAt": 1777426947735
+  },
+  {
+    "question": "카드결제 되나?",
+    "count": 4,
+    "updatedAt": 1777426895994
+  },
+  {
+    "question": "마운자로 주사 가능해?",
+    "count": 4,
+    "updatedAt": 1777426895819
+  },
+  {
+    "question": "내일 모레 입원하는데 준비물 뭐가 필요해?",
+    "count": 4,
+    "updatedAt": 1777426895654
+  },
+  {
+    "question": "정종인 경력 알려줘",
+    "count": 4,
+    "updatedAt": 1777426895332
+  },
+  {
+    "question": "진료시간은?",
+    "count": 4,
+    "updatedAt": 1777426895168
   },
   {
     "question": "코세척 방법 알려줘",
@@ -420,39 +510,59 @@
     "updatedAt": 1776381340893
   },
   {
-    "question": "보청기 상담",
+    "question": "퇴원 절차는 어떻게 진행되나요?",
     "count": 3,
-    "updatedAt": 1777420639590
+    "updatedAt": 1777426949090
   },
   {
-    "question": "어지럼증이 심한데 이비인후과에서도 진료가 가능한가요?",
+    "question": "병실 면회 시간은 어떻게 되나요?",
     "count": 3,
-    "updatedAt": 1777420639243
+    "updatedAt": 1777426948973
   },
   {
-    "question": "편도선이 자주 붓고 열이 나는데 편도수술 상담을 받아야 할까요?",
+    "question": "서류신청 가능한가요?",
     "count": 3,
-    "updatedAt": 1777420639132
+    "updatedAt": 1777426948853
   },
   {
-    "question": "수면무호흡 검사는 어떻게 진행되고 비용은 어느 정도인가요?",
+    "question": "접수 어떻게 하나요?",
     "count": 3,
-    "updatedAt": 1777420639021
+    "updatedAt": 1777426948738
   },
   {
-    "question": "비중격만곡증 비용",
+    "question": "코골이 진료 가능한가요?",
     "count": 3,
-    "updatedAt": 1777420638894
+    "updatedAt": 1777426948629
   },
   {
-    "question": "비중격만곡증 수술",
+    "question": "김병길 의사 진료 시간표",
     "count": 3,
-    "updatedAt": 1777420638760
+    "updatedAt": 1777426948310
   },
   {
-    "question": "코수술 비용 알려줘",
+    "question": "이상덕원장님 휴진일정",
     "count": 3,
-    "updatedAt": 1777420635446
+    "updatedAt": 1777426948197
+  },
+  {
+    "question": "점심시간은 몇 시부터 몇 시까지인가요?",
+    "count": 3,
+    "updatedAt": 1777426948079
+  },
+  {
+    "question": "부비동염 진료하면 검사 가능한가요?",
+    "count": 3,
+    "updatedAt": 1777426891880
+  },
+  {
+    "question": "코골이 관련해서 수면다원검사 가능한가요?",
+    "count": 3,
+    "updatedAt": 1777426891076
+  },
+  {
+    "question": "목아파서 가려고 하는데 진료가능해?",
+    "count": 3,
+    "updatedAt": 1777426890603
   },
   {
     "question": "편도수술 떄 검사 뭐있어",
@@ -530,29 +640,79 @@
     "updatedAt": 1776383246672
   },
   {
-    "question": "카드결제 되나?",
+    "question": "비중격만곡증 수술 비용",
     "count": 2,
-    "updatedAt": 1777420635831
+    "updatedAt": 1777426902358
   },
   {
-    "question": "마운자로 주사 가능해?",
+    "question": "의무기록 사본 발급 시 필요한 서류는 무엇인가요?",
     "count": 2,
-    "updatedAt": 1777420635705
+    "updatedAt": 1777426901354
   },
   {
-    "question": "내일 모레 입원하는데 준비물 뭐가 필요해?",
+    "question": "몇시까지 가면 진료 할 수 있나요?",
     "count": 2,
-    "updatedAt": 1777420635573
+    "updatedAt": 1777426900470
   },
   {
-    "question": "정종인 경력 알려줘",
+    "question": "성대 물혹",
     "count": 2,
-    "updatedAt": 1777420635312
+    "updatedAt": 1777426894196
   },
   {
-    "question": "진료시간은?",
+    "question": "병원 진료시간을 알려주세요.",
     "count": 2,
-    "updatedAt": 1777420635145
+    "updatedAt": 1777426894040
+  },
+  {
+    "question": "토요일에도 진료하나요?",
+    "count": 2,
+    "updatedAt": 1777426893890
+  },
+  {
+    "question": "예약 없이 방문해도 진료를 받을 수 있나요?",
+    "count": 2,
+    "updatedAt": 1777426893568
+  },
+  {
+    "question": "초진 환자는 예약을 어떻게 하나요?",
+    "count": 2,
+    "updatedAt": 1777426893399
+  },
+  {
+    "question": "병원 주차장은 이용할 수 있나요?",
+    "count": 2,
+    "updatedAt": 1777426893219
+  },
+  {
+    "question": "주차비 지원 시간이 어떻게 되나요?",
+    "count": 2,
+    "updatedAt": 1777426893045
+  },
+  {
+    "question": "입원할 때 준비해야 할 물품은 무엇인가요?",
+    "count": 2,
+    "updatedAt": 1777426892883
+  },
+  {
+    "question": "재원중인데 퇴원시가은 언제인가요",
+    "count": 2,
+    "updatedAt": 1777426892721
+  },
+  {
+    "question": "입원 중 보호자 상주는 가능한가요?",
+    "count": 2,
+    "updatedAt": 1777426892563
+  },
+  {
+    "question": "병원 위치와 대중교통 이용 방법을 알려주세요.",
+    "count": 2,
+    "updatedAt": 1777426892407
+  },
+  {
+    "question": "셔틀버스",
+    "count": 2,
+    "updatedAt": 1777426892055
   },
   {
     "question": "진료 후 결과는 문자나 앱으로 받아볼 수 있나요?",
@@ -838,15 +998,5 @@
     "question": "수술 금액이 얼마인가요?",
     "count": 1,
     "updatedAt": 1776382344678
-  },
-  {
-    "question": "수술 후 출혈이 있으면 어떻게 하나요?",
-    "count": 1,
-    "updatedAt": 1776382053557
-  },
-  {
-    "question": "코수술 후 피가 계속 나요",
-    "count": 1,
-    "updatedAt": 1776382053409
   }
 ]

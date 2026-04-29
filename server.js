@@ -2176,6 +2176,15 @@ function shouldUseConsultationTone(payload) {
     'dizziness_care',
     'hearing_aid_consult',
     'parking_and_clinic_hours',
+    'reception_deadline',
+    'document_fee_overview',
+    'named_doctor_schedule',
+    'snoring_care',
+    'nasal_congestion_sinusitis',
+    'reception_process',
+    'document_application',
+    'visitor_policy',
+    'discharge_process',
   ].includes(type);
 }
 
@@ -2303,6 +2312,15 @@ function enrichResponsePayload(payload, question) {
     'dizziness_care',
     'hearing_aid_consult',
     'parking_and_clinic_hours',
+    'reception_deadline',
+    'document_fee_overview',
+    'named_doctor_schedule',
+    'snoring_care',
+    'nasal_congestion_sinusitis',
+    'reception_process',
+    'document_application',
+    'visitor_policy',
+    'discharge_process',
   ].includes(localizedPayload.type);
 
   return sanitizeOutgoingPayload({
@@ -3696,6 +3714,221 @@ function buildParkingAndClinicHoursResponse(message) {
       buildLocalDocSource('홈페이지-외래진료안내', '홈페이지-외래진료안내.txt'),
       buildLocalDocSource('홈페이지-셔틀버스 및 오시는길', '홈페이지-셔틀버스 및 오시는길.txt'),
     ],
+  };
+}
+
+function buildReceptionDeadlineResponse(message) {
+  const text = String(message || '');
+  const asksDeadline = /(몇\s*시|언제|시간|마감|점심\s*시간|점심시간).{0,16}(가야|까지|진료\s*볼|진료받|진료\s*받|접수|진료|하나|하나요)|접수\s*마감|마감\s*시간|점심\s*시간|점심시간/u.test(text);
+  if (!asksDeadline) {
+    return null;
+  }
+
+  return {
+    type: 'reception_deadline',
+    answer: '진료시간은 평일 오전 9시부터 오후 6시까지이고, 점심시간은 오후 1시부터 2시까지입니다. 토요일은 오전 9시부터 오후 1시 30분까지 진료하며 점심시간 없이 운영됩니다. 접수는 평일 오전 8시 30분부터 오후 5시 30분까지, 토요일은 오전 8시 30분부터 오후 1시까지 가능합니다.',
+    followUp: [
+      '초진은 오전 진료의 경우 11시 30분까지, 오후 진료의 경우 오후 5시까지 접수하는 것이 안전합니다.',
+      '재진은 오전 12시까지, 오후 5시 30분까지 접수 기준으로 안내되어 있습니다.',
+      '진료과와 의료진 상황에 따라 달라질 수 있어 늦게 도착할 예정이면 대표전화 02-6925-1111로 확인해 주세요.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('홈페이지-외래진료안내', '홈페이지-외래진료안내.txt'),
+    ],
+  };
+}
+
+function buildGenericDocumentFeeResponse(message) {
+  const text = String(message || '');
+  if (!/(서류|제증명|증명서|확인서|진료기록|의무기록)/u.test(text) || !/(비용|금액|수수료|얼마|가격)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'document_fee_overview',
+    answer: '서류 비용은 서류 종류에 따라 다릅니다. 병원 비급여 안내 기준으로 입퇴원확인서는 3,000원, 입퇴원확인서 재발행은 1,000원, 진료기록사본은 1,000원으로 안내되어 있습니다.',
+    followUp: [
+      '원하시는 서류명이 정해져 있으면 해당 서류명으로 문의해 주시면 더 정확히 안내드릴 수 있습니다.',
+      '서류 발급은 본인 확인이 필요할 수 있어 신분증을 지참해 주세요.',
+      '대리 발급은 관계 확인 서류나 위임 서류가 필요할 수 있습니다.',
+    ],
+    sources: [
+      buildLocalDocSource('기타-비급여비용', '기타-비급여비용.txt'),
+      buildIntegratedFaqDocSource(),
+    ],
+  };
+}
+
+function buildNamedDoctorScheduleResponse(message) {
+  const text = String(message || '');
+  const asksSchedule = /(진료\s*시간|진료시간|시간표|진료표|진료\s*일정|진료일정|휴진|일정)/u.test(text);
+  if (!asksSchedule) {
+    return null;
+  }
+
+  const scheduleImage = {
+    title: '진료일정 안내',
+    description: '의료진 외래 진료일정표입니다.',
+    display: 'document',
+    url: resolvePublicImagePath('/images/%EC%A7%84%EB%A3%8C%EC%9D%BC%EC%A0%95%EC%A0%84%EC%B2%B4.png'),
+  };
+
+  if (/이상덕/u.test(text)) {
+    return {
+      type: 'named_doctor_schedule',
+      answer: '이상덕 병원장은 코 센터에서 진료합니다. 홈페이지 의료진 정보 기준으로 외래 진료는 오후 월요일, 목요일에 안내되어 있고, 토요일 진료는 4월 4일과 4월 11일로 안내되어 있습니다.',
+      followUp: [
+        '휴진이나 당일 일정 변경은 진료일정표 또는 대표전화 02-6925-1111로 내원 전 확인해 주세요.',
+        '의료진 일정표 이미지를 함께 확인하시면 전체 진료일정을 한눈에 볼 수 있습니다.',
+      ],
+      images: [scheduleImage],
+      sources: [
+        buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt'),
+        buildLocalDocSource('진료일정', '진료일정전체.png'),
+      ],
+    };
+  }
+
+  if (/김병길/u.test(text)) {
+    return {
+      type: 'named_doctor_schedule',
+      answer: '김병길 원장은 이비인후과 전문의이며 코 센터에서 진료합니다. 홈페이지 의료진 정보 기준으로 외래 진료는 오전 수요일, 오후 월요일ㆍ수요일ㆍ목요일ㆍ금요일에 안내되어 있고, 토요일 진료는 4월 4일과 4월 25일로 안내되어 있습니다.',
+      followUp: [
+        '전문 분야는 부비동내시경수술, 비염, 비중격만곡증, 수면무호흡, 성인편도, 소아이비인후과로 안내되어 있습니다.',
+        '휴진이나 당일 일정 변경은 진료일정표 또는 대표전화 02-6925-1111로 내원 전 확인해 주세요.',
+      ],
+      images: [scheduleImage],
+      sources: [
+        buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt'),
+        buildLocalDocSource('진료일정', '진료일정전체.png'),
+      ],
+    };
+  }
+
+  return null;
+}
+
+function buildSnoringCareResponse(message) {
+  const text = String(message || '');
+  if (!/(코골이|수면무호흡)/u.test(text) || !/(진료|가능|상담|치료|검사)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'snoring_care',
+    answer: '코골이와 수면무호흡 관련 진료가 가능합니다. 코골이와 수면무호흡은 증상 정도와 폐쇄 부위에 따라 수술적 치료와 비수술적 치료를 함께 검토할 수 있으며, 필요한 경우 수면다원검사 등으로 상태를 확인합니다.',
+    followUp: [
+      '코막힘, 입으로 숨쉬기, 낮 졸림, 수면 중 숨 멎음이 함께 있으면 진료 시 같이 말씀해 주세요.',
+      '진료 가능 시간은 의료진 일정에 따라 달라질 수 있어 예약 전 확인을 권장드립니다.',
+      '대표전화 02-6925-1111',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('외래-의료진 명단', '외래-의료진 명단.txt'),
+    ],
+  };
+}
+
+function buildNasalCongestionSinusitisResponse(message) {
+  const text = String(message || '');
+  if (!/코막힘/u.test(text) || !/(축농증|부비동염|인가요|심한|심해|같아요|맞나요)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'nasal_congestion_sinusitis',
+    answer: '코막힘만으로 축농증인지 바로 판단하기는 어렵습니다. 코막힘은 비염, 비중격만곡증, 축농증처럼 여러 원인에서 생길 수 있어 진료와 필요한 검사를 통해 확인하는 것이 좋습니다.',
+    followUp: [
+      '누런 콧물, 얼굴 통증, 후각 저하, 열감이 함께 있으면 진료 시 꼭 말씀해 주세요.',
+      '코 센터 진료에서 증상과 내시경 소견 등을 함께 확인할 수 있습니다.',
+      '증상이 심하거나 오래 지속되면 내원 상담을 권장드립니다.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('홈페이지-만성부비동염', '홈페이지-만성부비동염.txt'),
+      buildLocalDocSource('홈페이지-만성비염', '홈페이지-만성비염.txt'),
+    ],
+  };
+}
+
+function buildReceptionProcessResponse(message) {
+  const text = String(message || '');
+  if (!/(접수|수납|원무과)/u.test(text) || !/(어떻게|어디|위치|방법|하나요|하나|절차)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'reception_process',
+    answer: '접수와 수납은 1층 원무과 접수 데스크에서 진행합니다. 예약 후 내원하신 경우 1층 접수 데스크에서 예약사항을 확인하고 내원 등록을 하시면 됩니다. 방문 접수의 경우 성함, 주민등록번호, 연락처, 증상 등을 확인한 뒤 접수가 진행됩니다.',
+    followUp: [
+      '처음 내원하시는 경우 본인 확인을 위해 신분증을 지참해 주세요.',
+      '진료의뢰서, 타 병원 CD, 소견서가 있으면 접수 시 미리 제출해 주세요.',
+      '휠체어가 필요한 경우 2층 안내데스크에 요청할 수 있습니다.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('기타-층별안내도', '기타-층별안내도.txt'),
+    ],
+  };
+}
+
+function buildDocumentApplicationResponse(message) {
+  const text = String(message || '');
+  if (!/(서류|제증명|증명서|확인서|의무기록|진료기록|기록\s*사본)/u.test(text) || !/(신청|발급|가능|필요|구비|준비|받을|복사)/u.test(text)) {
+    return null;
+  }
+
+  const asksRequiredDocs = /(필요|구비|준비|무엇|뭐)/u.test(text);
+  return {
+    type: 'document_application',
+    answer: asksRequiredDocs
+      ? '의무기록 사본이나 각종 서류 발급은 본인 확인이 필요합니다. 기본적으로 본인이 신분증을 지참해 내원해야 하며, 보호자나 대리인이 발급받는 경우에는 관계 확인 서류와 위임 관련 서류가 추가로 필요할 수 있습니다.'
+      : '서류 신청과 발급은 가능합니다. 영수증은 팩스 발급이 가능하지만 진료비 세부내역서는 팩스 발급이 어렵고, 그 외 서류는 본인 확인이 필요해 신분증 지참 후 내원하는 것을 원칙으로 안내되어 있습니다.',
+    followUp: [
+      '입퇴원 관련 제증명 서류는 입원 중 병동 간호사에게 미리 신청하거나 퇴원 후 외래에서 신청할 수 있습니다.',
+      '서류 종류와 신청자 관계에 따라 필요 서류가 달라질 수 있어 내원 전 대표전화 02-6925-1111로 확인해 주세요.',
+      '접수 가능 시간은 평일 오전 8시 30분부터 오후 5시 30분, 토요일 오전 8시 30분부터 오후 1시까지입니다.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('기타-비급여비용', '기타-비급여비용.txt'),
+    ],
+  };
+}
+
+function buildVisitorPolicyResponse(message) {
+  const text = String(message || '');
+  if (!/(면회|병문안|방문)/u.test(text) || !/(시간|가능|안내|병실|되나요|되나)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'visitor_policy',
+    answer: '입원환자 면회는 전면 금지로 안내되어 있습니다. 면회나 병문안 대신 1층과 2층 대기실 이용을 안내하고 있으며, 소아환자의 경우 보호자 한 분이 함께 있을 수 있습니다.',
+    followUp: [
+      '감염 예방과 환자 안정을 위한 기준이라 병동 상황에 따라 안내가 달라질 수 있습니다.',
+      '입원 중 보호자 동반이 필요한 경우 병동 간호사에게 확인해 주세요.',
+    ],
+    sources: [buildIntegratedFaqDocSource()],
+  };
+}
+
+function buildDischargeProcessResponse(message) {
+  const text = String(message || '');
+  if (!/퇴원/u.test(text) || !/(절차|진행|방법|어떻게|시간|몇\s*시|언제|서류)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'discharge_process',
+    answer: '퇴원은 수술 종류와 회복 상태에 따라 시간이 달라질 수 있습니다. 통합 FAQ 기준으로 코 수술은 오전 9시부터 9시 30분 또는 오후 2시 전후, 목 수술은 오전 9시부터 9시 30분 전후, 귀 수술은 오전 9시부터 9시 30분 또는 오후 2시 전후 퇴원으로 안내되어 있습니다.',
+    followUp: [
+      '최종 퇴원 가능 여부와 시간은 담당 의료진과 병동 안내에 따라 결정됩니다.',
+      '입퇴원확인서 등 제증명 서류가 필요하면 입원 중 병동 간호사에게 미리 신청하거나 퇴원 후 외래에서 신청할 수 있습니다.',
+      '퇴원 당일 운전이 어려울 수 있어 보호자 동행을 권장드립니다.',
+    ],
+    sources: [buildIntegratedFaqDocSource()],
   };
 }
 
@@ -8094,6 +8327,51 @@ async function buildChatResponse(rawMessage, sessionId) {
 
   if (!message) {
     return enrichResponsePayload(createWelcomeResponse(), message);
+  }
+
+  const preMeaningNamedDoctorScheduleResponse = buildNamedDoctorScheduleResponse(message);
+  if (preMeaningNamedDoctorScheduleResponse) {
+    return enrichResponsePayload(preMeaningNamedDoctorScheduleResponse, message);
+  }
+
+  const preMeaningReceptionDeadlineResponse = buildReceptionDeadlineResponse(message);
+  if (preMeaningReceptionDeadlineResponse) {
+    return enrichResponsePayload(preMeaningReceptionDeadlineResponse, message);
+  }
+
+  const preMeaningGenericDocumentFeeResponse = buildGenericDocumentFeeResponse(message);
+  if (preMeaningGenericDocumentFeeResponse) {
+    return enrichResponsePayload(preMeaningGenericDocumentFeeResponse, message);
+  }
+
+  const preMeaningSnoringCareResponse = buildSnoringCareResponse(message);
+  if (preMeaningSnoringCareResponse) {
+    return enrichResponsePayload(preMeaningSnoringCareResponse, message);
+  }
+
+  const preMeaningNasalCongestionSinusitisResponse = buildNasalCongestionSinusitisResponse(message);
+  if (preMeaningNasalCongestionSinusitisResponse) {
+    return enrichResponsePayload(preMeaningNasalCongestionSinusitisResponse, message);
+  }
+
+  const preMeaningReceptionProcessResponse = buildReceptionProcessResponse(message);
+  if (preMeaningReceptionProcessResponse) {
+    return enrichResponsePayload(preMeaningReceptionProcessResponse, message);
+  }
+
+  const preMeaningDocumentApplicationResponse = buildDocumentApplicationResponse(message);
+  if (preMeaningDocumentApplicationResponse) {
+    return enrichResponsePayload(preMeaningDocumentApplicationResponse, message);
+  }
+
+  const preMeaningVisitorPolicyResponse = buildVisitorPolicyResponse(message);
+  if (preMeaningVisitorPolicyResponse) {
+    return enrichResponsePayload(preMeaningVisitorPolicyResponse, message);
+  }
+
+  const preMeaningDischargeProcessResponse = buildDischargeProcessResponse(message);
+  if (preMeaningDischargeProcessResponse) {
+    return enrichResponsePayload(preMeaningDischargeProcessResponse, message);
   }
 
   const preMeaningParkingAndClinicHoursResponse = buildParkingAndClinicHoursResponse(message);
