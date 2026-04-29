@@ -2184,6 +2184,7 @@ function shouldUseConsultationTone(payload) {
     'reception_process',
     'document_application',
     'visitor_policy',
+    'hospital_history',
     'discharge_process',
   ].includes(type);
 }
@@ -2320,6 +2321,7 @@ function enrichResponsePayload(payload, question) {
     'reception_process',
     'document_application',
     'visitor_policy',
+    'hospital_history',
     'discharge_process',
   ].includes(localizedPayload.type);
 
@@ -3899,7 +3901,9 @@ function buildDocumentApplicationResponse(message) {
 
 function buildVisitorPolicyResponse(message) {
   const text = String(message || '');
-  if (!/(면회|병문안|방문)/u.test(text) || !/(시간|가능|안내|병실|되나요|되나)/u.test(text)) {
+  const asksVisitPolicy = /(면회|병문안)/u.test(text)
+    || (/(병실|입원|보호자|환자)/u.test(text) && /(방문|방문객)/u.test(text));
+  if (!asksVisitPolicy || !/(시간|가능|안내|병실|되나요|되나|방문)/u.test(text)) {
     return null;
   }
 
@@ -3911,6 +3915,26 @@ function buildVisitorPolicyResponse(message) {
       '입원 중 보호자 동반이 필요한 경우 병동 간호사에게 확인해 주세요.',
     ],
     sources: [buildIntegratedFaqDocSource()],
+  };
+}
+
+function buildHospitalHistoryResponse(message) {
+  const text = String(message || '');
+  if (!/(하나이비인후과|병원)/u.test(text) || !/(창립|개원|설립|언제\s*생|언제\s*시작|역사)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'hospital_history',
+    answer: '하나이비인후과병원은 1995년에 개원한 것으로 안내되어 있습니다. 이후 이비인후과 진료와 수술 경험을 바탕으로 코 질환 센터 등 전문 진료 영역을 운영하고 있습니다.',
+    followUp: [
+      '병원 연혁이나 소개 관련 상세 내용은 병원 소개 페이지 또는 대표전화 02-6925-1111로 확인해 주세요.',
+      '진료센터나 의료진 정보가 궁금하시면 코 센터, 목 센터, 귀 질환 센터처럼 센터명을 함께 질문해 주세요.',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt'),
+      buildLocalDocSource('홈페이지-축농증', '홈페이지-축농증.txt'),
+    ],
   };
 }
 
@@ -8367,6 +8391,11 @@ async function buildChatResponse(rawMessage, sessionId) {
   const preMeaningVisitorPolicyResponse = buildVisitorPolicyResponse(message);
   if (preMeaningVisitorPolicyResponse) {
     return enrichResponsePayload(preMeaningVisitorPolicyResponse, message);
+  }
+
+  const preMeaningHospitalHistoryResponse = buildHospitalHistoryResponse(message);
+  if (preMeaningHospitalHistoryResponse) {
+    return enrichResponsePayload(preMeaningHospitalHistoryResponse, message);
   }
 
   const preMeaningDischargeProcessResponse = buildDischargeProcessResponse(message);

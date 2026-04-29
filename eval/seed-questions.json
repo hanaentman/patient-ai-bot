@@ -1,5 +1,95 @@
 [
   {
+    "question": "입원시 보호자 동반?",
+    "caseType": "admin_normal",
+    "expectedIntent": "guardian_visit",
+    "expectedSource": "통합-FAQ / 홈페이지-입퇴원 안내",
+    "expectedAnswerHint": "입원 생활 관련해서 안내드릴게요.\n\n입원 환자 면회는 환자 안전관리와 감염병 예방을 위해 전면 금지로 안내되어 있습니다. 면회가 필요한 경우에도 병실 면회가 아니라 다른 환자의 안정과 쾌유를 위해 1층 또는 2층 대기실 이용으로 안내됩니다. 소아 환자(15세 이하)는 보호자 한 분이 계실 수 있습니다.\n- 보호자 상주 가능 여부는 환자 상태와 의료진 판단에 따라 달라질 수 있습니다.\n- 대표전화 02-6925-1111",
+    "adminNote": "",
+    "reviewedLogId": "log-1777429424142-rftnud"
+  },
+  {
+    "question": "성대물혹있어요 진료가능한가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "throat_mass_care",
+    "expectedSource": "홈페이지-목의 혹 / 외래-의료진 명단",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n성대물혹이나 목의 혹은 진료 가능합니다. 홈페이지 목의 혹 안내 기준으로 환자 나이, 혹의 위치, 발생 시기, 크기, 통증 여부 등을 확인하고 후두내시경검사, 혈액검사, 초음파검사, 방사선검사, CT검사 등을 시행할 수 있습니다.\n- 성대물혹 관련 진료는 목질환센터 또는 두경부센터 의료진 기준으로 확인해 주세요.\n- 검사와 치료 방향은 진료 후 의료진이 결정합니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777429389244-bhobd8"
+  },
+  {
+    "question": "코골이 진료",
+    "caseType": "admin_normal",
+    "expectedIntent": "snoring_care",
+    "expectedSource": "통합-FAQ / 외래-의료진 명단",
+    "expectedAnswerHint": "코골이와 수면무호흡 관련 진료가 가능합니다. 코골이와 수면무호흡은 증상 정도와 폐쇄 부위에 따라 수술적 치료와 비수술적 치료를 함께 검토할 수 있으며, 필요한 경우 수면다원검사 등으로 상태를 확인합니다.\n- 코막힘, 입으로 숨쉬기, 낮 졸림, 수면 중 숨 멎음이 함께 있으면 진료 시 같이 말씀해 주세요.\n- 진료 가능 시간은 의료진 일정에 따라 달라질 수 있어 예약 전 확인을 권장드립니다.\n- 대표전화 02-6925-1111",
+    "adminNote": "",
+    "reviewedLogId": "log-1777429358072-d5uiol"
+  },
+  {
+    "question": "코센터 의료진 소개",
+    "caseType": "admin_normal",
+    "expectedIntent": "center_doctor_list",
+    "expectedSource": "외래-의료진 명단",
+    "expectedAnswerHint": "의료진 관련해서 안내드릴게요.\n\n코진료는 코센터 의료진 기준으로 안내드릴 수 있습니다. 외래 의료진 명단 기준 코센터 의료진은 동헌종 대표원장, 이상덕 병원장, 정도광 원장, 김태현 부원장, 정종인 진료부장, 장규선 과장, 김병길 과장입니다.\n- 의료진별 진료일정은 외래 진료표와 당일 상황에 따라 달라질 수 있습니다.\n- 비염, 축농증, 비중격만곡증, 코물혹 등 코 질환 문의는 코센터 기준으로 안내됩니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777429349743-np6li6"
+  },
+  {
+    "question": "의무기록사본 비용은 얼마",
+    "caseType": "admin_normal",
+    "expectedIntent": "document_fee_overview",
+    "expectedSource": "기타-비급여비용 / 통합-FAQ",
+    "expectedAnswerHint": "서류 비용은 서류 종류에 따라 다릅니다. 병원 비급여 안내 기준으로 입퇴원확인서는 3,000원, 입퇴원확인서 재발행은 1,000원, 진료기록사본은 1,000원으로 안내되어 있습니다.\n- 원하시는 서류명이 정해져 있으면 해당 서류명으로 문의해 주시면 더 정확히 안내드릴 수 있습니다.\n- 서류 발급은 본인 확인이 필요할 수 있어 신분증을 지참해 주세요.\n- 대리 발급은 관계 확인 서류나 위임 서류가 필요할 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777428606087-0f8o2o"
+  },
+  {
+    "question": "비중격만곡중 수술에 대해서 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "homepage_surgery_info",
+    "expectedSource": "홈페이지-비중격만곡증",
+    "expectedAnswerHint": "수술 관련해서 안내드릴게요.\n\n비중격만곡증 수술 안내드립니다. 수술비용은 약 150~200만원(실비보험 적용 가능)입니다. 수술시간은 약 30분입니다. 마취방법은 수면마취+국소마취입니다. 입원기간은 1박 2일 또는 2박 3일입니다. 수술 후 내원치료는 수술 후 8~12회입니다. 회복기간은 약 3주~4주 하나이비인후과병원 비중격만곡증 수술 장점 부작용 최소화 비중격교정술입니다. 정확한 수술 적응증과 방법은 진료와 검사 후 결정되므로 자세한 상담이나 예약은 대표전화 02-6925-1111로 문의해 주세요.\n\n비중격만곡증 관련 영상 보기: https://www.youtube.com/watch?v=vpwYbln5tLE\n- 원하시는 수술명을 구체적으로 말씀해 주시면 비용, 입원기간, 회복기간 기준으로 다시 안내해 드릴게요.\n- 보험 적용 여부와 실제 비용은 질환 상태와 검사 결과에 따라 달라질 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777428581847-sjf5wu"
+  },
+  {
+    "question": "이상덕 원장의 전문분야에 대해서 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "doctor_specialty",
+    "expectedSource": "홈페이지-의료진 정보",
+    "expectedAnswerHint": "의료진 관련해서 안내드릴게요.\n\n이상덕 의료진의 전문분야는 부비동내시경수술, 코물혹, 코 막힘, 비중격만곡증, 알레르기 비염 입니다.\n- 진료 일정은 외래 진료표와 당일 상황에 따라 달라질 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777428553746-bvbf3i"
+  },
+  {
+    "question": "동헌종 경력",
+    "caseType": "admin_normal",
+    "expectedIntent": "doctor_career",
+    "expectedSource": "홈페이지-의료진 정보",
+    "expectedAnswerHint": "의료진 관련해서 안내드릴게요.\n\n동헌종 의료진의 전문분야는 부비동 내시경수술, 코물혹, 비중격만곡증, 알레르기 비염입니다. 주요 경력은 다음과 같습니다.\n\n- 서울대학교 의과대학 의학박사\n- 서울대병원 이비인후과 전공의\n- 서울대병원 이비인후과 전임의\n- 보라매병원 이비인후과 과장\n- University of Pennsylvania Hospital : fellow\n- 삼성서울병원 전문의\n- 성균관대학교 의과대학 부교수\n- Cleveland Clinic : visiting scholar\n- 성균관대학교 의과대학 교수\n- 성균관대학교의과대학 이비인후과학 주임교수\n- 삼성서울병원 이비인후과 과장\n- 삼성서울병원 환자행복추진실장\n- 삼성서울병원 진료부원장\n- 대한비과학회 회장\n- 진료 일정은 외래 진료표와 당일 상황에 따라 달라질 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777428266093-87lnk8"
+  },
+  {
+    "question": "의무기록 사본 발급 시 필요한 서류는 무엇인가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "document_application",
+    "expectedSource": "통합-FAQ / 기타-비급여비용",
+    "expectedAnswerHint": "의무기록 사본이나 각종 서류 발급은 본인 확인이 필요합니다. 기본적으로 본인이 신분증을 지참해 내원해야 하며, 보호자나 대리인이 발급받는 경우에는 관계 확인 서류와 위임 관련 서류가 추가로 필요할 수 있습니다.\n- 입퇴원 관련 제증명 서류는 입원 중 병동 간호사에게 미리 신청하거나 퇴원 후 외래에서 신청할 수 있습니다.\n- 서류 종류와 신청자 관계에 따라 필요 서류가 달라질 수 있어 내원 전 대표전화 02-6925-1111로 확인해 주세요.\n- 접수 가능 시간은 평일 오전 8시 30분부터 오후 5시 30분, 토요일 오전 8시 30분부터 오후 1시까지입니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777428240926-9hhoxh"
+  },
+  {
+    "question": "면회시간이 있나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "visitor_policy",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "입원환자 면회는 전면 금지로 안내되어 있습니다. 면회나 병문안 대신 1층과 2층 대기실 이용을 안내하고 있으며, 소아환자의 경우 보호자 한 분이 함께 있을 수 있습니다.\n- 감염 예방과 환자 안정을 위한 기준이라 병동 상황에 따라 안내가 달라질 수 있습니다.\n- 입원 중 보호자 동반이 필요한 경우 병동 간호사에게 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777427391113-x9vv9s"
+  },
+  {
     "question": "몇시까지 가야 진료 볼수있어?",
     "caseType": "admin_normal",
     "expectedIntent": "ai",
