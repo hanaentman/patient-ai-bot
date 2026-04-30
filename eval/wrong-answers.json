@@ -1,5 +1,75 @@
 [
   {
+    "question": "대표 홈페이지 주소ㅠ알려줘",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "하나이비인후과병원 홈페이지 주소는 https://hanaent.co.kr/입니다.\n- 진료 예약, 의료진 안내, 오시는 길 등은 홈페이지에서 확인하실 수 있습니다.",
+    "expectedIntent": "대표 홈페이지 주소",
+    "expectedSource": "통합-FAQ.txt",
+    "expectedAnswerHint": "홈페이지 주소는 https://hanaent.co.kr/입니다. 입니다 앞에 한칸 띄어쓰기가 들어가야되",
+    "adminNote": "",
+    "reviewedLogId": "log-1777520700260-t7cp0o"
+  },
+  {
+    "question": "홈페이지 주소도 알려주세요",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "하나이비인후과병원 홈페이지 주소는 https://hanaent.co.kr/입니다.\n- 진료 예약, 의료진 안내, 오시는 길 등은 홈페이지에서 확인하실 수 있습니다.",
+    "expectedIntent": "대표 홈페이지 주소",
+    "expectedSource": "통합-FAQ.txt",
+    "expectedAnswerHint": "홈페이지 주소는 https://hanaent.co.kr/입니다. 입니다 앞에 한칸 띄어쓰기가 들어가야되",
+    "adminNote": "",
+    "reviewedLogId": "log-1777520660109-sksen3"
+  },
+  {
+    "question": "진료일정",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "의료진 관련해서 안내드릴게요.\n\n의료진 진료일정은 외래 진료표 기준으로 확인하시면 됩니다. 다만 오늘 실제 진료 가능 여부는 당일 수술, 휴진, 대기 상황에 따라 달라질 수 있어 내원 전 대표전화 02-6925-1111로 확인해 주세요.\n- 아래 진료일정표 이미지를 참고해 주세요.\n- 특정 의료진 이름을 알려주시면 해당 의료진 기준으로도 안내해 드릴게요.",
+    "expectedIntent": "진료일정",
+    "expectedSource": "홈페이지-외래진료안내.txt",
+    "expectedAnswerHint": "의료진 관련해서 안내드릴게요. 문구삭제 해주세요",
+    "adminNote": "",
+    "reviewedLogId": "log-1777520577800-nhrazz"
+  },
+  {
+    "question": "잠실역에서 어떻게 가야되?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "문의하신 내용에 대해 안내드릴게요.\n\n하나이비인후과병원 주소는 서울특별시 강남구 역삼로 245입니다. 대중교통은 2호선 역삼역 1번 출구를 이용하시면 되고, 역삼역 1번 출구에서 병원 셔틀버스도 이용할 수 있습니다. 자동차로 오실 때는 내비게이션에 “서울특별시 강남구 역삼로 245” 또는 “하나이비인후과병원”을 입력하시면 됩니다.\n- 역삼역 1번 출구에서 도보 약 10분 거리로 안내되어 있습니다.\n- 버스는 동영문화센터, 개나리아파트, 신한은행 전산센터 정류장 하차 안내가 있습니다.",
+    "expectedIntent": "오시는길",
+    "expectedSource": "홈페이지-셔틀버스 및 오시는길.txt",
+    "expectedAnswerHint": "역삼역에서 하차하여 1번출구에서 도보 15분 입니다. 셔틀버스 안내도 추가",
+    "adminNote": "",
+    "reviewedLogId": "log-1777516465364-74x8vv"
+  },
+  {
+    "question": "대기시간이 얼마나 걸릴까",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "비용 관련해서 안내드릴게요.\n\n예약 없이 당일 방문 진료도 가능하지만 외래 상황에 따라 대기시간이 발생할 수 있습니다. 홈페이지 외래진료안내에는 당일 방문 진료가 가능하나 대기시간이 발생할 수 있다고 안내되어 있고, 통합 FAQ에는 당일 예약은 1시간 이내 도착 가능할 때 방문 접수로 안내될 수 있다고 되어 있습니다. 대기가 길 수 있어 가능하면 예약 후 내원하시는 것을 권장드립니다.\n- 당일 외래대기실 상황에 따라 달라질 수 있어 내원 전 대표전화 02-6925-1111로 확인해 주세요.\n- 접수 마감 시간 전에 여유 있게 방문해 주세요.",
+    "expectedIntent": "외래 대기시간",
+    "expectedSource": "홈페이지-외래진료안내 / 통합-FAQ",
+    "expectedAnswerHint": "외래 대기시간 안내해주세요 정확한 시간은 직원에게 문의해주세요",
+    "adminNote": "",
+    "reviewedLogId": "log-1777516198835-pdh3mw"
+  },
+  {
+    "question": "외래 대기시간이 얼마나 걸릴까",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "비용 관련해서 안내드릴게요.\n\n예약 없이 당일 방문 진료도 가능하지만 외래 상황에 따라 대기시간이 발생할 수 있습니다. 홈페이지 외래진료안내에는 당일 방문 진료가 가능하나 대기시간이 발생할 수 있다고 안내되어 있고, 통합 FAQ에는 당일 예약은 1시간 이내 도착 가능할 때 방문 접수로 안내될 수 있다고 되어 있습니다. 대기가 길 수 있어 가능하면 예약 후 내원하시는 것을 권장드립니다.\n- 당일 외래대기실 상황에 따라 달라질 수 있어 내원 전 대표전화 02-6925-1111로 확인해 주세요.\n- 접수 마감 시간 전에 여유 있게 방문해 주세요.",
+    "expectedIntent": "외래 대기시간",
+    "expectedSource": "홈페이지-외래진료안내 / 통합-FAQ",
+    "expectedAnswerHint": "외래 대기시간 안내해주세요 정확한 시간은 직원에게 문의해주세요",
+    "adminNote": "",
+    "reviewedLogId": "log-1777516189238-plm31d"
+  },
+  {
+    "question": "사람 많아?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "현재 확인된 병원 문서만으로는 정확히 안내드리기 어렵습니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.\n- 서류발급안내",
+    "expectedIntent": "외래 대기시간",
+    "expectedSource": "",
+    "expectedAnswerHint": "외래 대기시간 안내해주세요 정확한 시간은 직원에게 문의해주세요",
+    "adminNote": "",
+    "reviewedLogId": "log-1777516148704-zmgbpt"
+  },
+  {
     "question": "비염 치료 수술 하면 비용은 얼마나 나와",
     "caseType": "actual_wrong_answer",
     "wrongAnswer": "수술 관련해서 안내드릴게요.\n\n일반적으로 통원치료는 4 주 정도 소요됩니다. 코수술의 경우 환자 상태에 따라 차이가 있으나 일반적으로 퇴원 후 첫 1 주는 매일 방문, 드레싱 등 수술 후 처치를 받으시며 목수술의 경우에는 퇴원 후 1 주일에 1 번 정도 통원치료를 받게 됩니다. 이후에는 환자 분의 상태와 경과에 따라 치료 날짜가 정해집니다.\n\n비염 관련 영상 보기: https://www.youtube.com/watch?v=qqeKjEeTjIE",
@@ -128,6 +198,16 @@
     "expectedAnswerHint": "진료시간 문의가 아님. 현재 대기환자가 많아 양해 부탁드립니다. 자세한 사항은 직원에게 문의해주세요 라는 안내 멘트",
     "adminNote": "",
     "reviewedLogId": "log-1777513318696-2xrswp"
+  },
+  {
+    "question": "요일별 진료일정 어떻게되?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "의료진 관련해서 안내드릴게요.\n\n의료진 진료일정은 외래 진료표 기준으로 확인하시면 됩니다. 다만 오늘 실제 진료 가능 여부는 당일 수술, 휴진, 대기 상황에 따라 달라질 수 있어 내원 전 대표전화 02-6925-1111로 확인해 주세요.\n- 아래 진료일정표 이미지를 참고해 주세요.\n- 특정 의료진 이름을 알려주시면 해당 의료진 기준으로도 안내해 드릴게요.",
+    "expectedIntent": "요일별 진료일정",
+    "expectedSource": "홈페이지-외래진료안내.txt",
+    "expectedAnswerHint": "의료진 관련해서 안내드릴게요. 문구는 삭제해줘",
+    "adminNote": "",
+    "reviewedLogId": "log-1777513171161-cp1b6x"
   },
   {
     "question": "후각, 미각에 문제가 있는데 진료 되나요",

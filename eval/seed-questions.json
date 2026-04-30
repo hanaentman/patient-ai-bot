@@ -1,5 +1,86 @@
 [
   {
+    "question": "축농증 수술",
+    "caseType": "admin_normal",
+    "expectedIntent": "sinusitis_care",
+    "expectedSource": "홈페이지-축농증 / 외래-의료진 명단",
+    "expectedAnswerHint": "수술 관련해서 안내드릴게요.\n\n부비동염은 축농증과 같은 코 질환으로, 하나이비인후과병원 코 질환 센터에서 진료 가능합니다. 홈페이지 축농증 안내 기준으로 문진, 내시경검사, X-ray 또는 CT 검사 등을 통해 상태를 확인하고, 급성 축농증은 약물치료와 코세척을 우선 고려하며 만성 축농증은 상태에 따라 부비동 내시경 수술을 시행할 수 있습니다.\n- 부비동염 진료 의료진은 코센터 기준으로 확인하시면 됩니다.\n- 정확한 치료 방향은 진료와 검사 후 의료진이 결정합니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777520717593-9t0bl0"
+  },
+  {
+    "question": "대표번호 알려주세요",
+    "caseType": "admin_normal",
+    "expectedIntent": "hospital_phone",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "하나이비인후과병원 대표전화는 02-6925-1111입니다.\n- 전화 예약이나 예약 변경은 대표전화 연결 후 0번 상담원 연결로 진행할 수 있습니다.\n- 진료시간은 평일 오전 9시부터 오후 6시, 토요일 오전 9시부터 오후 1시 30분까지입니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777520650444-uyy8mm"
+  },
+  {
+    "question": "850126-1123455",
+    "caseType": "admin_normal",
+    "expectedIntent": "privacy_warning",
+    "expectedSource": "",
+    "expectedAnswerHint": "주민등록번호, 전화번호, 주소 같은 개인정보나 민감한 건강정보는 입력하지 말아 주세요.\n- 개인정보 없이 증상, 비용, 예약, 진료시간처럼 일반적인 질문만 남겨 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777520630485-782idz"
+  },
+  {
+    "question": "정도광 경력",
+    "caseType": "admin_normal",
+    "expectedIntent": "doctor_career",
+    "expectedSource": "홈페이지-의료진 정보",
+    "expectedAnswerHint": "의료진 관련해서 안내드릴게요.\n\n정도광 의료진의 전문분야는 비중격만곡증, 부비동염, 알레르기비염, 코골이, 소아이비인후과입니다. 주요 경력은 다음과 같습니다.\n\n- 고려대학교 의과대학 외래교수\n- 중앙대학교 의과대학 외래교수\n- 고대안산병원 이비인후과 과장\n- 오스트리아 그라츠대학 내시경 수술 연수\n- 이비인후과 개원의협의회 보험이사\n- 세계비과학회 정회원\n- 대한이비인후과학회 정회원\n- 대한이과연구회 정회원\n- 대한비과학회 정회원\n- 진료 일정은 외래 진료표와 당일 상황에 따라 달라질 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777520557165-0xoiso"
+  },
+  {
+    "question": "실비 청구 하려면 어떻게해",
+    "caseType": "admin_normal",
+    "expectedIntent": "insurance_claim",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "실손보험 청구는 실손24를 통해 보험사에 청구할 수 있습니다. 다만 실제 청구 가능 여부와 필요 서류는 가입하신 보험사 약관과 진료 내용에 따라 달라질 수 있습니다.\n- 진료비 영수증, 세부내역서, 진단서 등 필요한 서류는 보험사마다 다를 수 있습니다.\n- 서류 발급이 필요하면 원무과에 문의해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777516501965-agxuur"
+  },
+  {
+    "question": "퇴원날 운전 가능할까",
+    "caseType": "admin_normal",
+    "expectedIntent": "postop_driving",
+    "expectedSource": "통합-FAQ / 홈페이지-입퇴원 안내",
+    "expectedAnswerHint": "수술 후나 퇴원 당일에는 운전이 어려울 수 있어 직접 운전은 권장되지 않습니다. 가능하면 보호자 동행이나 대중교통, 택시 이용을 권장드립니다.\n- 입원 환자는 밤샘 주차가 불가능하며 퇴원 시 운전이 어려울 수 있다고 안내되어 있습니다.\n- 마취나 수술 종류에 따라 주의사항이 달라질 수 있으니 퇴원 안내 시 다시 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777516486133-kuflaa"
+  },
+  {
+    "question": "정도광 경력",
+    "caseType": "admin_normal",
+    "expectedIntent": "doctor_career",
+    "expectedSource": "홈페이지-의료진 정보",
+    "expectedAnswerHint": "의료진 관련해서 안내드릴게요.\n\n정도광 의료진의 전문분야는 비중격만곡증, 부비동염, 알레르기비염, 코골이, 소아이비인후과입니다. 주요 경력은 다음과 같습니다.\n\n- 고려대학교 의과대학 외래교수\n- 중앙대학교 의과대학 외래교수\n- 고대안산병원 이비인후과 과장\n- 오스트리아 그라츠대학 내시경 수술 연수\n- 이비인후과 개원의협의회 보험이사\n- 세계비과학회 정회원\n- 대한이비인후과학회 정회원\n- 대한이과연구회 정회원\n- 대한비과학회 정회원\n- 진료 일정은 외래 진료표와 당일 상황에 따라 달라질 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777516444876-imikye"
+  },
+  {
+    "question": "고려대 출신 의사 누구야",
+    "caseType": "admin_normal",
+    "expectedIntent": "doctor_education",
+    "expectedSource": "홈페이지-의료진 정보",
+    "expectedAnswerHint": "의료진 정보 문서 기준으로 고려대학교 관련 학력 또는 경력이 안내된 의료진은 이상덕 병원장, 정도광 원장, 주형로 원장입니다.\n- 이상덕 병원장은 고려대학교 의과대학 졸업 및 고려대학교 의과대학 외래교수 경력이 안내되어 있습니다.\n- 정도광 원장은 고려대학교 의과대학 외래교수, 주형로 원장은 전 고려대 의과대학강사 경력이 안내되어 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777516432566-huevi4"
+  },
+  {
+    "question": "셔틀버스 시간 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "shuttle_schedule",
+    "expectedSource": "기타-병원셔틀시간표 / 홈페이지-셔틀버스 및 오시는길",
+    "expectedAnswerHint": "셔틀버스는 역삼역 1번 출구 인근에서 이용할 수 있습니다. 평일은 오전 8시 55분부터 12시 25분까지, 오후 1시 40분부터 5시 40분까지 약 15분 간격으로 운행합니다. 토요일은 오전 8시 55분부터 12시 55분까지 약 30분 간격으로 운행합니다.\n- 당일 교통 상황이나 병원 사정에 따라 달라질 수 있어 내원 전 확인을 권장드립니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777516119175-l1w5c3"
+  },
+  {
     "question": "비중격만곡증 수술 비용 알려줘",
     "caseType": "admin_normal",
     "expectedIntent": "septoplasty_info",
@@ -79,6 +160,33 @@
     "expectedAnswerHint": "검사 관련해서 안내드릴게요.\n\n검사 종류에 따라 위치가 다릅니다. 층별안내도 기준으로 청력검사실은 지하 2층에 있고, CT·보청기상담실·외래검사실 등은 1층에 안내되어 있습니다. 코 내시경은 일반적으로 진료실에서 진료 중 시행될 수 있습니다.\n- 검사 동선은 당일 진료 후 직원 안내에 따라 이동하시면 됩니다.\n- 검사 종류와 당일 상황에 따라 위치나 순서가 달라질 수 있습니다.",
     "adminNote": "",
     "reviewedLogId": "log-1777513348149-0vd13s"
+  },
+  {
+    "question": "셔틀버스 점심시간 운행 안해?",
+    "caseType": "admin_normal",
+    "expectedIntent": "shuttle_bus",
+    "expectedSource": "통합-FAQ / 기타-병원셔틀시간표 / 홈페이지-셔틀버스 및 오시는길",
+    "expectedAnswerHint": "내원 안내 관련해서 안내드릴게요.\n\n셔틀버스는 점심시간에는 운행하지 않습니다. 통합 FAQ 기준으로 오후 12시 30분부터 1시 45분까지는 점심시간으로 셔틀버스를 운행하지 않는다고 안내되어 있습니다.\n\n셔틀버스 관련 영상 보기: https://www.youtube.com/watch?v=4XdnkkUvw10\n- 평일 셔틀버스는 오전 8시 55분부터 12시 25분까지, 오후 1시 40분부터 5시 40분까지 약 15분 간격으로 안내됩니다.\n- 토요일은 약 30분 간격으로 오전 8시 55분부터 12시 55분까지 운행합니다.\n- 셔틀 승차 위치는 역삼역 1번 출구 인근입니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777513253221-k3p5zr"
+  },
+  {
+    "question": "감기가 있는데 당일 진료 되나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "symptom_visit_guidance",
+    "expectedSource": "홈페이지-외래진료안내 / 홈페이지-의료진 정보 / 통합-FAQ",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n감기기운이나 호흡기 증상이 있어도 이비인후과 진료는 가능합니다. 당일 방문 진료도 가능하지만 대기시간이 발생할 수 있고, 실제 진료 가능 여부는 접수 마감 시간과 당일 진료 상황에 따라 달라질 수 있습니다.\n- 평일 접수 마감은 오후 5시 30분, 토요일 접수 마감은 오후 1시입니다.\n- 감기나 인플루엔자 등 호흡기 증상이 있는 경우 병원 내 감염 예방 안내에 따라 마스크 착용과 직원 안내를 따라 주세요.\n- 아래 진료일정표 이미지를 참고해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777513219991-mivl9n"
+  },
+  {
+    "question": "병원 위치 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "hospital_location",
+    "expectedSource": "통합-FAQ / 홈페이지-셔틀버스 및 오시는길",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n하나이비인후과병원 주소는 서울특별시 강남구 역삼로 245입니다. 대중교통은 2호선 역삼역 1번 출구를 이용하시면 되고, 역삼역 1번 출구에서 병원 셔틀버스도 이용할 수 있습니다. 자동차로 오실 때는 내비게이션에 “서울특별시 강남구 역삼로 245” 또는 “하나이비인후과병원”을 입력하시면 됩니다.\n- 역삼역 1번 출구에서 도보 약 10분 거리로 안내되어 있습니다.\n- 버스는 동영문화센터, 개나리아파트, 신한은행 전산센터 정류장 하차 안내가 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777513139176-djg894"
   },
   {
     "question": "후각검사 얼마인가요",
