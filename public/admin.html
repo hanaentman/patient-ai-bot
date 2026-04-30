@@ -96,6 +96,32 @@
         margin-bottom: 12px;
       }
 
+      .pager {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin: 0 0 12px;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: #fff;
+      }
+
+      .pager-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .pager button {
+        min-width: 86px;
+      }
+
+      .pager button:disabled {
+        cursor: not-allowed;
+        opacity: 0.45;
+      }
+
       .eval-status {
         margin: -4px 0 12px;
         padding: 10px 12px;
@@ -225,6 +251,11 @@
         .review {
           grid-template-columns: 1fr;
         }
+
+        .pager {
+          align-items: stretch;
+          flex-direction: column;
+        }
       }
     </style>
   </head>
@@ -254,6 +285,13 @@
       </section>
 
       <section class="stats muted" id="stats">로드 중...</section>
+      <section class="pager" id="pager">
+        <div class="muted" id="page-info">페이지 계산 중...</div>
+        <div class="pager-actions">
+          <button id="prev-page-button" type="button">이전</button>
+          <button id="next-page-button" type="button">다음</button>
+        </div>
+      </section>
       <section class="eval-status" id="eval-status">Eval 저장 위치 확인 중...</section>
       <section class="list" id="log-list"></section>
     </main>
@@ -268,9 +306,14 @@
       const exportButton = document.getElementById('export-button');
       const logoutButton = document.getElementById('logout-button');
       const stats = document.getElementById('stats');
+      const pageInfo = document.getElementById('page-info');
+      const prevPageButton = document.getElementById('prev-page-button');
+      const nextPageButton = document.getElementById('next-page-button');
       const evalStatus = document.getElementById('eval-status');
       const logList = document.getElementById('log-list');
       let lastEvalStatus = null;
+      const pageSize = 300;
+      let currentPage = 1;
       const localWrongAnswersPath = 'C:\\Users\\OCSEMR\\patient-ai-bot\\eval\\wrong-answers.json';
 
       function toDateRangeIso(value, isEnd) {
@@ -516,7 +559,14 @@
 
       function renderLogs(items, total) {
         const groupedItems = groupLogsForDisplay(items);
-        stats.textContent = `전체 로그 ${total}건 중 대표 질문 ${groupedItems.length}건 표시`;
+        const totalPages = Math.max(Math.ceil(total / pageSize), 1);
+        const safePage = Math.min(currentPage, totalPages);
+        const startNumber = total === 0 ? 0 : ((safePage - 1) * pageSize) + 1;
+        const endNumber = Math.min(safePage * pageSize, total);
+        stats.textContent = `전체 로그 ${total}건 중 ${startNumber}-${endNumber}번 범위, 대표 질문 ${groupedItems.length}건 표시`;
+        pageInfo.textContent = `${safePage} / ${totalPages} 페이지 (페이지당 최대 ${pageSize}개)`;
+        prevPageButton.disabled = safePage <= 1;
+        nextPageButton.disabled = safePage >= totalPages;
 
         if (!groupedItems.length) {
           logList.innerHTML = '<section class="card">조건에 맞는 로그가 없습니다.</section>';
@@ -596,7 +646,8 @@
 
       async function loadLogs() {
         const params = new URLSearchParams();
-        params.set('limit', '100');
+        params.set('limit', String(pageSize));
+        params.set('offset', String((currentPage - 1) * pageSize));
         if (searchInput.value.trim()) params.set('q', searchInput.value.trim());
         if (flagFilter.value) params.set('flag', flagFilter.value);
         if (startDateInput.value) params.set('startAt', toDateRangeIso(startDateInput.value, false));
@@ -605,9 +656,16 @@
         try {
           const response = await fetch(`/api/admin/logs?${params.toString()}`);
           const data = await response.json();
+          const totalPages = Math.max(Math.ceil((data.total || 0) / pageSize), 1);
+          if (currentPage > totalPages) {
+            currentPage = totalPages;
+            await loadLogs();
+            return;
+          }
           renderLogs(data.items || [], data.total || 0);
         } catch (error) {
           stats.textContent = '로그를 불러오지 못했습니다.';
+          pageInfo.textContent = '페이지 정보를 불러오지 못했습니다.';
           logList.innerHTML = '<section class="card">API 호출에 실패했습니다.</section>';
         }
       }
@@ -642,7 +700,21 @@
         }
       }
 
-      refreshButton.addEventListener('click', loadLogs);
+      function resetToFirstPageAndLoad() {
+        currentPage = 1;
+        loadLogs();
+      }
+
+      refreshButton.addEventListener('click', resetToFirstPageAndLoad);
+      prevPageButton.addEventListener('click', () => {
+        if (currentPage <= 1) return;
+        currentPage -= 1;
+        loadLogs();
+      });
+      nextPageButton.addEventListener('click', () => {
+        currentPage += 1;
+        loadLogs();
+      });
       normalExportButton.addEventListener('click', () => downloadReviewLogs('normal', 'seed-questions.json'));
       exportButton.addEventListener('click', () => downloadReviewLogs('needs_review', 'wrong-answers.json'));
       logoutButton.addEventListener('click', async () => {
@@ -651,12 +723,12 @@
       });
       searchInput.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
-          loadLogs();
+          resetToFirstPageAndLoad();
         }
       });
-      flagFilter.addEventListener('change', loadLogs);
-      startDateInput.addEventListener('change', loadLogs);
-      endDateInput.addEventListener('change', loadLogs);
+      flagFilter.addEventListener('change', resetToFirstPageAndLoad);
+      startDateInput.addEventListener('change', resetToFirstPageAndLoad);
+      endDateInput.addEventListener('change', resetToFirstPageAndLoad);
 
       loadEvalStatus();
       loadLogs();

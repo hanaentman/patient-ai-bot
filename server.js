@@ -1253,6 +1253,7 @@ function getChatLogsForAdmin(query, options = {}) {
   const getQueryValue = (key) => (typeof query.get === 'function' ? query.get(key) : query[key]);
   const disableLimit = Boolean(options.disableLimit);
   const limit = Math.min(Math.max(Number(getQueryValue('limit')) || 100, 1), 300);
+  const offset = Math.max(Number(getQueryValue('offset')) || 0, 0);
   const search = normalizeSearchTextSafe(getQueryValue('q') || '');
   const flag = String(getQueryValue('flag') || '').trim();
   const startAt = String(getQueryValue('startAt') || '').trim();
@@ -1292,8 +1293,8 @@ function getChatLogsForAdmin(query, options = {}) {
 
   sql += ' ORDER BY datetime(timestamp) DESC';
   if (!disableLimit) {
-    sql += ' LIMIT ?';
-    params.push(limit);
+    sql += ' LIMIT ? OFFSET ?';
+    params.push(limit, offset);
   }
 
   return chatLogDb.prepare(sql).all(...params).map(mapChatLogRow);
