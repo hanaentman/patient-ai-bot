@@ -5292,6 +5292,10 @@ function createSymptomGuideAnswer(entry, message) {
 }
 
 function buildSymptomGuideResponse(message) {
+  if (matchesAnyPattern(message, postOpBleedingPatterns)) {
+    return null;
+  }
+
   const entries = Array.isArray(runtimeData?.symptomGuideEntries)
     ? runtimeData.symptomGuideEntries
     : [];
