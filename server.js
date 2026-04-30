@@ -5296,6 +5296,10 @@ function buildSymptomGuideResponse(message) {
     return null;
   }
 
+  if (isHomepageDiseaseSurgeryQuestion(message)) {
+    return null;
+  }
+
   const entries = Array.isArray(runtimeData?.symptomGuideEntries)
     ? runtimeData.symptomGuideEntries
     : [];
@@ -7444,6 +7448,15 @@ function findHomepageSurgeryInfoResponse(message) {
       url: `local://docs/${encodeURIComponent(matchedConfig.filename)}`,
     }],
   };
+}
+
+function isHomepageDiseaseSurgeryQuestion(message) {
+  const text = String(message || '');
+  if (!/(수술|절제)/u.test(text)) {
+    return false;
+  }
+
+  return Boolean(findMatchedHomepageSurgeryDocConfig(text));
 }
 
 function findCertificateFeeResponse(message) {
@@ -10469,6 +10482,16 @@ async function buildChatResponse(rawMessage, sessionId) {
   const preMeaningTonsillectomyResponse = buildTonsillectomyInfoResponse(message);
   if (preMeaningTonsillectomyResponse) {
     return enrichResponsePayload(preMeaningTonsillectomyResponse, message);
+  }
+
+  const preMeaningHomepageSurgeryCostResponse = findHomepageSurgeryCostResponse(message);
+  if (preMeaningHomepageSurgeryCostResponse) {
+    return enrichResponsePayload(preMeaningHomepageSurgeryCostResponse, message);
+  }
+
+  const preMeaningHomepageSurgeryInfoResponse = findHomepageSurgeryInfoResponse(message);
+  if (preMeaningHomepageSurgeryInfoResponse) {
+    return enrichResponsePayload(preMeaningHomepageSurgeryInfoResponse, message);
   }
 
   const preMeaningNamedDoctorScheduleResponse = buildNamedDoctorScheduleResponse(message);
