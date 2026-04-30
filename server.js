@@ -2274,6 +2274,7 @@ function shouldUseConsultationTone(payload) {
     'discharge_timing',
     'insurance_claim',
     'clinic_hours_and_shuttle',
+    'transit_route',
   ].includes(type);
 }
 
@@ -2475,6 +2476,7 @@ function enrichResponsePayload(payload, question) {
     'discharge_timing',
     'insurance_claim',
     'clinic_hours_and_shuttle',
+    'transit_route',
   ].includes(localizedPayload.type);
 
   return sanitizeOutgoingPayload({
@@ -4555,7 +4557,7 @@ function buildHomepageUrlResponse(message) {
     type: 'homepage_url',
     answer: includePhone
       ? '하나이비인후과병원 대표전화는 02-6925-1111이고, 홈페이지 주소는 https://hanaent.co.kr/ 입니다.'
-      : '하나이비인후과병원 홈페이지 주소는 https://hanaent.co.kr/ 입니다.',
+      : '홈페이지 주소는 https://hanaent.co.kr/ 입니다.',
     followUp: [
       '진료 예약, 의료진 안내, 오시는 길 등은 홈페이지에서 확인하실 수 있습니다.',
     ],
@@ -4595,6 +4597,23 @@ function buildSeolleungRouteResponse(message) {
     followUp: [
       '버스 이용 시 선릉역 7번 출구에서 강남07번 버스를 타고 동영문화센터 정류장에서 하차 후 약 50m 이동하시면 됩니다.',
       '오시는 길 상세 안내는 https://hanaent.co.kr/info/info04.html 에서 확인하실 수 있습니다.',
+    ],
+    sources: [buildLocalDocSource('홈페이지-셔틀버스 및 오시는길', '홈페이지-셔틀버스 및 오시는길.txt')],
+  };
+}
+
+function buildTransitRouteResponse(message) {
+  const text = String(message || '');
+  if (!/(잠실역|강남역|선정릉역|삼성역|서울역|고속터미널|교대역)/u.test(text) || !/(어떻게|가는|가나요|길|출구|도보|셔틀|버스|지하철)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'transit_route',
+    answer: '대중교통으로 오실 때는 지하철로 역삼역까지 이동한 뒤, 역삼역 1번 출구에서 병원 방향으로 오시면 됩니다. 역삼역에서 병원까지는 도보 약 15분 정도로 안내됩니다.',
+    followUp: [
+      '역삼역 1번 출구 인근에서 병원 셔틀버스도 이용할 수 있습니다.',
+      '오시는 길과 약도는 https://hanaent.co.kr/info/info04.html 에서 확인하실 수 있습니다.',
     ],
     sources: [buildLocalDocSource('홈페이지-셔틀버스 및 오시는길', '홈페이지-셔틀버스 및 오시는길.txt')],
   };
@@ -5012,7 +5031,10 @@ function buildNasalBlockageVisitResponse(message) {
 
 function buildCurrentWaitingDelayResponse(message) {
   const text = String(message || '');
-  if (!/(대기\s*중|대기중|기다려|기대려|기다리|언제까지)/u.test(text) || !/(검사|외래|진료|대기)/u.test(text)) {
+  if (
+    !/(대기\s*중|대기중|대기\s*시간|대기시간|기다려|기대려|기다리|언제까지|얼마나\s*걸|사람\s*많|환자\s*많|많아)/u.test(text)
+    || !/(검사|외래|진료|대기|사람|환자)/u.test(text)
+  ) {
     return null;
   }
 
@@ -5073,7 +5095,7 @@ function buildTinnitusSameDayVisitResponse(message) {
 
 function buildDoctorScheduleLookupResponse(message) {
   const text = String(message || '');
-  if (!/(의료진|의사|원장|선생)/u.test(text) || !/(진료\s*요일|요일|일정|시간표|스케줄|어디서\s*확인)/u.test(text)) {
+  if (!/(진료\s*일정|진료일정|요일별\s*진료|진료\s*요일|의료진.*일정|의사.*일정|원장.*일정|선생.*일정|시간표|스케줄)/u.test(text)) {
     return null;
   }
 
@@ -10004,6 +10026,11 @@ async function buildChatResponse(rawMessage, sessionId) {
   const preMeaningSeolleungRouteResponse = buildSeolleungRouteResponse(message);
   if (preMeaningSeolleungRouteResponse) {
     return enrichResponsePayload(preMeaningSeolleungRouteResponse, message);
+  }
+
+  const preMeaningTransitRouteResponse = buildTransitRouteResponse(message);
+  if (preMeaningTransitRouteResponse) {
+    return enrichResponsePayload(preMeaningTransitRouteResponse, message);
   }
 
   const preMeaningDoctorPopularityResponse = buildDoctorPopularityResponse(message);
