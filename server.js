@@ -590,6 +590,81 @@ function buildSymptomGuideEntries() {
     .filter(Boolean);
 }
 
+function normalizeCenterKey(value) {
+  const compact = compactSearchTextSafe(value);
+  if (!compact) {
+    return '';
+  }
+
+  if (/코골이|수면무호흡|수면클리닉|수면진료|수면센터/u.test(compact)) {
+    return '코골이클리닉';
+  }
+  if (/코센터|코질환|코진료|비염|축농증|부비동/u.test(compact)) {
+    return '코센터';
+  }
+  if (/귀센터|귀질환|귀진료|이명|난청|청력|어지럼/u.test(compact)) {
+    return '귀센터';
+  }
+  if (/목센터|목질환|목진료|두경부|편도|후두|성대/u.test(compact)) {
+    return '목센터';
+  }
+  if (/내과/u.test(compact)) {
+    return '내과';
+  }
+  if (/마취통증|마취과/u.test(compact)) {
+    return '마취통증의학과';
+  }
+
+  return compact.replace(/[()]/g, '');
+}
+
+function buildCenterDoctorListIndex() {
+  const filePath = path.join(DOCS_DIR, DOCTOR_LIST_DOC_FILENAME);
+  if (!fs.existsSync(filePath)) {
+    return [];
+  }
+
+  const text = repairBrokenKoreanText(fs.readFileSync(filePath, 'utf8'));
+  const entries = [];
+  let current = null;
+
+  text.split(/\r?\n/).forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed === '의료진 명단') {
+      return;
+    }
+
+    const headingMatch = trimmed.match(/^\d+\.\s*(.+)$/u);
+    if (headingMatch) {
+      if (current) {
+        entries.push(current);
+      }
+      current = {
+        centerName: headingMatch[1].trim(),
+        doctorLines: [],
+      };
+      return;
+    }
+
+    if (current) {
+      current.doctorLines.push(trimmed);
+    }
+  });
+
+  if (current) {
+    entries.push(current);
+  }
+
+  return entries
+    .map((entry) => ({
+      centerName: entry.centerName,
+      centerKey: normalizeCenterKey(entry.centerName),
+      doctorsText: entry.doctorLines.join(' ').replace(/\s+/g, ' ').trim(),
+      source: buildLocalDocSource('외래-의료진 명단', DOCTOR_LIST_DOC_FILENAME),
+    }))
+    .filter((entry) => entry.centerName && entry.centerKey && entry.doctorsText);
+}
+
 function createRuntimeData() {
   const faqEntries = loadFaqEntries();
   const localDocuments = buildPreferredLocalDocuments();
@@ -604,6 +679,7 @@ function createRuntimeData() {
     floorGuideIndex: buildFloorGuideIndex(),
     homepageDiseaseTerms: buildHomepageDiseaseTerms(localDocuments),
     symptomGuideEntries: buildSymptomGuideEntries(),
+    centerDoctorListIndex: buildCenterDoctorListIndex(),
     doctorSpecialtyEntries: buildDoctorSpecialtyEntries(),
     doctorNames: extractDoctorNamesFromText(fs.existsSync(DOCTOR_SPECIALTY_DOC_PATH) ? fs.readFileSync(DOCTOR_SPECIALTY_DOC_PATH, 'utf8') : ''),
     youtubeLinks: loadYoutubeLinks(),
@@ -5162,24 +5238,55 @@ function scoreSymptomGuideEntry(entry, message) {
   return score;
 }
 
+function findCenterDoctorListForSymptomEntry(entry) {
+  const doctorListIndex = Array.isArray(runtimeData?.centerDoctorListIndex)
+    ? runtimeData.centerDoctorListIndex
+    : [];
+  if (!entry || doctorListIndex.length === 0) {
+    return null;
+  }
+
+  const centerCandidates = [
+    entry.center,
+    entry.title,
+    ...(entry.representativeTerms || []),
+  ]
+    .join(', ')
+    .split(/[,/·\n]+/u)
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  const centerKeys = new Set(centerCandidates.map((value) => normalizeCenterKey(value)).filter(Boolean));
+  return doctorListIndex.find((doctorEntry) => centerKeys.has(doctorEntry.centerKey)) || null;
+}
+
 function createSymptomGuideAnswer(entry, message) {
   const answer = String(entry.answerExample || '').trim()
     || `${entry.title} 관련해서 안내드릴게요.\n\n${entry.answerDirection || '증상만으로 원인을 단정하기는 어렵고, 진료와 필요한 검사를 통해 확인이 필요합니다.'}`;
   const followUp = [];
+  const centerDoctorList = findCenterDoctorListForSymptomEntry(entry);
 
   if (entry.center) {
     followUp.push(`안내 센터: ${entry.center}`);
   }
+  if (centerDoctorList) {
+    followUp.push(`${centerDoctorList.centerName} 의료진: ${centerDoctorList.doctorsText}`);
+    followUp.push('의료진별 진료일정은 병원 사정에 따라 달라질 수 있어 내원 전 확인해 주세요.');
+  }
   followUp.push('증상이 갑자기 심해졌거나 불편이 크면 대표전화 02-6925-1111로 상담 후 내원해 주세요.');
+  const sources = centerDoctorList
+    ? [entry.source, centerDoctorList.source]
+    : [entry.source];
 
   return {
     type: 'symptom_guide',
     answer,
     followUp,
-    sources: [entry.source],
+    sources,
     matchMeta: {
       symptomGuideType: entry.type,
       score: scoreSymptomGuideEntry(entry, message),
+      centerDoctorList: centerDoctorList?.centerName || '',
     },
   };
 }
