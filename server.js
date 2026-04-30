@@ -51,6 +51,13 @@ const DOCTOR_SYNC_SCRIPT_PATH = path.join(__dirname, 'scripts', 'sync_doctor_sch
 const FLOOR_GUIDE_DOC_PATH = path.join(DOCS_DIR, '기타-층별안내도.txt');
 const CERTIFICATE_FEES_DOC_PATH = findDocPathByKeyword('비급여비용');
 const YOUTUBE_LINKS_PATH = path.join(DOCS_DIR, '유튜브-링크.txt');
+const SYMPTOM_GUIDE_FILES = [
+  { type: 'nose_symptom_guide', title: '코 증상', filename: '코증상.txt' },
+  { type: 'ear_symptom_guide', title: '귀 증상', filename: '귀증상.txt' },
+  { type: 'throat_symptom_guide', title: '목 증상', filename: '목증상.txt' },
+  { type: 'sleep_symptom_guide', title: '수면 증상', filename: '수면증상.txt' },
+  { type: 'snoring_symptom_guide', title: '코골이 증상', filename: '코골이증상.txt' },
+];
 const DOCTOR_NAME_FALLBACK_LIST = [
   '동헌종', '이상덕', '정도광', '남순열', '주형로', '장선오', '장정훈',
   '김태현', '정종인', '김종세', '장규선', '김병길', '이영미', '강매화',
@@ -518,6 +525,71 @@ function loadFaqEntries() {
   ];
 }
 
+function extractSectionText(text, heading) {
+  const source = String(text || '');
+  const headingPattern = new RegExp(`^${heading}\\s*$`, 'mu');
+  const match = headingPattern.exec(source);
+  if (!match) {
+    return '';
+  }
+
+  const knownHeadings = [
+    '목적',
+    '대표 증상어',
+    '분류 기준',
+    '안내 센터',
+    '관련 의료진 안내 기준',
+    '답변 방향',
+    '권장 답변 예시',
+    '주의 문구',
+  ];
+  const start = match.index + match[0].length;
+  const rest = source.slice(start);
+  const nextHeadingPattern = new RegExp(`\\n(?:${knownHeadings.filter((item) => item !== heading).join('|')})\\s*\\n`, 'u');
+  const nextMatch = nextHeadingPattern.exec(rest);
+  return (nextMatch ? rest.slice(0, nextMatch.index) : rest).trim();
+}
+
+function extractListSection(text, heading) {
+  return extractSectionText(text, heading)
+    .split(/\r?\n/)
+    .map((line) => line.replace(/^[-•]\s*/u, '').trim())
+    .filter(Boolean);
+}
+
+function buildSymptomGuideEntries() {
+  return SYMPTOM_GUIDE_FILES
+    .map((guide) => {
+      const filePath = path.join(DOCS_DIR, guide.filename);
+      if (!fs.existsSync(filePath)) {
+        return null;
+      }
+
+      const text = repairBrokenKoreanText(fs.readFileSync(filePath, 'utf8'));
+      const representativeTerms = extractListSection(text, '대표 증상어');
+      const center = extractSectionText(text, '안내 센터')
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .join(', ');
+      const answerExample = extractSectionText(text, '권장 답변 예시');
+      const answerDirection = extractSectionText(text, '답변 방향');
+      const caution = extractSectionText(text, '주의 문구');
+
+      return {
+        ...guide,
+        text,
+        representativeTerms,
+        center,
+        answerExample,
+        answerDirection,
+        caution,
+        source: buildLocalDocSource(guide.title, guide.filename),
+      };
+    })
+    .filter(Boolean);
+}
+
 function createRuntimeData() {
   const faqEntries = loadFaqEntries();
   const localDocuments = buildPreferredLocalDocuments();
@@ -531,6 +603,7 @@ function createRuntimeData() {
     nonpayItemEntries: buildNonpayItemEntries(),
     floorGuideIndex: buildFloorGuideIndex(),
     homepageDiseaseTerms: buildHomepageDiseaseTerms(localDocuments),
+    symptomGuideEntries: buildSymptomGuideEntries(),
     doctorSpecialtyEntries: buildDoctorSpecialtyEntries(),
     doctorNames: extractDoctorNamesFromText(fs.existsSync(DOCTOR_SPECIALTY_DOC_PATH) ? fs.readFileSync(DOCTOR_SPECIALTY_DOC_PATH, 'utf8') : ''),
     youtubeLinks: loadYoutubeLinks(),
@@ -2275,6 +2348,7 @@ function shouldUseConsultationTone(payload) {
     'insurance_claim',
     'clinic_hours_and_shuttle',
     'transit_route',
+    'symptom_guide',
   ].includes(type);
 }
 
@@ -2477,6 +2551,7 @@ function enrichResponsePayload(payload, question) {
     'insurance_claim',
     'clinic_hours_and_shuttle',
     'transit_route',
+    'symptom_guide',
   ].includes(localizedPayload.type);
 
   return sanitizeOutgoingPayload({
@@ -5027,6 +5102,138 @@ function buildNasalBlockageVisitResponse(message) {
       buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt'),
     ],
   };
+}
+
+function scoreSymptomGuideEntry(entry, message) {
+  const text = String(message || '');
+  const normalized = normalizeSearchTextSafe(text);
+  const compact = compactSearchTextSafe(text);
+  if (!normalized || !entry) {
+    return 0;
+  }
+
+  let score = 0;
+  for (const term of entry.representativeTerms || []) {
+    const normalizedTerm = normalizeSearchTextSafe(term);
+    const compactTerm = compactSearchTextSafe(term);
+    if (!normalizedTerm || compactTerm.length < 2) {
+      continue;
+    }
+
+    if (normalized.includes(normalizedTerm) || compact.includes(compactTerm)) {
+      score += compactTerm.length >= 4 ? 6 : 4;
+    } else {
+      const words = normalizedTerm.split(/\s+/).filter((word) => word.length >= 2);
+      const matchedWords = words.filter((word) => normalized.includes(word) || compact.includes(word.replace(/\s+/g, '')));
+      if (words.length >= 2 && matchedWords.length >= 2) {
+        score += 3;
+      }
+    }
+  }
+
+  const domainScores = {
+    nose_symptom_guide: [
+      { pattern: /(코.{0,10}(막|답답|피|콧물|물혹|붓|간지|가렵|냄새|후각)|비염|축농증|부비동|재채기|냄새.*안|후각)/u, score: 5 },
+    ],
+    ear_symptom_guide: [
+      { pattern: /(귀.{0,10}(소리|이상|울|웅웅|삐|먹먹|멍멍|통증|아프|물|진물|안\s*들|안들)|이명|난청|청력|어지럼|어지러|빙글|보청기)/u, score: 5 },
+    ],
+    throat_symptom_guide: [
+      { pattern: /(목.{0,12}(소리|쉬|아프|통증|이물|가래|멍울|혹|걸린|부|삼키|목소리)|편도|침샘|갑상선|두경부|후두|성대)/u, score: 5 },
+    ],
+    sleep_symptom_guide: [
+      { pattern: /(수면무호흡|수면\s*무호흡|수면검사|수면다원|양압기|자다가.{0,8}(숨|컥)|낮.{0,4}졸|잠.{0,8}피곤)/u, score: 5 },
+    ],
+    snoring_symptom_guide: [
+      { pattern: /(코골이|코\s*골|코고|수면무호흡|숨.{0,6}멈|자다가.{0,8}(숨|컥)|목젖)/u, score: 5 },
+    ],
+  };
+
+  for (const item of domainScores[entry.type] || []) {
+    if (item.pattern.test(text)) {
+      score += item.score;
+    }
+  }
+
+  if (/(비용|금액|가격|얼마|서류|진단서|확인서|영수증|주차|셔틀|주소|홈페이지|전화|예약\s*변경|취소)/u.test(text)) {
+    score -= 4;
+  }
+
+  return score;
+}
+
+function createSymptomGuideAnswer(entry, message) {
+  const answer = String(entry.answerExample || '').trim()
+    || `${entry.title} 관련해서 안내드릴게요.\n\n${entry.answerDirection || '증상만으로 원인을 단정하기는 어렵고, 진료와 필요한 검사를 통해 확인이 필요합니다.'}`;
+  const followUp = [];
+
+  if (entry.center) {
+    followUp.push(`안내 센터: ${entry.center}`);
+  }
+  followUp.push('증상이 갑자기 심해졌거나 불편이 크면 대표전화 02-6925-1111로 상담 후 내원해 주세요.');
+
+  return {
+    type: 'symptom_guide',
+    answer,
+    followUp,
+    sources: [entry.source],
+    matchMeta: {
+      symptomGuideType: entry.type,
+      score: scoreSymptomGuideEntry(entry, message),
+    },
+  };
+}
+
+function buildSymptomGuideResponse(message) {
+  const entries = Array.isArray(runtimeData?.symptomGuideEntries)
+    ? runtimeData.symptomGuideEntries
+    : [];
+  if (entries.length === 0) {
+    return null;
+  }
+
+  const scored = entries
+    .map((entry) => ({
+      entry,
+      score: scoreSymptomGuideEntry(entry, message),
+    }))
+    .filter((item) => item.score >= 5)
+    .sort((a, b) => b.score - a.score);
+
+  if (scored.length === 0) {
+    return null;
+  }
+
+  const [best, second] = scored;
+  if (second && best.score - second.score < 2) {
+    const pairedSleepGuide = new Set(['sleep_symptom_guide', 'snoring_symptom_guide']);
+    if (!(pairedSleepGuide.has(best.entry.type) && pairedSleepGuide.has(second.entry.type))) {
+      return null;
+    }
+  }
+
+  if (best.entry.type === 'snoring_symptom_guide' && /수면\s*무호흡|수면무호흡|양압기|수면다원|수면검사/u.test(message) && !/코골이|코\s*골|코고/u.test(message)) {
+    const sleepGuide = scored.find((item) => item.entry.type === 'sleep_symptom_guide');
+    if (sleepGuide) {
+      return createSymptomGuideAnswer(sleepGuide.entry, message);
+    }
+  }
+
+  if (best.entry.type === 'sleep_symptom_guide' && /코골이|코\s*골|코고/u.test(message)) {
+    const snoringGuide = scored.find((item) => item.entry.type === 'snoring_symptom_guide');
+    if (snoringGuide) {
+      return createSymptomGuideAnswer(snoringGuide.entry, message);
+    }
+  }
+
+  if (second && best.score - second.score < 2) {
+    const pairedSleepGuide = new Set(['sleep_symptom_guide', 'snoring_symptom_guide']);
+    if (!(pairedSleepGuide.has(best.entry.type) && pairedSleepGuide.has(second.entry.type))) {
+      return null;
+    }
+  }
+
+  return createSymptomGuideAnswer(best.entry, message);
 }
 
 function buildCurrentWaitingDelayResponse(message) {
@@ -10231,6 +10438,11 @@ async function buildChatResponse(rawMessage, sessionId) {
   const preMeaningSeptoplastyInfoResponse = buildSeptoplastyInfoResponse(message);
   if (preMeaningSeptoplastyInfoResponse) {
     return enrichResponsePayload(preMeaningSeptoplastyInfoResponse, message);
+  }
+
+  const symptomGuideResponse = buildSymptomGuideResponse(message);
+  if (symptomGuideResponse) {
+    return enrichResponsePayload(symptomGuideResponse, message);
   }
 
   const meaningIntentResponse = resolveMeaningIntentResponse(meaningIntent, message, sessionId);
