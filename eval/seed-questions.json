@@ -1,5 +1,338 @@
 [
   {
+    "question": "코성형도 하나?",
+    "caseType": "admin_normal",
+    "expectedIntent": "rhinoplasty_consult",
+    "expectedSource": "통합-FAQ / 홈페이지-의료진 정보 / 기타-비급여비용",
+    "expectedAnswerHint": "코성형 가능 여부는 정종인 진료부장 진료 시 환자분의 상태를 확인한 뒤 결정합니다. 문서상 정종인 진료부장은 기능적코성형, 비중격만곡증, 부비동내시경수술 등을 전문분야로 안내하고 있습니다.\n- 미용 목적 또는 기능적 목적에 따라 상담 내용과 비용이 달라질 수 있습니다.\n- 정확한 가능 여부와 일정은 진료 예약 후 상담하거나 대표전화 02-6925-1111로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777511666057-s7ccvu"
+  },
+  {
+    "question": "축농증 꼭 수술해야 하나?",
+    "caseType": "admin_normal",
+    "expectedIntent": "sinusitis_care",
+    "expectedSource": "홈페이지-축농증 / 외래-의료진 명단",
+    "expectedAnswerHint": "수술 관련해서 안내드릴게요.\n\n부비동염은 축농증과 같은 코 질환으로, 하나이비인후과병원 코 질환 센터에서 진료 가능합니다. 홈페이지 축농증 안내 기준으로 문진, 내시경검사, X-ray 또는 CT 검사 등을 통해 상태를 확인하고, 급성 축농증은 약물치료와 코세척을 우선 고려하며 만성 축농증은 상태에 따라 부비동 내시경 수술을 시행할 수 있습니다.\n- 부비동염 진료 의료진은 코센터 기준으로 확인하시면 됩니다.\n- 정확한 치료 방향은 진료와 검사 후 의료진이 결정합니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777511642091-1bcnol"
+  },
+  {
+    "question": "주말 진료는?",
+    "caseType": "admin_normal",
+    "expectedIntent": "clinic_hours_night_weekend",
+    "expectedSource": "홈페이지-외래진료안내 / 통합-FAQ",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n진료시간은 평일 오전 9시부터 오후 6시까지이며, 토요일은 오전 9시부터 오후 1시 30분까지입니다. 일요일과 공휴일은 휴진으로 안내되어 있고, 별도 야간진료는 문서에 안내되어 있지 않습니다.\n- 평일 접수 마감은 오후 5시 30분입니다.\n- 토요일 접수 마감은 오후 1시입니다.\n- 응급수술 등 진료 상황에 따라 접수가 조기 마감될 수 있어 내원 전 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777511415095-r9n0c1"
+  },
+  {
+    "question": "병원 대표번호로 예약 변경도 가능한가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "hospital_phone",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "하나이비인후과병원 대표전화는 02-6925-1111입니다.\n- 전화 예약이나 예약 변경은 대표전화 연결 후 0번 상담원 연결로 진행할 수 있습니다.\n- 진료시간은 평일 오전 9시부터 오후 6시, 토요일 오전 9시부터 오후 1시 30분까지입니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777507761943-1a5axf"
+  },
+  {
+    "question": "주말에는 몇 시까지 접수할 수 있나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "reception_deadline",
+    "expectedSource": "통합-FAQ / 홈페이지-외래진료안내",
+    "expectedAnswerHint": "진료시간은 평일 오전 9시부터 오후 6시까지이고, 점심시간은 오후 1시부터 2시까지입니다. 토요일은 오전 9시부터 오후 1시 30분까지 진료하며 점심시간 없이 운영됩니다. 접수는 평일 오전 8시 30분부터 오후 5시 30분까지, 토요일은 오전 8시 30분부터 오후 1시까지 가능합니다.\n- 초진은 오전 진료의 경우 11시 30분까지, 오후 진료의 경우 오후 5시까지 접수하는 것이 안전합니다.\n- 재진은 오전 12시까지, 오후 5시 30분까지 접수 기준으로 안내되어 있습니다.\n- 진료과와 의료진 상황에 따라 달라질 수 있어 늦게 도착할 예정이면 대표전화 02-6925-1111로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777507754741-upq4o1"
+  },
+  {
+    "question": "수술확인서 재발급 비용이 있나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "specific_document_fee",
+    "expectedSource": "기타-비급여비용",
+    "expectedAnswerHint": "비급여비용 문서 기준으로 수술확인서 발급 비용은 10,000원으로 안내되어 있습니다. 재발급은 1,000원 항목이 별도로 안내되어 있습니다.\n- 진단명이나 수술명 등 포함 내용은 발급 목적에 맞게 원무과에서 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777507747249-nidnub"
+  },
+  {
+    "question": "퇴원 시간은 보통 몇 시쯤인가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "discharge_process",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "퇴원은 수술 종류와 회복 상태에 따라 시간이 달라질 수 있습니다. 통합 FAQ 기준으로 코 수술은 오전 9시부터 9시 30분 또는 오후 2시 전후, 목 수술은 오전 9시부터 9시 30분 전후, 귀 수술은 오전 9시부터 9시 30분 또는 오후 2시 전후 퇴원으로 안내되어 있습니다.\n- 최종 퇴원 가능 여부와 시간은 담당 의료진과 병동 안내에 따라 결정됩니다.\n- 입퇴원확인서 등 제증명 서류가 필요하면 입원 중 병동 간호사에게 미리 신청하거나 퇴원 후 외래에서 신청할 수 있습니다.\n- 퇴원 당일 운전이 어려울 수 있어 보호자 동행을 권장드립니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777507725626-54sy35"
+  },
+  {
+    "question": "1인실과 다인실 준비물이 다른가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "integrated_faq",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n1인실의 경우 환자용 세면도구(치약, 칫솔, 비누, 수건, 티슈)를 제공해드립니다. 그 외 개인이 필요한 물품(개인컵, 화장품, 드라이기, 샴푸, 린스 등)은 지참하셔야 합니다. 2, 4인실의 경우 세면도구 및 개인 용품(티슈, 수건, 개인컵, 슬리퍼, 화장품, 드라이기, 샴푸, 린스 등)을 모두 챙겨오셔야 합니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777507711250-i1vmur"
+  },
+  {
+    "question": "입원할 때 개인 세면도구를 챙겨야 하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "admission_prep_items",
+    "expectedSource": "통합-FAQ / 입원-입원생활안내문",
+    "expectedAnswerHint": "입원 생활 관련해서 안내드릴게요.\n\n입원 준비물은 병실 종류에 따라 조금 다릅니다. 1인실은 환자용 세면도구(치약, 칫솔, 비누, 수건, 티슈)가 제공되며, 개인컵, 화장품, 드라이기, 샴푸, 린스 등 개인 물품은 지참하셔야 합니다. 2인실과 4인실은 세면도구와 개인용품(티슈, 수건, 개인컵, 슬리퍼, 화장품, 드라이기, 샴푸, 린스 등)을 모두 챙겨오셔야 합니다.\n- 수술 종류나 병실 배정에 따라 추가 준비물이 있을 수 있어 입원 전 안내를 함께 확인해 주세요.\n- 대표전화 02-6925-1111",
+    "adminNote": "",
+    "reviewedLogId": "log-1777507704061-ki9hiv"
+  },
+  {
+    "question": "보청기 맞추기 전에 어떤 검사를 하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "hearing_aid_consult",
+    "expectedSource": "홈페이지-보청기 / 기타-층별안내도",
+    "expectedAnswerHint": "보청기는 종류와 특성이 다양하기 때문에 정확한 청력검사 후 전문의와 상담을 받아 알맞은 보청기를 착용하는 것이 중요합니다. 층별안내도 기준 보청기상담실은 1층에 있습니다.\n- 난청 정도와 종류를 확인하기 위해 순음청력검사, 어음청력검사 등 청력검사가 필요할 수 있습니다.\n- 보청기 관련 상담은 귀 질환 센터 진료와 함께 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777507646555-4c0qqu"
+  },
+  {
+    "question": "귀가 먹먹한데 청력검사를 먼저 해야 하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "ear_fullness_hearing_loss",
+    "expectedSource": "통합-FAQ / 홈페이지-난청",
+    "expectedAnswerHint": "검사 관련해서 안내드릴게요.\n\n귀가 먹먹하거나 삐 소리가 나거나 소리가 잘 안 들리는 증상은 이명, 이관기능장애, 난청 등 여러 원인에서 생길 수 있습니다. 실제로 청력이 떨어진 경우에는 빠른 치료를 받지 못하면 영구적 난청이 남을 수 있어 내원해서 청력검사와 귀 진료를 받으시는 것이 좋습니다.\n- 청력검사와 귀 진료를 통해 난청 여부를 확인할 수 있습니다.\n- 갑자기 청력이 떨어졌거나 한쪽 귀가 잘 안 들리면 늦추지 말고 진료를 권장드립니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777507632169-n4s7ro"
+  },
+  {
+    "question": "수면다원검사는 꼭 입원해서 하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "sleep_apnea_exam",
+    "expectedSource": "통합-FAQ / 입원-수면검사 입원 안내",
+    "expectedAnswerHint": "수면무호흡 검사는 주로 수면다원검사로 확인합니다. 수면다원검사는 1박 2일 입원하에 진행되며, 몸에 여러 센서를 부착하고 자는 동안 호흡, 몸의 움직임, 심전도, 뇌파, 산소포화도 등을 측정해 코골이와 수면무호흡의 정도를 파악합니다.\n- 입원 안내 기준으로 수면다원검사만 하는 경우 오후 9시 입원 후 다음날 오전 5~8시 퇴원으로 안내되어 있습니다.\n- 수면무호흡증 진단 목적의 수면다원검사는 건강보험 적용이 가능할 수 있지만, 단순 코골이 검사는 보험 적용에서 제외될 수 있습니다.\n- 실제 비용은 보험 적용 여부와 검사 조합에 따라 달라져 대표전화 02-6925-1111로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777507610600-4ompai"
+  },
+  {
+    "question": "수술하고 나서 코세척은 하루에 몇 번 하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "nasal_irrigation_surgery",
+    "expectedSource": "외래-코세척 방법",
+    "expectedAnswerHint": "수술 후 코세척은 보통 수술 후 3일부터, 빠르면 퇴원 당일 저녁부터 시작하도록 안내됩니다. 미지근한 물과 세척 분말을 사용해 천천히 세척해 주세요.\n\n코세척 관련 영상 보기: https://www.youtube.com/watch?v=cs5IPhUNT3Q\n- 세척 후 나온 물은 코를 세게 풀지 말고 닦는 정도로 정리해 주세요.\n- 불편감이 심하면 외래나 대표전화 02-6925-1111로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777507541717-3l5wkt"
+  },
+  {
+    "question": "비염 때문에 코가 계속 막히면 어떤 진료를 보면 되나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "symptom_visit_guidance",
+    "expectedSource": "외래-의료진 명단 / 홈페이지-외래진료안내 / 홈페이지-의료진 정보",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n코막힘이나 코 질환 진료는 코센터 기준으로 안내드릴 수 있습니다. 당일 방문 진료도 가능하지만 대기시간이 발생할 수 있고, 실제 진료 가능 여부는 접수 마감 시간과 당일 진료 상황에 따라 달라질 수 있습니다.\n- 코센터 의료진은 동헌종 대표원장, 이상덕 병원장, 정도광 원장, 김태현 부원장, 정종인 진료부장, 장규선 과장, 김병길 과장입니다.\n- 평일 접수 마감은 오후 5시 30분, 토요일 접수 마감은 오후 1시입니다.\n- 아래 진료일정표 이미지를 참고해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777507519844-33mvlx"
+  },
+  {
+    "question": "후각이 갑자기 떨어졌는데 코로나 이후에도 진료하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "코 증상",
+    "expectedSource": "홈페이지-후각장애 / 기타-비급여비용",
+    "expectedAnswerHint": "후각이 떨어졌을 때는 후각장애 진료에서 원인을 확인합니다. 홈페이지 후각장애 안내 기준으로 후각검사, 이비인후과 전용 CT 검사, 필요 시 MRI 검사 등이 안내되어 있습니다.\n- 후각장애는 코 질환 센터 영역으로 안내됩니다.\n- 비염, 축농증, 후각 신경 손상 등 원인에 따라 치료 방향이 달라질 수 있습니다.\n- 비급여비용 문서에는 후각기능검사 항목이 안내되어 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777507332608-d72rmb"
+  },
+  {
+    "question": "보청기 상담은 병원에서 바로 가능한가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "hearing_aid_consult",
+    "expectedSource": "홈페이지-보청기 / 기타-층별안내도",
+    "expectedAnswerHint": "보청기는 종류와 특성이 다양하기 때문에 정확한 청력검사 후 전문의와 상담을 받아 알맞은 보청기를 착용하는 것이 중요합니다. 층별안내도 기준 보청기상담실은 1층에 있습니다.\n- 난청 정도와 종류를 확인하기 위해 순음청력검사, 어음청력검사 등 청력검사가 필요할 수 있습니다.\n- 보청기 관련 상담은 귀 질환 센터 진료와 함께 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777507281988-jmxnmc"
+  },
+  {
+    "question": "난청 검사는 예약 없이 가도 받을 수 있나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "waiting_time_visit",
+    "expectedSource": "홈페이지-외래진료안내 / 통합-FAQ",
+    "expectedAnswerHint": "예약과 접수 관련해서 안내드릴게요.\n\n예약 없이 당일 방문 진료도 가능하지만 외래 상황에 따라 대기시간이 발생할 수 있습니다. 홈페이지 외래진료안내에는 당일 방문 진료가 가능하나 대기시간이 발생할 수 있다고 안내되어 있고, 통합 FAQ에는 당일 예약은 1시간 이내 도착 가능할 때 방문 접수로 안내될 수 있다고 되어 있습니다. 대기가 길 수 있어 가능하면 예약 후 내원하시는 것을 권장드립니다.\n- 당일 외래대기실 상황에 따라 달라질 수 있어 내원 전 대표전화 02-6925-1111로 확인해 주세요.\n- 접수 마감 시간 전에 여유 있게 방문해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777507274746-z1iv73"
+  },
+  {
+    "question": "코골이 수술 후 입원 기간은 보통 얼마나 되나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "sleep_apnea_exam",
+    "expectedSource": "통합-FAQ / 입원-수면검사 입원 안내",
+    "expectedAnswerHint": "수면무호흡 검사는 주로 수면다원검사로 확인합니다. 수면다원검사는 1박 2일 입원하에 진행되며, 몸에 여러 센서를 부착하고 자는 동안 호흡, 몸의 움직임, 심전도, 뇌파, 산소포화도 등을 측정해 코골이와 수면무호흡의 정도를 파악합니다.\n- 입원 안내 기준으로 수면다원검사만 하는 경우 오후 9시 입원 후 다음날 오전 5~8시 퇴원으로 안내되어 있습니다.\n- 수면무호흡증 진단 목적의 수면다원검사는 건강보험 적용이 가능할 수 있지만, 단순 코골이 검사는 보험 적용에서 제외될 수 있습니다.\n- 실제 비용은 보험 적용 여부와 검사 조합에 따라 달라져 대표전화 02-6925-1111로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777507130378-o2ll6b"
+  },
+  {
+    "question": "알레르기 검사는 당일에 받을 수 있나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "same_day_exam_availability",
+    "expectedSource": "통합-FAQ / 홈페이지-외래진료안내",
+    "expectedAnswerHint": "대부분 검사는 진료 당일 진행하고 결과까지 확인하는 흐름으로 안내됩니다. 다만 검사 종류와 당일 상황에 따라 예약 검사로 전환될 수 있습니다. 코 내시경처럼 진료 중 바로 확인하는 검사가 있고, 청력검사나 전정기능검사처럼 상황에 따라 예약으로 안내될 수 있는 검사도 있습니다.\n- 코 검사인지, 청력검사인지, 수면검사인지에 따라 당일 가능 여부가 달라질 수 있습니다.\n- 코골이·수면무호흡 검사는 1박 2일 입원 검사가 필요할 수 있습니다.\n- 내원 전 대표전화 02-6925-1111로 당일 검사 가능 여부를 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777507088615-9exf3w"
+  },
+  {
+    "question": "어지럼증이 있을 때 어떤 검사를 하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "dizziness_care",
+    "expectedSource": "통합-FAQ / 기타-층별안내도",
+    "expectedAnswerHint": "어지럼증은 이비인후과 귀 질환 영역에서도 진료 가능합니다. 빙글 도는 느낌이나 기울어지는 느낌이 움직일 때 심해진다면 귀에 의한 말초성 어지러움 가능성이 있어 전정기능검사 등을 통해 확인할 수 있습니다.\n- 층별안내도 기준 어지러움검사실과 동적자세검사실은 지하 2층에 있습니다.\n- 증상이 심하거나 갑작스러운 신경학적 증상이 함께 있으면 응급 진료가 필요할 수 있습니다.\n- 검사 진행 상황에 따라 당일검사 또는 예약검사로 안내될 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777507088968-9nkh31"
+  },
+  {
+    "question": "의사 누구누구 있어?",
+    "caseType": "admin_normal",
+    "expectedIntent": "doctor_overview",
+    "expectedSource": "홈페이지-의료진 정보",
+    "expectedAnswerHint": "의료진 관련해서 안내드릴게요.\n\n하나이비인후과병원 홈페이지 기준으로 현재 의료진 정보를 확인할 수 있습니다. 대표 의료진으로는 동헌종 대표원장, 이상덕 병원장, 정도광 원장, 남순열 두경부 센터장, 주형로 원장, 장선오 귀질환 센터장, 장정훈 원장, 김태현 부원장, 정종인 진료부장, 김종세 과장 등이 있습니다. 특정 의료진의 자세한 경력이 궁금하시면 “의료진 이름 + 경력”으로 입력해 주세요.\n- 코 질환 의사: 동헌종, 이상덕, 정도광, 김태현, 정종인, 장규선, 김병길\n- 목·두경부·수면클리닉: 남순열, 주형로, 장규선\n- 귀 질환 의사: 장선오, 장정훈, 김종세\n- 내과: 이영미\n- 특정 의료진의 자세한 경력이 궁금하시면 “의료진 이름 + 경력”으로 입력해 주세요.\n- 세부 일정은 내원 전 대표전화 02-6925-1111로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777506383513-jgpuw6"
+  },
+  {
+    "question": "병원 홈페이지 뭐야",
+    "caseType": "admin_normal",
+    "expectedIntent": "integrated_faq",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\nhttps://hanaent.co.kr/입니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777506345275-9fmkdp"
+  },
+  {
+    "question": "귀가 잘 안들려",
+    "caseType": "admin_normal",
+    "expectedIntent": "ear_fullness_hearing_loss",
+    "expectedSource": "통합-FAQ / 홈페이지-난청",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n귀가 먹먹하거나 삐 소리가 나거나 소리가 잘 안 들리는 증상은 이명, 이관기능장애, 난청 등 여러 원인에서 생길 수 있습니다. 실제로 청력이 떨어진 경우에는 빠른 치료를 받지 못하면 영구적 난청이 남을 수 있어 내원해서 청력검사와 귀 진료를 받으시는 것이 좋습니다.\n- 청력검사와 귀 진료를 통해 난청 여부를 확인할 수 있습니다.\n- 갑자기 청력이 떨어졌거나 한쪽 귀가 잘 안 들리면 늦추지 말고 진료를 권장드립니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777506313833-dv8c0k"
+  },
+  {
+    "question": "내가 아스피린을 먹는데 언제 끊어야되?",
+    "caseType": "admin_normal",
+    "expectedIntent": "medication_stop",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "약 복용 안내 관련해서 안내드릴게요.\n\n입원 전이나 수술 전에 복용을 중단해야 하는 약은 별도 리스트로 안내됩니다. 복용 중인 약이 있다면 입원 전 복용중단 약물 리스트를 먼저 확인해 주세요.\n- 리스트에 없는 약이거나 중단 여부가 애매하면 대표전화 02-6925-1111로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777506154458-7ioee2"
+  },
+  {
+    "question": "의사는 누가 있어",
+    "caseType": "admin_normal",
+    "expectedIntent": "doctor_overview",
+    "expectedSource": "홈페이지-의료진 정보",
+    "expectedAnswerHint": "의료진 관련해서 안내드릴게요.\n\n하나이비인후과병원 홈페이지 기준으로 현재 의료진 정보를 확인할 수 있습니다. 대표 의료진으로는 동헌종 대표원장, 이상덕 병원장, 정도광 원장, 남순열 두경부 센터장, 주형로 원장, 장선오 귀질환 센터장, 장정훈 원장, 김태현 부원장, 정종인 진료부장, 김종세 과장 등이 있습니다. 특정 의료진의 자세한 경력이 궁금하시면 “의료진 이름 + 경력”으로 입력해 주세요.\n- 코 질환 의사: 동헌종, 이상덕, 정도광, 김태현, 정종인, 장규선, 김병길\n- 목·두경부·수면클리닉: 남순열, 주형로, 장규선\n- 귀 질환 의사: 장선오, 장정훈, 김종세\n- 내과: 이영미\n- 특정 의료진의 자세한 경력이 궁금하시면 “의료진 이름 + 경력”으로 입력해 주세요.\n- 세부 일정은 내원 전 대표전화 02-6925-1111로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777506027981-19wvb2"
+  },
+  {
+    "question": "진료 보려면 어떻게 해야되?",
+    "caseType": "admin_normal",
+    "expectedIntent": "integrated_faq",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n먼저 진료 예약을 하거나 신분증 지참하시고 방문 접수 후 1층 접수 데스크에서 환자분 성함, 주민번호, 연락처 그리고 증상을 확인하고 접수를 진행합니다. 이후 해당 진료실에서 진료를 하고, 증상에 맞는 검사와 치료를 받으실 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777506018238-jclexl"
+  },
+  {
+    "question": "귀가 잘 안들려",
+    "caseType": "admin_normal",
+    "expectedIntent": "ear_fullness_hearing_loss",
+    "expectedSource": "통합-FAQ / 홈페이지-난청",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n귀가 먹먹하거나 삐 소리가 나거나 소리가 잘 안 들리는 증상은 이명, 이관기능장애, 난청 등 여러 원인에서 생길 수 있습니다. 실제로 청력이 떨어진 경우에는 빠른 치료를 받지 못하면 영구적 난청이 남을 수 있어 내원해서 청력검사와 귀 진료를 받으시는 것이 좋습니다.\n- 청력검사와 귀 진료를 통해 난청 여부를 확인할 수 있습니다.\n- 갑자기 청력이 떨어졌거나 한쪽 귀가 잘 안 들리면 늦추지 말고 진료를 권장드립니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777506005369-dzvb5m"
+  },
+  {
+    "question": "귀 의사 추천해줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "ai",
+    "expectedSource": "입퇴원안내 / 의료진 소개 / 귀 질환 센터",
+    "expectedAnswerHint": "장선오 귀질환 센터장(이비인후과 전문의)을 추천드립니다.\n센터장님은 인공와우, 난청·중이염 수술 및 보청기 등 귀(청각) 관련 진료를 전문으로 하십니다.\n진료일정은 병원 문서에만 안내되어 있어 내원 전 대표전화 02-6925-1111 로 반드시 확인해 주세요.\n이명이나 난청 등 증상별로 준비할 사항이나 예약 도와드릴까요?\n\n이명 관련 영상 보기: https://youtube.com/shorts/TihA3LVtWlU?feature=share",
+    "adminNote": "",
+    "reviewedLogId": "log-1777505729909-s5my8x"
+  },
+  {
+    "question": "병원에 의료진 몇명이 진료봐?",
+    "caseType": "admin_normal",
+    "expectedIntent": "doctor_count",
+    "expectedSource": "홈페이지-의료진 정보",
+    "expectedAnswerHint": "의료진 정보 문서 기준으로 안내 가능한 의료진은 총 15명입니다.\n- 동헌종, 이상덕, 정도광, 남순열, 주형로, 장선오, 장정훈, 김태현, 정종인, 김종세, 장규선, 김병길, 이영미, 강매화, 문보은 의료진이 문서에 포함되어 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777505656092-81n37r"
+  },
+  {
+    "question": "환자가 가장 많은 의사는 누구야",
+    "caseType": "admin_normal",
+    "expectedIntent": "doctor_popularity_unknown",
+    "expectedSource": "홈페이지-의료진 정보",
+    "expectedAnswerHint": "문서에는 의료진별 환자 수나 인기 순위를 판단할 수 있는 정보가 없습니다. 특정 의사를 순위로 안내하기보다는 증상이나 진료 분야에 맞는 의료진을 확인해 드리는 방식이 정확합니다.\n- 귀, 코, 목, 수면, 어지럼증처럼 증상을 알려주시면 관련 센터나 의료진 정보를 기준으로 안내드릴 수 있습니다.\n- 의료진 진료 일정은 병원 사정에 따라 달라질 수 있어 예약 전 확인을 권장드립니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777505634135-u8ao5u"
+  },
+  {
+    "question": "홈페이지 주소 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "homepage_url",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "하나이비인후과병원 홈페이지 주소는 https://hanaent.co.kr/입니다.\n- 진료 예약, 의료진 안내, 오시는 길 등은 홈페이지에서 확인하실 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777505622162-v0h181"
+  },
+  {
+    "question": "선릉역에서 병원까지 가는방법 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "seolleung_route",
+    "expectedSource": "홈페이지-셔틀버스 및 오시는길",
+    "expectedAnswerHint": "선릉역에서 오실 경우 2호선 또는 분당선 선릉역 4번 출구에서 도보 약 15분으로 안내되어 있습니다.\n- 버스 이용 시 선릉역 7번 출구에서 강남07번 버스를 타고 동영문화센터 정류장에서 하차 후 약 50m 이동하시면 됩니다.\n- 오시는 길 상세 안내는 https://hanaent.co.kr/info/info04.html 에서 확인하실 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777505600359-qfnwul"
+  },
+  {
+    "question": "선릉역에서 어떻게 가",
+    "caseType": "admin_normal",
+    "expectedIntent": "seolleung_route",
+    "expectedSource": "홈페이지-셔틀버스 및 오시는길",
+    "expectedAnswerHint": "선릉역에서 오실 경우 2호선 또는 분당선 선릉역 4번 출구에서 도보 약 15분으로 안내되어 있습니다.\n- 버스 이용 시 선릉역 7번 출구에서 강남07번 버스를 타고 동영문화센터 정류장에서 하차 후 약 50m 이동하시면 됩니다.\n- 오시는 길 상세 안내는 https://hanaent.co.kr/info/info04.html 에서 확인하실 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777505590161-gp7qqa"
+  },
+  {
+    "question": "3층에는 뭐가있어?",
+    "caseType": "admin_normal",
+    "expectedIntent": "floor_guide",
+    "expectedSource": "기타-층별안내도",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n3층에는 신경과진료실, 수면센터, 주사실, 수술상담실, 임상검사실, 심전도실, 화장실가 있습니다.\n- 다른 층 안내가 필요하시면 1층, 2층, 3층처럼 다시 질문해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777505553072-6sh4pq"
+  },
+  {
+    "question": "서울대 출신 누구있어?",
+    "caseType": "admin_normal",
+    "expectedIntent": "doctor_education",
+    "expectedSource": "홈페이지-의료진 정보",
+    "expectedAnswerHint": "의료진 정보 문서 기준으로 서울대학교 관련 학력 또는 경력이 안내된 의료진은 동헌종 원장, 장선오 원장, 장정훈 원장, 강매화 원장입니다.\n- 각 의료진별 세부 학력과 경력은 병원 홈페이지 의료진 정보에서 확인하시는 것이 가장 정확합니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777505542483-z8d9l4"
+  },
+  {
+    "question": "병원약도",
+    "caseType": "admin_normal",
+    "expectedIntent": "ai",
+    "expectedSource": "하나이비인후과병원 메인",
+    "expectedAnswerHint": "문서에는 병원 약도가 포함되어 있지 않습니다.\n홈페이지(https://hanaent.co.kr)에 오시는 길(약도)이 게재되어 있거나, 상세 약도는 대표번호 대표전화 02-6925-1111 로 문의하시면 안내받으실 수 있습니다.\n참고로 문서에 있는 셔틀버스는 병원↔역삼 구간을 평일 오전·오후에 대략 10~15 분 간격으로, 토요일에도 오전~정오에 운행합니다(정확한 시간은 셔틀표 참조).\n원하시면 어떤 경로(지하철·자가용·주차 등)로 오실지 알려주시면 홈페이지의 오시는 길에서 해당 정보를 찾아 안내해 드리거나, 병원에 직접 확인해 드리겠습니다.\n\n셔틀버스 관련 영상 보기: https://www.youtube.com/watch?v=4XdnkkUvw10",
+    "adminNote": "",
+    "reviewedLogId": "log-1777505513310-dshv4l"
+  },
+  {
+    "question": "양압기 보험 기준에 대해 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "cpap_insurance",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "양압기 보험 적용 여부는 추측으로 결정할 수 없고, 수면다원검사 결과와 의료진 판단을 기준으로 확인합니다. 통합 FAQ 기준으로 무호흡-저호흡 지수(AHI)가 15 이상이거나, AHI 5~14 범위에서 불면증, 주간졸음, 인지기능 감소 같은 동반 증상이 있으면 양압기 처방을 위한 수면다원검사가 보험 적용될 수 있습니다.\n- 양압기를 계속 보험 적용받으려면 90일 순응 기간 중 연속 30일 사용이 필요하며, 그 기간 중 하루 4시간 이상 사용한 날이 21일 이상이어야 합니다.\n- 정확한 적용 여부는 검사 결과와 진료 후 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777505465960-l46o57"
+  },
+  {
     "question": "예약방법은 뭐가있너",
     "caseType": "admin_normal",
     "expectedIntent": "reservation_or_reception",

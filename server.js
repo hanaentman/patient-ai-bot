@@ -2242,6 +2242,30 @@ function shouldUseConsultationTone(payload) {
     'voice_exam',
     'admission_process_location',
     'appointment_arrival',
+    'same_day_certificate',
+    'wifi_info_direct',
+    'guardian_stay_policy',
+    'smell_exam_fee',
+    'thyroid_ultrasound',
+    'same_day_symptom_visit',
+    'doctor_schedule_lookup',
+    'result_email_policy',
+    'prescription_pharmacy_after_visit',
+    'parking_discount',
+    'yeoksam_walking_route',
+    'shuttle_schedule',
+    'mri_availability',
+    'billing_statement',
+    'discharge_certificate',
+    'pediatric_adenoid_consult',
+    'ear_discharge_visit',
+    'nosebleed_doctor',
+    'clinic_room_location',
+    'injection_room_location',
+    'oxygen_therapy_location',
+    'anti_aging_clinic',
+    'doctor_recommendation_clarification',
+    'center_doctor_recommendation',
   ].includes(type);
 }
 
@@ -2411,6 +2435,30 @@ function enrichResponsePayload(payload, question) {
     'voice_exam',
     'admission_process_location',
     'appointment_arrival',
+    'same_day_certificate',
+    'wifi_info_direct',
+    'guardian_stay_policy',
+    'smell_exam_fee',
+    'thyroid_ultrasound',
+    'same_day_symptom_visit',
+    'doctor_schedule_lookup',
+    'result_email_policy',
+    'prescription_pharmacy_after_visit',
+    'parking_discount',
+    'yeoksam_walking_route',
+    'shuttle_schedule',
+    'mri_availability',
+    'billing_statement',
+    'discharge_certificate',
+    'pediatric_adenoid_consult',
+    'ear_discharge_visit',
+    'nosebleed_doctor',
+    'clinic_room_location',
+    'injection_room_location',
+    'oxygen_therapy_location',
+    'anti_aging_clinic',
+    'doctor_recommendation_clarification',
+    'center_doctor_recommendation',
   ].includes(localizedPayload.type);
 
   return sanitizeOutgoingPayload({
@@ -4267,7 +4315,7 @@ function buildDeliveryFoodResponse(message) {
 
 function buildShuttleLunchResponse(message) {
   const text = String(message || '');
-  if (!/셔틀/u.test(text) || !/(점심|점심시간|운행|시간)/u.test(text)) {
+  if (!/셔틀/u.test(text) || !/(점심|점심시간)/u.test(text)) {
     return null;
   }
 
@@ -4281,6 +4329,25 @@ function buildShuttleLunchResponse(message) {
     ],
     sources: [
       buildIntegratedFaqDocSource(),
+      buildLocalDocSource('기타-병원셔틀시간표', '기타-병원셔틀시간표.txt'),
+      buildLocalDocSource('홈페이지-셔틀버스 및 오시는길', '홈페이지-셔틀버스 및 오시는길.txt'),
+    ],
+  };
+}
+
+function buildShuttleScheduleResponse(message) {
+  const text = String(message || '');
+  if (!/셔틀/u.test(text) || !/(시간|시간표|운행|토요일|주말|간격|몇\s*시)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'shuttle_schedule',
+    answer: '셔틀버스는 역삼역 1번 출구 인근에서 이용할 수 있습니다. 평일은 오전 8시 55분부터 12시 25분까지, 오후 1시 40분부터 5시 40분까지 약 15분 간격으로 운행합니다. 토요일은 오전 8시 55분부터 12시 55분까지 약 30분 간격으로 운행합니다.',
+    followUp: [
+      '당일 교통 상황이나 병원 사정에 따라 달라질 수 있어 내원 전 확인을 권장드립니다.',
+    ],
+    sources: [
       buildLocalDocSource('기타-병원셔틀시간표', '기타-병원셔틀시간표.txt'),
       buildLocalDocSource('홈페이지-셔틀버스 및 오시는길', '홈페이지-셔틀버스 및 오시는길.txt'),
     ],
@@ -4357,6 +4424,26 @@ function buildSmellExamResponse(message) {
       '후각장애는 코 질환 센터 영역으로 안내됩니다.',
       '비염, 축농증, 후각 신경 손상 등 원인에 따라 치료 방향이 달라질 수 있습니다.',
       '비급여비용 문서에는 후각기능검사 항목이 안내되어 있습니다.',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-후각장애', '홈페이지-후각장애.txt'),
+      buildLocalDocSource('기타-비급여비용', '기타-비급여비용.txt'),
+    ],
+  };
+}
+
+function buildSmellExamFeeResponse(message) {
+  const text = String(message || '');
+  if (!/(후각|냄새)/u.test(text) || !/(비용|얼마|금액|가격|검사비)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'smell_exam_fee',
+    answer: '후각검사 비용은 검사 종류와 진료 상황에 따라 달라질 수 있어 상담원 확인을 권장드립니다. 비급여비용 문서에는 후각기능검사 항목이 안내되어 있으나, 실제 적용 항목은 진료 후 결정될 수 있습니다.',
+    followUp: [
+      '정확한 비용 확인은 대표전화 02-6925-1111로 문의해 주세요.',
+      '후각저하 원인에 따라 CT 등 다른 검사가 함께 필요할 수 있습니다.',
     ],
     sources: [
       buildLocalDocSource('홈페이지-후각장애', '홈페이지-후각장애.txt'),
@@ -4747,6 +4834,380 @@ function buildAppointmentArrivalResponse(message) {
       buildLocalDocSource('홈페이지-외래진료안내', '홈페이지-외래진료안내.txt'),
       buildIntegratedFaqDocSource(),
     ],
+  };
+}
+
+function buildSameDayCertificateResponse(message) {
+  const text = String(message || '');
+  if (!/(진료\s*확인서|진료확인서)/u.test(text) || !/(당일|오늘|바로|가능|발급)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'same_day_certificate',
+    answer: '진료확인서는 당일 발급 가능합니다. 발급 시 본인 확인이 필요할 수 있어 신분증을 지참해 원무과에 문의해 주세요.',
+    followUp: [
+      '서류 종류와 신청자 관계에 따라 필요한 구비서류가 달라질 수 있습니다.',
+      '접수 가능 시간은 평일 오전 8시 30분부터 오후 5시 30분, 토요일 오전 8시 30분부터 오후 1시까지로 안내되어 있습니다.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('기타-비급여비용', '기타-비급여비용.txt'),
+    ],
+  };
+}
+
+function buildWifiDirectResponse(message) {
+  const text = String(message || '');
+  if (!/(와이파이|Wi-?Fi|wifi|인터넷)/iu.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'wifi_info_direct',
+    answer: '입원 중 병실에서 와이파이를 이용할 수 있습니다. 와이파이 비밀번호는 0269251111로 안내됩니다.',
+    followUp: [
+      '연결이 어렵거나 병실 내 이용이 불편하면 병동 간호사에게 문의해 주세요.',
+    ],
+    sources: [buildIntegratedFaqDocSource()],
+  };
+}
+
+function buildGuardianStayPolicyResponse(message) {
+  const text = String(message || '');
+  if (!/(보호자|간병|상주)/u.test(text) || !/(상주|모든|가능|같이|동반)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'guardian_stay_policy',
+    answer: '보호자 상주는 모든 환자에게 일괄적으로 가능한 것은 아닙니다. 문서 기준으로 소아환자(15세 이하)는 보호자 한 분이 함께 있을 수 있고, 그 외에는 환자 상태와 병동 안내에 따라 확인이 필요합니다.',
+    followUp: [
+      '입원 중 보호자 동반이 필요한 경우 병동 간호사에게 먼저 확인해 주세요.',
+      '면회와 병문안은 감염 예방과 환자 안정을 위해 제한될 수 있습니다.',
+    ],
+    sources: [buildIntegratedFaqDocSource()],
+  };
+}
+
+function buildThyroidUltrasoundResponse(message) {
+  const text = String(message || '');
+  if (!/(갑상선)/u.test(text) || !/(초음파|검사|볼\s*수|가능)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'thyroid_ultrasound',
+    answer: '갑상선 관련 진료와 검사는 두경부질환 진료 영역에서 상담할 수 있습니다. 다만 갑상선 초음파 가능 여부와 당일 진행 여부는 진료 일정과 검사실 상황에 따라 달라질 수 있어 예약 전 확인이 필요합니다.',
+    followUp: [
+      '갑상선질환 관련 의료진 정보가 문서에 안내되어 있습니다.',
+      '정확한 검사 가능 여부는 대표전화 02-6925-1111로 문의해 주세요.',
+    ],
+    sources: [buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt')],
+  };
+}
+
+function buildSameDaySymptomVisitResponse(message) {
+  const text = String(message || '');
+  if (!/(중이염|귀에서\s*물|귀.*진물|귀.*분비물|코피|목.*가래|가래.*목)/u.test(text) || !/(당일|진료|가능|예약|어느|센터)/u.test(text)) {
+    return null;
+  }
+
+  let topic = '증상';
+  let center = '이비인후과 진료';
+  if (/(중이염|귀에서\s*물|귀.*진물|귀.*분비물)/u.test(text)) {
+    topic = '귀 증상';
+    center = '귀 질환 센터';
+  } else if (/코피/u.test(text)) {
+    topic = '코피';
+    center = '코 질환 센터';
+  } else if (/(목.*가래|가래.*목)/u.test(text)) {
+    topic = '목 이물감이나 가래 느낌';
+    center = '목 질환 또는 두경부 진료';
+  }
+
+  return {
+    type: 'same_day_symptom_visit',
+    answer: `${topic}은 ${center}에서 진료 상담이 가능합니다. 당일 방문 진료도 가능하지만 외래 상황에 따라 대기시간이 발생할 수 있어, 가능하면 예약 후 내원하시는 것을 권장드립니다.`,
+    followUp: [
+      '증상이 심하거나 출혈, 고열, 심한 통증이 있으면 전화로 먼저 확인해 주세요.',
+      '대표전화 02-6925-1111',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt'),
+    ],
+  };
+}
+
+function buildDoctorScheduleLookupResponse(message) {
+  const text = String(message || '');
+  if (!/(의료진|의사|원장|선생)/u.test(text) || !/(진료\s*요일|요일|일정|시간표|스케줄|어디서\s*확인)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'doctor_schedule_lookup',
+    answer: '의료진별 진료 요일과 일정은 병원 홈페이지의 의료진 또는 진료 일정 안내에서 확인하실 수 있습니다. 진료 일정은 병원 사정에 따라 변경될 수 있어 예약 전 대표전화로 확인하는 것이 가장 정확합니다.',
+    followUp: [
+      '특정 의료진 이름을 알려주시면 문서 기준으로 해당 의료진 안내를 도와드릴 수 있습니다.',
+      '대표전화 02-6925-1111',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt'),
+      buildLocalDocSource('홈페이지-외래진료안내', '홈페이지-외래진료안내.txt'),
+    ],
+  };
+}
+
+function buildResultEmailPolicyResponse(message) {
+  const text = String(message || '');
+  if (!/(검사\s*결과|결과지|검사결과)/u.test(text) || !/(이메일|메일|email|e-mail)/iu.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'result_email_policy',
+    answer: '검사 결과지는 이메일로 발급하지 않습니다. 개인정보 보호를 위해 본인이 신분증을 지참하고 내원해 본인 확인 후 발급받는 것이 원칙입니다.',
+    followUp: [
+      '검사 영상자료는 CD 복사, 기타 진료기록은 진료기록사본으로 발급할 수 있습니다.',
+      '보호자나 대리인이 발급받는 경우 필요한 구비서류를 확인해 주세요.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('홈페이지-서류발급', '홈페이지-서류발급.txt'),
+    ],
+  };
+}
+
+function buildPrescriptionPharmacyAfterVisitResponse(message) {
+  const text = String(message || '');
+  if (!/(외래|진료\s*후|진료후)/u.test(text) || !/(약\s*처방|처방전|약.*어디|어디서.*약)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'prescription_pharmacy_after_visit',
+    answer: '외래 진료 후 처방전은 원무과에서 발급받고, 약은 병원 건물 밖 양쪽에 있는 외부 약국을 이용하시면 됩니다.',
+    followUp: [
+      '병원 4층 약제과는 주로 입원환자 이용과 관련된 공간으로 안내되어 있습니다.',
+      '처방전 수령 위치가 헷갈리면 1층 원무과에 문의해 주세요.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('기타-층별안내도', '기타-층별안내도.txt'),
+    ],
+  };
+}
+
+function buildParkingDiscountResponse(message) {
+  const text = String(message || '');
+  if (!/주차/u.test(text) || !/(할인|무료|요금|진료만|진료.*적용)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'parking_discount',
+    answer: '외래진료 시 주차는 2시간 무료로 안내됩니다. 주차권 또는 영수증 제출이 필요할 수 있으니 수납이나 접수 시 확인해 주세요.',
+    followUp: [
+      '입원 환자는 밤샘 주차가 불가능한 것으로 안내되어 있습니다.',
+      '주차장 높이 1.9m 이상 차량은 주차가 어려울 수 있습니다.',
+    ],
+    sources: [buildIntegratedFaqDocSource()],
+  };
+}
+
+function buildYeoksamWalkingRouteResponse(message) {
+  const text = String(message || '');
+  if (!/역삼역/u.test(text) || !/(걸어|도보|얼마나|몇\s*분|소요|시간|가는)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'yeoksam_walking_route',
+    answer: '역삼역에서 병원까지는 도보로 약 15~20분 정도 소요됩니다. 병원 셔틀버스는 역삼역 1번 출구 인근에서 이용할 수 있습니다.',
+    followUp: [
+      '오시는 길과 약도는 https://hanaent.co.kr/info/info04.html 에서 확인하실 수 있습니다.',
+    ],
+    sources: [buildLocalDocSource('홈페이지-셔틀버스 및 오시는길', '홈페이지-셔틀버스 및 오시는길.txt')],
+  };
+}
+
+function buildMriAvailabilityResponse(message) {
+  const text = String(message || '');
+  if (!/(MRI|mri|엠알아이)/u.test(text) || !/(검사|하나요|가능|있나요|찍)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'mri_availability',
+    answer: '문서 기준으로 MRI 검사는 병원에서 시행하는 검사로 안내되어 있지 않습니다. 필요한 경우 진료 후 의료진이 적절한 검사나 외부 검사 여부를 안내할 수 있습니다.',
+    followUp: [
+      '코 질환이나 후각저하 등은 CT 등 다른 검사가 먼저 안내될 수 있습니다.',
+      '정확한 검사 가능 여부는 대표전화 02-6925-1111로 확인해 주세요.',
+    ],
+    sources: [buildIntegratedFaqDocSource()],
+  };
+}
+
+function buildBillingStatementResponse(message) {
+  const text = String(message || '');
+  if (!/(진료비\s*세부내역서|세부내역서|진료비\s*내역)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'billing_statement',
+    answer: '진료비 세부내역서는 원무과에서 신청해 발급받을 수 있습니다. 영수증은 팩스 발급이 가능하지만, 진료비 세부내역서는 팩스 발급이 어렵고 본인 확인 후 발급하는 것으로 안내되어 있습니다.',
+    followUp: [
+      '직접 내원 시 신분증을 지참해 주세요.',
+      '대리인 발급은 관계 확인 서류와 위임 서류가 필요할 수 있습니다.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('홈페이지-서류발급', '홈페이지-서류발급.txt'),
+    ],
+  };
+}
+
+function buildDischargeCertificateResponse(message) {
+  const text = String(message || '');
+  if (!/퇴원/u.test(text) || !/(진단서|서류|확인서|발급|신청)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'discharge_certificate',
+    answer: '퇴원 시 진단서나 입퇴원 관련 서류가 필요하면 퇴원 하루 전 주치의 또는 병동 간호사에게 신청서를 제출해 주세요. 퇴원 수납 시 원무과에서 받을 수 있습니다.',
+    followUp: [
+      '퇴원 후에는 외래 진료 시 서류 발급을 신청할 수 있습니다.',
+      '서류 종류에 따라 본인 확인과 구비서류가 필요할 수 있습니다.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('홈페이지-서류발급', '홈페이지-서류발급.txt'),
+    ],
+  };
+}
+
+function buildPediatricAdenoidConsultResponse(message) {
+  const text = String(message || '');
+  if (!/(아이|소아|어린이|아동)/u.test(text) || !/(아데노이드|편도)/u.test(text) || !/(수술|상담|진료)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'pediatric_adenoid_consult',
+    answer: '소아 아데노이드나 편도 수술 상담은 가능합니다. 수술 필요 여부는 증상, 진찰, 검사 결과를 보고 의료진이 결정합니다.',
+    followUp: [
+      '참고용 병원 영상: https://www.youtube.com/watch?v=uD7jFpNqAbI',
+      '예약 시 소아 아데노이드 또는 소아 편도 수술 상담이라고 말씀해 주세요.',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-소아 편도', '홈페이지-소아 편도.txt'),
+      buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt'),
+    ],
+  };
+}
+
+function buildRoomLocationResponse(message) {
+  const text = String(message || '');
+  if (!/(진료실|주사실|산소\s*치료|산소치료)/u.test(text) || !/(어디|위치|몇\s*층|층|하나요|해)/u.test(text)) {
+    return null;
+  }
+
+  if (/진료실/u.test(text)) {
+    return {
+      type: 'clinic_room_location',
+      answer: '진료실은 1층에 7번 진료실과 8번 진료실, 2층에 2번~6번 진료실과 내과 진료실, 3층에 신경과 진료실이 안내되어 있습니다.',
+      followUp: ['당일 접수 후 안내받은 진료실로 이동해 주세요.'],
+      sources: [buildLocalDocSource('기타-층별안내도', '기타-층별안내도.txt')],
+    };
+  }
+
+  if (/주사실/u.test(text)) {
+    return {
+      type: 'injection_room_location',
+      answer: '주사실은 3층에 있는 것으로 안내되어 있습니다.',
+      followUp: ['검사나 처치 동선은 당일 접수 후 안내를 따라 주세요.'],
+      sources: [buildLocalDocSource('기타-층별안내도', '기타-층별안내도.txt')],
+    };
+  }
+
+  return {
+    type: 'oxygen_therapy_location',
+    answer: '산소치료와 고압산소치료는 문서에 치료 항목으로 안내되어 있으나, 정확한 시행 위치와 예약 방법은 내원 전 확인이 필요합니다.',
+    followUp: [
+      '관련 비용 항목은 비급여비용 문서에 안내되어 있습니다.',
+      '정확한 위치는 대표전화 02-6925-1111로 확인해 주세요.',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-신경회복케어 프로그램', '홈페이지-신경회복케어 프로그램.txt'),
+      buildLocalDocSource('기타-비급여비용', '기타-비급여비용.txt'),
+      buildLocalDocSource('기타-층별안내도', '기타-층별안내도.txt'),
+    ],
+  };
+}
+
+function buildAntiAgingClinicResponse(message) {
+  const text = String(message || '');
+  if (!/(항노화|안티에이징|노화)/u.test(text) || !/(클리닉|뭐|무엇|어떤|위치|어디)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'anti_aging_clinic',
+    answer: '항노화 클리닉은 H Reverse Aging Center로 안내되어 있으며, 층별안내도 기준 7층에 있습니다. 신경회복케어 프로그램 등 관련 항목과 함께 안내됩니다.',
+    followUp: [
+      '프로그램 내용이나 예약 가능 여부는 대표전화 02-6925-1111로 확인해 주세요.',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-신경회복케어 프로그램', '홈페이지-신경회복케어 프로그램.txt'),
+      buildLocalDocSource('기타-층별안내도', '기타-층별안내도.txt'),
+    ],
+  };
+}
+
+function buildDoctorRecommendationResponse(message) {
+  const text = String(message || '');
+  if (!/(의사|의료진|원장|선생)/u.test(text) || !/(추천|소개)/u.test(text)) {
+    return null;
+  }
+
+  if (/(코|비염|축농증|코막힘|코피)/u.test(text)) {
+    return {
+      type: 'center_doctor_recommendation',
+      answer: '코 질환은 코센터 의료진 기준으로 안내드릴 수 있습니다. 축농증, 비염, 비중격만곡증, 코물혹, 코피 등 증상에 따라 담당 의료진이 달라질 수 있습니다.',
+      followUp: ['원하시는 증상을 함께 말씀해 주시면 문서 기준으로 더 좁혀 안내드릴 수 있습니다.'],
+      sources: [buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt')],
+    };
+  }
+
+  if (/(목|편도|음성|목소리|갑상선|두경부)/u.test(text)) {
+    return {
+      type: 'center_doctor_recommendation',
+      answer: '목 질환은 두경부, 음성질환, 편도, 갑상선질환 등 세부 증상에 따라 관련 의료진을 안내받는 것이 좋습니다. 문서 기준으로 남순열, 주형로, 장선오, 정종인 의료진 등이 목 관련 전문분야에 포함되어 있습니다.',
+      followUp: ['편도, 목소리, 갑상선, 목의 혹처럼 주 증상을 알려주시면 더 정확히 안내드릴 수 있습니다.'],
+      sources: [buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt')],
+    };
+  }
+
+  if (/(귀|난청|어지럼|이명|보청기)/u.test(text)) {
+    return {
+      type: 'center_doctor_recommendation',
+      answer: '귀 질환은 난청, 이명, 어지럼증, 보청기 상담 등 세부 증상에 따라 관련 의료진을 안내받는 것이 좋습니다. 문서의 귀센터 의료진 정보를 기준으로 확인할 수 있습니다.',
+      followUp: ['난청, 이명, 어지럼증, 보청기 중 어떤 증상인지 알려주시면 더 좁혀 안내드릴 수 있습니다.'],
+      sources: [buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt')],
+    };
+  }
+
+  return {
+    type: 'doctor_recommendation_clarification',
+    answer: '의료진 추천은 증상에 따라 달라집니다. 코, 귀, 목, 수면, 어지럼증 중 어떤 증상으로 진료를 원하시는지 알려주시면 문서 기준으로 관련 의료진을 안내드릴게요.',
+    followUp: [
+      '예: 코막힘, 축농증, 난청, 이명, 목소리 변화, 편도 문제, 수면무호흡',
+    ],
+    sources: [buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt')],
   };
 }
 
@@ -9201,6 +9662,101 @@ async function buildChatResponse(rawMessage, sessionId) {
   const preMeaningShuttleLunchResponse = buildShuttleLunchResponse(message);
   if (preMeaningShuttleLunchResponse) {
     return enrichResponsePayload(preMeaningShuttleLunchResponse, message);
+  }
+
+  const preMeaningShuttleScheduleResponse = buildShuttleScheduleResponse(message);
+  if (preMeaningShuttleScheduleResponse) {
+    return enrichResponsePayload(preMeaningShuttleScheduleResponse, message);
+  }
+
+  const preMeaningSameDayCertificateResponse = buildSameDayCertificateResponse(message);
+  if (preMeaningSameDayCertificateResponse) {
+    return enrichResponsePayload(preMeaningSameDayCertificateResponse, message);
+  }
+
+  const preMeaningWifiDirectResponse = buildWifiDirectResponse(message);
+  if (preMeaningWifiDirectResponse) {
+    return enrichResponsePayload(preMeaningWifiDirectResponse, message);
+  }
+
+  const preMeaningGuardianStayPolicyResponse = buildGuardianStayPolicyResponse(message);
+  if (preMeaningGuardianStayPolicyResponse) {
+    return enrichResponsePayload(preMeaningGuardianStayPolicyResponse, message);
+  }
+
+  const preMeaningSmellExamFeeResponse = buildSmellExamFeeResponse(message);
+  if (preMeaningSmellExamFeeResponse) {
+    return enrichResponsePayload(preMeaningSmellExamFeeResponse, message);
+  }
+
+  const preMeaningThyroidUltrasoundResponse = buildThyroidUltrasoundResponse(message);
+  if (preMeaningThyroidUltrasoundResponse) {
+    return enrichResponsePayload(preMeaningThyroidUltrasoundResponse, message);
+  }
+
+  const preMeaningSameDaySymptomVisitResponse = buildSameDaySymptomVisitResponse(message);
+  if (preMeaningSameDaySymptomVisitResponse) {
+    return enrichResponsePayload(preMeaningSameDaySymptomVisitResponse, message);
+  }
+
+  const preMeaningDoctorScheduleLookupResponse = buildDoctorScheduleLookupResponse(message);
+  if (preMeaningDoctorScheduleLookupResponse) {
+    return enrichResponsePayload(preMeaningDoctorScheduleLookupResponse, message);
+  }
+
+  const preMeaningResultEmailPolicyResponse = buildResultEmailPolicyResponse(message);
+  if (preMeaningResultEmailPolicyResponse) {
+    return enrichResponsePayload(preMeaningResultEmailPolicyResponse, message);
+  }
+
+  const preMeaningPrescriptionPharmacyAfterVisitResponse = buildPrescriptionPharmacyAfterVisitResponse(message);
+  if (preMeaningPrescriptionPharmacyAfterVisitResponse) {
+    return enrichResponsePayload(preMeaningPrescriptionPharmacyAfterVisitResponse, message);
+  }
+
+  const preMeaningParkingDiscountResponse = buildParkingDiscountResponse(message);
+  if (preMeaningParkingDiscountResponse) {
+    return enrichResponsePayload(preMeaningParkingDiscountResponse, message);
+  }
+
+  const preMeaningYeoksamWalkingRouteResponse = buildYeoksamWalkingRouteResponse(message);
+  if (preMeaningYeoksamWalkingRouteResponse) {
+    return enrichResponsePayload(preMeaningYeoksamWalkingRouteResponse, message);
+  }
+
+  const preMeaningMriAvailabilityResponse = buildMriAvailabilityResponse(message);
+  if (preMeaningMriAvailabilityResponse) {
+    return enrichResponsePayload(preMeaningMriAvailabilityResponse, message);
+  }
+
+  const preMeaningBillingStatementResponse = buildBillingStatementResponse(message);
+  if (preMeaningBillingStatementResponse) {
+    return enrichResponsePayload(preMeaningBillingStatementResponse, message);
+  }
+
+  const preMeaningDischargeCertificateResponse = buildDischargeCertificateResponse(message);
+  if (preMeaningDischargeCertificateResponse) {
+    return enrichResponsePayload(preMeaningDischargeCertificateResponse, message);
+  }
+
+  const preMeaningPediatricAdenoidConsultResponse = buildPediatricAdenoidConsultResponse(message);
+  if (preMeaningPediatricAdenoidConsultResponse) {
+    return enrichResponsePayload(preMeaningPediatricAdenoidConsultResponse, message);
+  }
+
+  const preMeaningRoomLocationResponse = buildRoomLocationResponse(message);
+  if (preMeaningRoomLocationResponse) {
+    return enrichResponsePayload(preMeaningRoomLocationResponse, message);
+  }
+
+  const preMeaningAntiAgingClinicResponse = buildAntiAgingClinicResponse(message);
+  if (preMeaningAntiAgingClinicResponse) {
+    return enrichResponsePayload(preMeaningAntiAgingClinicResponse, message);
+  }
+
+  const preMeaningDoctorRecommendationResponse = buildDoctorRecommendationResponse(message);
+  if (preMeaningDoctorRecommendationResponse) {
+    return enrichResponsePayload(preMeaningDoctorRecommendationResponse, message);
   }
 
   const preMeaningCpapInsuranceResponse = buildCpapInsuranceResponse(message);
