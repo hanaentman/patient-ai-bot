@@ -1,5 +1,41 @@
 [
   {
+    "question": "편도 수술후 출혈이 있어",
+    "caseType": "admin_normal",
+    "expectedIntent": "tonsil_postop_bleeding",
+    "expectedSource": "통합-FAQ / 입원-수술 후 주의사항",
+    "expectedAnswerHint": "편도절제술 후 침에 피가 조금 섞이는 정도라면 시원한 얼음물로 20~30분 정도 가글해 볼 수 있습니다. 다만 출혈이 지속되거나 양이 많으면 대표전화 02-6925-1111로 바로 연락하시고, 진료를 받으셔야 합니다.\n- 문서 기준으로 편도 수술 후 출혈은 수술 후 5~10일까지 있을 수 있습니다.\n- 즉시 내원이 어렵거나 원거리인 경우에는 이비인후과 의사가 상주하는 가까운 응급실로 내원하는 것을 권장합니다.\n- 빨대 사용이나 무리한 활동은 출혈 예방을 위해 피해주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777526900784-871nmt"
+  },
+  {
+    "question": "최근에 비행기를 탄 이후에 귀가 먹먹해",
+    "caseType": "admin_normal",
+    "expectedIntent": "symptom_guide",
+    "expectedSource": "귀 증상",
+    "expectedAnswerHint": "귀 증상 관련해서 안내드릴게요.\n\n귀 먹먹함, 이명, 난청, 귀 통증, 어지럼 같은 증상은 귀 질환 센터 진료로 안내드릴 수 있습니다. 증상만으로 원인을 단정하기는 어렵고, 진료와 필요한 검사를 통해 확인이 필요합니다.\n\n갑자기 청력이 떨어졌거나 어지럼이 심하면 늦추지 말고 대표전화 02-6925-1111로 상담 후 내원해 주세요.\n- 안내 센터: 귀 질환 센터\n- 증상이 갑자기 심해졌거나 불편이 크면 대표전화 02-6925-1111로 상담 후 내원해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777523054373-j3t4nv"
+  },
+  {
+    "question": "최근에 청력이 많이 안좋아 졌어",
+    "caseType": "admin_normal",
+    "expectedIntent": "symptom_guide",
+    "expectedSource": "귀 증상",
+    "expectedAnswerHint": "귀 증상 관련해서 안내드릴게요.\n\n귀 먹먹함, 이명, 난청, 귀 통증, 어지럼 같은 증상은 귀 질환 센터 진료로 안내드릴 수 있습니다. 증상만으로 원인을 단정하기는 어렵고, 진료와 필요한 검사를 통해 확인이 필요합니다.\n\n갑자기 청력이 떨어졌거나 어지럼이 심하면 늦추지 말고 대표전화 02-6925-1111로 상담 후 내원해 주세요.\n- 안내 센터: 귀 질환 센터\n- 증상이 갑자기 심해졌거나 불편이 크면 대표전화 02-6925-1111로 상담 후 내원해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777523028764-nd3c24"
+  },
+  {
+    "question": "귀가 안들려",
+    "caseType": "admin_normal",
+    "expectedIntent": "symptom_guide",
+    "expectedSource": "귀 증상",
+    "expectedAnswerHint": "귀 증상 관련해서 안내드릴게요.\n\n귀 먹먹함, 이명, 난청, 귀 통증, 어지럼 같은 증상은 귀 질환 센터 진료로 안내드릴 수 있습니다. 증상만으로 원인을 단정하기는 어렵고, 진료와 필요한 검사를 통해 확인이 필요합니다.\n\n갑자기 청력이 떨어졌거나 어지럼이 심하면 늦추지 말고 대표전화 02-6925-1111로 상담 후 내원해 주세요.\n- 안내 센터: 귀 질환 센터\n- 증상이 갑자기 심해졌거나 불편이 크면 대표전화 02-6925-1111로 상담 후 내원해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777523000073-1m1571"
+  },
+  {
     "question": "축농증 수술",
     "caseType": "admin_normal",
     "expectedIntent": "sinusitis_care",

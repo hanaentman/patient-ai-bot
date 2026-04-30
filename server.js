@@ -10551,6 +10551,46 @@ async function buildChatResponse(rawMessage, sessionId) {
     return enrichResponsePayload(preMeaningSeptoplastyInfoResponse, message);
   }
 
+  const preMeaningSleepApneaExamResponse = buildSleepApneaExamResponse(message);
+  if (preMeaningSleepApneaExamResponse) {
+    return enrichResponsePayload(preMeaningSleepApneaExamResponse, message);
+  }
+
+  const preMeaningDizzinessCareResponse = buildDizzinessCareResponse(message);
+  if (preMeaningDizzinessCareResponse) {
+    return enrichResponsePayload(preMeaningDizzinessCareResponse, message);
+  }
+
+  const preMeaningHearingAidConsultResponse = buildHearingAidConsultResponse(message);
+  if (preMeaningHearingAidConsultResponse) {
+    return enrichResponsePayload(preMeaningHearingAidConsultResponse, message);
+  }
+
+  const preMeaningHearingTestResponse = buildHearingTestProcessResponse(message);
+  if (preMeaningHearingTestResponse) {
+    return enrichResponsePayload(preMeaningHearingTestResponse, message);
+  }
+
+  const preMeaningEarFullnessHearingLossResponse = buildEarFullnessHearingLossResponse(message);
+  if (preMeaningEarFullnessHearingLossResponse) {
+    return enrichResponsePayload(preMeaningEarFullnessHearingLossResponse, message);
+  }
+
+  const preMeaningSinusitisCareResponse = buildSinusitisCareResponse(message);
+  if (preMeaningSinusitisCareResponse) {
+    return enrichResponsePayload(preMeaningSinusitisCareResponse, message);
+  }
+
+  const preMeaningThroatMassCareResponse = buildThroatMassCareResponse(message);
+  if (preMeaningThroatMassCareResponse) {
+    return enrichResponsePayload(preMeaningThroatMassCareResponse, message);
+  }
+
+  const preMeaningSymptomVisitGuidanceResponse = buildSymptomVisitGuidanceResponse(message);
+  if (preMeaningSymptomVisitGuidanceResponse) {
+    return enrichResponsePayload(preMeaningSymptomVisitGuidanceResponse, message);
+  }
+
   const symptomGuideResponse = buildSymptomGuideResponse(message);
   if (symptomGuideResponse) {
     return enrichResponsePayload(symptomGuideResponse, message);
