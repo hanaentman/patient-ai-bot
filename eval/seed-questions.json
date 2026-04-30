@@ -1,5 +1,59 @@
 [
   {
+    "question": "비중격만곡증 수술 비용 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "septoplasty_info",
+    "expectedSource": "홈페이지-비중격만곡증",
+    "expectedAnswerHint": "비중격만곡증은 문진, 코내시경 검사, X-ray 또는 이비인후과 전용 CT 검사, 비강음향통기도검사 등을 통해 상태를 확인합니다. 약물치료 효과가 미비하거나 비염, 축농증 같은 동반질환이 있는 경우 비중격교정술을 고려할 수 있습니다. 하나이비인후과병원 안내 기준으로 비중격만곡증 수술비용은 약 150~200만원, 수술시간은 약 30분, 마취방법은 수면마취+국소마취, 입원기간은 1박 2일 또는 2박 3일, 회복기간은 약 3~4주로 안내되어 있습니다.\n- 실비보험 적용 가능 여부와 실제 비용은 상태와 보험 조건에 따라 달라질 수 있습니다.\n- 수술 여부는 진료와 검사 후 의료진 판단이 필요합니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777515446415-xjpmcj"
+  },
+  {
+    "question": "코가 막히는데 누구한테 진료봐",
+    "caseType": "admin_normal",
+    "expectedIntent": "ai",
+    "expectedSource": "자주 묻는 질문",
+    "expectedAnswerHint": "코가 막히면 이비인후과(코·부비동 담당 전문의)에서 진료받으시면 됩니다.\n내원하면 코검사(검사 시간 약 20 분, 보통 당일 결과 확인 가능)를 통해 비염·축농증·코물혹 등 원인을 평가한 뒤 약물치료나 필요 시 수술 등 치료방침을 안내해 드립니다(일반적으로 약물치료를 먼저 시행합니다).\n간단히 집에서 해볼 수 있는 방법은 깨끗한 식염수로 하는 코세척이며, 증상이 심하거나 호흡곤란·심한 출혈 등이 있으면 즉시 응급의료기관 방문을 권합니다.\n\n축농증 관련 영상 보기: https://youtu.be/QdgmmzSu-I0",
+    "adminNote": "",
+    "reviewedLogId": "log-1777515340955-rh2szc"
+  },
+  {
+    "question": "역삼역에서 병원까지는 얼마나 걸려",
+    "caseType": "admin_normal",
+    "expectedIntent": "yeoksam_walking_route",
+    "expectedSource": "홈페이지-셔틀버스 및 오시는길",
+    "expectedAnswerHint": "역삼역에서 병원까지는 도보로 약 15~20분 정도 소요됩니다. 병원 셔틀버스는 역삼역 1번 출구 인근에서 이용할 수 있습니다.\n- 오시는 길과 약도는 https://hanaent.co.kr/info/info04.html 에서 확인하실 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777515238269-23nan6"
+  },
+  {
+    "question": "퇴원시간은 언제야?",
+    "caseType": "admin_normal",
+    "expectedIntent": "discharge_process",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "퇴원은 수술 종류와 회복 상태에 따라 시간이 달라질 수 있습니다. 통합 FAQ 기준으로 코 수술은 오전 9시부터 9시 30분 또는 오후 2시 전후, 목 수술은 오전 9시부터 9시 30분 전후, 귀 수술은 오전 9시부터 9시 30분 또는 오후 2시 전후 퇴원으로 안내되어 있습니다.\n- 최종 퇴원 가능 여부와 시간은 담당 의료진과 병동 안내에 따라 결정됩니다.\n- 입퇴원확인서 등 제증명 서류가 필요하면 입원 중 병동 간호사에게 미리 신청하거나 퇴원 후 외래에서 신청할 수 있습니다.\n- 퇴원 당일 운전이 어려울 수 있어 보호자 동행을 권장드립니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777515142613-oih61s"
+  },
+  {
+    "question": "당일 수술하고 퇴원 바로 가능해?",
+    "caseType": "admin_normal",
+    "expectedIntent": "same_day_discharge",
+    "expectedSource": "통합-FAQ / 기타-비급여비용",
+    "expectedAnswerHint": "수술 당일 바로 퇴원 가능한지는 수술 종류와 환자 상태에 따라 다릅니다. 통합 FAQ 기준으로 당일 수술은 가능하지 않으며 보통 1박 2일 또는 2박 3일 입원이 필요하다고 안내되어 있습니다. 다만 일부 항목에는 1인실 당일퇴원 비용이 비급여 항목으로 안내되어 있어, 실제 가능 여부는 진료와 수술 안내 과정에서 확인이 필요합니다.\n- 최종 퇴원 가능 여부와 시간은 담당 의료진과 병동 안내에 따라 결정됩니다.\n- 퇴원 당일 운전은 어려울 수 있어 보호자 동행을 권장드립니다.\n- 대표전화 02-6925-1111",
+    "adminNote": "",
+    "reviewedLogId": "log-1777515028221-o7oesd"
+  },
+  {
+    "question": "왜 이상한 답변해",
+    "caseType": "admin_normal",
+    "expectedIntent": "ai",
+    "expectedSource": "서류발급안내",
+    "expectedAnswerHint": "이상한 답변 드려 죄송합니다.\n이전에 엉뚱한 내용이 나온 이유는 제 쪽에서 질문 의도를 잘못 파악했거나, 적절한 병원 문서를 제대로 적용하지 못했기 때문입니다.\n어떤 답변(어떤 문항)에 문제가 있었는지 알려주시면 해당 문서를 우선 확인해서 바로 정정해 드리겠습니다.\n지금 바로 다시 질문해 주시거나, 문제된 문장을 알려주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777514998650-wro4by"
+  },
+  {
     "question": "2층에 화장실 있어?",
     "caseType": "admin_normal",
     "expectedIntent": "floor_guide",

@@ -2266,6 +2266,14 @@ function shouldUseConsultationTone(payload) {
     'anti_aging_clinic',
     'doctor_recommendation_clarification',
     'center_doctor_recommendation',
+    'current_waiting_delay',
+    'smell_taste_visit',
+    'tinnitus_same_day_visit',
+    'rhinitis_surgery_cost',
+    'nasal_blockage_visit',
+    'discharge_timing',
+    'insurance_claim',
+    'clinic_hours_and_shuttle',
   ].includes(type);
 }
 
@@ -2459,6 +2467,14 @@ function enrichResponsePayload(payload, question) {
     'anti_aging_clinic',
     'doctor_recommendation_clarification',
     'center_doctor_recommendation',
+    'current_waiting_delay',
+    'smell_taste_visit',
+    'tinnitus_same_day_visit',
+    'rhinitis_surgery_cost',
+    'nasal_blockage_visit',
+    'discharge_timing',
+    'insurance_claim',
+    'clinic_hours_and_shuttle',
   ].includes(localizedPayload.type);
 
   return sanitizeOutgoingPayload({
@@ -4240,6 +4256,27 @@ function buildNoseSurgeryCostResponse(message) {
   };
 }
 
+function buildRhinitisSurgeryCostResponse(message) {
+  const text = String(message || '');
+  if (!/(비염|코막힘|코\s*막힘)/u.test(text) || !/수술/u.test(text) || !/(비용|금액|가격|얼마)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'rhinitis_surgery_cost',
+    answer: '비염 또는 코막힘 관련 수술 비용은 수술 범위와 동반 질환 여부에 따라 달라질 수 있습니다. 병원 안내 기준으로 비중격만곡증 수술비용은 약 150~200만원으로 안내되어 있으며, 비염 수술도 상태와 보험 적용 여부에 따라 비용이 달라질 수 있습니다.',
+    followUp: [
+      '실제 비용은 코내시경, X-ray 또는 CT 검사 등으로 상태를 확인한 뒤 안내받는 것이 정확합니다.',
+      '수술 여부는 약물치료 효과, 비염·축농증 동반 여부, 코막힘 정도 등을 보고 의료진이 판단합니다.',
+      '정확한 비용은 진료 후 상담 또는 대표전화 02-6925-1111로 확인해 주세요.',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-비중격만곡증', '홈페이지-비중격만곡증.txt'),
+      buildLocalDocSource('기타-비급여비용', '기타-비급여비용.txt'),
+    ],
+  };
+}
+
 function buildHospitalPhoneResponse(message) {
   const text = String(message || '');
   if (!/(대표\s*전화|대표전화|전화\s*번호|전화번호|대표\s*번호|대표번호)/u.test(text)) {
@@ -4565,7 +4602,7 @@ function buildSeolleungRouteResponse(message) {
 
 function buildDoctorPopularityResponse(message) {
   const text = String(message || '');
-  if (!/(환자.*많|인기.*의사|가장.*의사|많이.*보는.*의사|추천.*의사)/u.test(text)) {
+  if (!/(환자.*많|인기.*의사|가장.*의사|많이.*보는.*의사|추천.*의사|잘\s*보는.*(사람|의사|의료진)|진료.*잘\s*보는)/u.test(text)) {
     return null;
   }
 
@@ -4582,8 +4619,20 @@ function buildDoctorPopularityResponse(message) {
 
 function buildDoctorEducationResponse(message) {
   const text = String(message || '');
-  if (!/(서울대|서울대학교|아주대|아주대학교)/u.test(text) || !/(출신|학력|의료진|의사|원장|누구)/u.test(text)) {
+  if (!/(서울대|서울대학교|아주대|아주대학교|고려대|고려대학교)/u.test(text) || !/(출신|학력|의료진|의사|원장|누구)/u.test(text)) {
     return null;
+  }
+
+  if (/(고려대|고려대학교)/u.test(text)) {
+    return {
+      type: 'doctor_education',
+      answer: '의료진 정보 문서 기준으로 고려대학교 관련 학력 또는 경력이 안내된 의료진은 이상덕 병원장, 정도광 원장, 주형로 원장입니다.',
+      followUp: [
+        '이상덕 병원장은 고려대학교 의과대학 졸업 및 고려대학교 의과대학 외래교수 경력이 안내되어 있습니다.',
+        '정도광 원장은 고려대학교 의과대학 외래교수, 주형로 원장은 전 고려대 의과대학강사 경력이 안내되어 있습니다.',
+      ],
+      sources: [buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt')],
+    };
   }
 
   if (/(아주대|아주대학교)/u.test(text)) {
@@ -4940,6 +4989,88 @@ function buildSameDaySymptomVisitResponse(message) {
   };
 }
 
+function buildNasalBlockageVisitResponse(message) {
+  const text = String(message || '');
+  if (!/(코\s*막힘|코막힘|코가\s*막|코.*답답|숨쉬기.*코)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'nasal_blockage_visit',
+    answer: '코막힘은 코 질환 센터 진료로 안내드릴 수 있습니다. 비염, 축농증, 코물혹, 비중격만곡증 등 여러 원인에서 나타날 수 있어 증상만으로 단정하기는 어렵고, 진료와 필요한 검사를 통해 확인이 필요합니다.',
+    followUp: [
+      '코센터 의료진은 동헌종 대표원장, 이상덕 병원장, 정도광 원장, 김태현 부원장, 정종인 진료부장, 장규선 과장, 김병길 과장으로 안내됩니다.',
+      '증상이 지속되면 대표전화 02-6925-1111로 상담 후 내원해 주세요.',
+    ],
+    sources: [
+      buildLocalDocSource('코증상', '코증상.txt'),
+      buildLocalDocSource('홈페이지-비중격만곡증', '홈페이지-비중격만곡증.txt'),
+      buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt'),
+    ],
+  };
+}
+
+function buildCurrentWaitingDelayResponse(message) {
+  const text = String(message || '');
+  if (!/(대기\s*중|대기중|기다려|기대려|기다리|언제까지)/u.test(text) || !/(검사|외래|진료|대기)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'current_waiting_delay',
+    answer: '현재 대기 환자가 많아 대기시간이 길어질 수 있습니다. 정확한 순서나 예상 대기시간은 실시간으로 달라져 상담봇이 확인하기 어렵습니다.',
+    followUp: [
+      '자세한 대기 순서와 예상 시간은 가까운 직원이나 접수 데스크에 문의해 주세요.',
+      '검사 대기 중이라면 해당 검사실 직원 안내를 따라 주세요.',
+    ],
+    sources: [
+      buildIntegratedFaqDocSource(),
+      buildLocalDocSource('홈페이지-외래진료안내', '홈페이지-외래진료안내.txt'),
+    ],
+  };
+}
+
+function buildSmellTasteVisitResponse(message) {
+  const text = String(message || '');
+  if (!/(후각|미각|냄새|맛)/u.test(text) || !/(문제|이상|떨어|안\s*나|안나|진료|가능)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'smell_taste_visit',
+    answer: '후각이나 미각에 문제가 있는 경우 진료 가능합니다. 후각장애 진료에서는 원인 확인을 위해 후각검사, 이비인후과 전용 CT 검사 등이 필요할 수 있습니다.',
+    followUp: [
+      '코 질환, 감염 후 변화, 후각 신경 손상 등 원인에 따라 치료 방향이 달라질 수 있습니다.',
+      '당일 진료는 가능할 수 있으나 검사 종류와 상황에 따라 예약 검사로 안내될 수 있습니다.',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-후각장애', '홈페이지-후각장애.txt'),
+      buildLocalDocSource('홈페이지-외래진료안내', '홈페이지-외래진료안내.txt'),
+    ],
+  };
+}
+
+function buildTinnitusSameDayVisitResponse(message) {
+  const text = String(message || '');
+  if (!/(이명|귀.*삐|삐.*소리|웅웅)/u.test(text) || !/(당일|오늘|진료|가능|예약\s*없이)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'tinnitus_same_day_visit',
+    answer: '이명은 당일 진료가 가능합니다. 다만 청력검사 등 필요한 검사는 당일 상황에 따라 예약으로 진행될 수 있습니다.',
+    followUp: [
+      '이명은 난청, 메니에르병, 이관장애 등 여러 원인과 관련될 수 있어 귀 진료와 청력 확인이 중요합니다.',
+      '내원 전 대표전화 02-6925-1111로 당일 진료와 검사 가능 여부를 확인해 주세요.',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-이명', '홈페이지-이명.txt'),
+      buildLocalDocSource('홈페이지-외래진료안내', '홈페이지-외래진료안내.txt'),
+      buildIntegratedFaqDocSource(),
+    ],
+  };
+}
+
 function buildDoctorScheduleLookupResponse(message) {
   const text = String(message || '');
   if (!/(의료진|의사|원장|선생)/u.test(text) || !/(진료\s*요일|요일|일정|시간표|스케줄|어디서\s*확인)/u.test(text)) {
@@ -5186,7 +5317,7 @@ function buildDoctorRecommendationResponse(message) {
   if (/(목|편도|음성|목소리|갑상선|두경부)/u.test(text)) {
     return {
       type: 'center_doctor_recommendation',
-      answer: '목 질환은 두경부, 음성질환, 편도, 갑상선질환 등 세부 증상에 따라 관련 의료진을 안내받는 것이 좋습니다. 문서 기준으로 남순열, 주형로, 장선오, 정종인 의료진 등이 목 관련 전문분야에 포함되어 있습니다.',
+      answer: '목센터 의료진은 외래 의료진 명단 기준으로 남순열 두경부 센터장, 주형로 원장입니다. 목소리 변화, 목질환, 두경부질환 상담은 이 기준으로 안내드릴 수 있습니다.',
       followUp: ['편도, 목소리, 갑상선, 목의 혹처럼 주 증상을 알려주시면 더 정확히 안내드릴 수 있습니다.'],
       sources: [buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt')],
     };
@@ -5213,7 +5344,7 @@ function buildDoctorRecommendationResponse(message) {
 
 function buildPostopDrivingResponse(message) {
   const text = String(message || '');
-  if (!/(수술\s*후|퇴원\s*후|퇴원\s*당일)/u.test(text) || !/(운전|차\s*몰|차로\s*가|자가\s*운전)/u.test(text)) {
+  if (!/(수술\s*후|퇴원\s*후|퇴원\s*당일|퇴원\s*날|퇴원날)/u.test(text) || !/(운전|차\s*몰|차로\s*가|자가\s*운전)/u.test(text)) {
     return null;
   }
 
@@ -5227,6 +5358,62 @@ function buildPostopDrivingResponse(message) {
     sources: [
       buildIntegratedFaqDocSource(),
       buildLocalDocSource('홈페이지-입퇴원 안내', '홈페이지-입퇴원 안내.txt'),
+    ],
+  };
+}
+
+function buildDischargeTimingResponse(message) {
+  const text = String(message || '');
+  if (!/(퇴원|재원)/u.test(text) || !/(언제|몇\s*시|시간|가능|보통|퇴원날|퇴원\s*날)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'discharge_timing',
+    answer: '퇴원은 수술 종류와 회복 상태에 따라 시간이 달라질 수 있습니다. 통합 FAQ 기준으로 코 수술은 오전 9시부터 9시 30분 또는 오후 2시 전후, 목 수술은 오전 9시부터 9시 30분 전후, 귀 수술은 오전 9시부터 9시 30분 또는 오후 2시 전후 퇴원으로 안내되어 있습니다.',
+    followUp: [
+      '최종 퇴원 가능 여부와 시간은 담당 의료진과 병동 안내에 따라 결정됩니다.',
+      '퇴원 당일 직접 운전은 권장되지 않아 보호자 동행이나 대중교통, 택시 이용을 권장드립니다.',
+    ],
+    sources: [buildIntegratedFaqDocSource()],
+  };
+}
+
+function buildInsuranceClaimResponse(message) {
+  const text = String(message || '');
+  if (!/(실손|실비|보험)/u.test(text) || !/(청구|신청|실손24|실손\s*24)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'insurance_claim',
+    answer: '실손보험 청구는 실손24를 통해 보험사에 청구할 수 있습니다. 다만 실제 청구 가능 여부와 필요 서류는 가입하신 보험사 약관과 진료 내용에 따라 달라질 수 있습니다.',
+    followUp: [
+      '진료비 영수증, 세부내역서, 진단서 등 필요한 서류는 보험사마다 다를 수 있습니다.',
+      '서류 발급이 필요하면 원무과에 문의해 주세요.',
+    ],
+    sources: [buildIntegratedFaqDocSource()],
+  };
+}
+
+function buildClinicHoursAndShuttleResponse(message) {
+  const text = String(message || '');
+  if (!/(진료\s*시간|진료시간)/u.test(text) || !/(셔틀|셔틀버스)/u.test(text)) {
+    return null;
+  }
+
+  return {
+    type: 'clinic_hours_and_shuttle',
+    answer: '진료시간과 셔틀버스 시간 함께 안내드릴게요. 진료시간은 평일 오전 9시부터 오후 6시까지이고, 토요일은 오전 9시부터 오후 1시 30분까지입니다. 일요일과 공휴일은 휴진입니다.',
+    followUp: [
+      '접수는 평일 오전 8시 30분부터 오후 5시 30분까지, 토요일 오전 8시 30분부터 오후 1시까지 가능합니다.',
+      '셔틀버스는 역삼역 1번 출구 인근에서 이용할 수 있으며, 평일은 오전 8시 55분부터 12시 25분까지, 오후 1시 40분부터 5시 40분까지 약 15분 간격으로 운행합니다.',
+      '토요일 셔틀은 오전 8시 55분부터 12시 55분까지 약 30분 간격으로 운행합니다.',
+    ],
+    sources: [
+      buildLocalDocSource('홈페이지-외래진료안내', '홈페이지-외래진료안내.txt'),
+      buildLocalDocSource('기타-병원셔틀시간표', '기타-병원셔틀시간표.txt'),
+      buildIntegratedFaqDocSource(),
     ],
   };
 }
@@ -9659,6 +9846,11 @@ async function buildChatResponse(rawMessage, sessionId) {
     return enrichResponsePayload(preMeaningDeliveryFoodResponse, message);
   }
 
+  const preMeaningClinicHoursAndShuttleResponse = buildClinicHoursAndShuttleResponse(message);
+  if (preMeaningClinicHoursAndShuttleResponse) {
+    return enrichResponsePayload(preMeaningClinicHoursAndShuttleResponse, message);
+  }
+
   const preMeaningShuttleLunchResponse = buildShuttleLunchResponse(message);
   if (preMeaningShuttleLunchResponse) {
     return enrichResponsePayload(preMeaningShuttleLunchResponse, message);
@@ -9684,6 +9876,21 @@ async function buildChatResponse(rawMessage, sessionId) {
     return enrichResponsePayload(preMeaningGuardianStayPolicyResponse, message);
   }
 
+  const preMeaningCurrentWaitingDelayResponse = buildCurrentWaitingDelayResponse(message);
+  if (preMeaningCurrentWaitingDelayResponse) {
+    return enrichResponsePayload(preMeaningCurrentWaitingDelayResponse, message);
+  }
+
+  const preMeaningSmellTasteVisitResponse = buildSmellTasteVisitResponse(message);
+  if (preMeaningSmellTasteVisitResponse) {
+    return enrichResponsePayload(preMeaningSmellTasteVisitResponse, message);
+  }
+
+  const preMeaningTinnitusSameDayVisitResponse = buildTinnitusSameDayVisitResponse(message);
+  if (preMeaningTinnitusSameDayVisitResponse) {
+    return enrichResponsePayload(preMeaningTinnitusSameDayVisitResponse, message);
+  }
+
   const preMeaningSmellExamFeeResponse = buildSmellExamFeeResponse(message);
   if (preMeaningSmellExamFeeResponse) {
     return enrichResponsePayload(preMeaningSmellExamFeeResponse, message);
@@ -9697,6 +9904,11 @@ async function buildChatResponse(rawMessage, sessionId) {
   const preMeaningSameDaySymptomVisitResponse = buildSameDaySymptomVisitResponse(message);
   if (preMeaningSameDaySymptomVisitResponse) {
     return enrichResponsePayload(preMeaningSameDaySymptomVisitResponse, message);
+  }
+
+  const preMeaningNasalBlockageVisitResponse = buildNasalBlockageVisitResponse(message);
+  if (preMeaningNasalBlockageVisitResponse) {
+    return enrichResponsePayload(preMeaningNasalBlockageVisitResponse, message);
   }
 
   const preMeaningDoctorScheduleLookupResponse = buildDoctorScheduleLookupResponse(message);
@@ -9729,6 +9941,11 @@ async function buildChatResponse(rawMessage, sessionId) {
     return enrichResponsePayload(preMeaningMriAvailabilityResponse, message);
   }
 
+  const preMeaningInsuranceClaimResponse = buildInsuranceClaimResponse(message);
+  if (preMeaningInsuranceClaimResponse) {
+    return enrichResponsePayload(preMeaningInsuranceClaimResponse, message);
+  }
+
   const preMeaningBillingStatementResponse = buildBillingStatementResponse(message);
   if (preMeaningBillingStatementResponse) {
     return enrichResponsePayload(preMeaningBillingStatementResponse, message);
@@ -9742,6 +9959,11 @@ async function buildChatResponse(rawMessage, sessionId) {
   const preMeaningPediatricAdenoidConsultResponse = buildPediatricAdenoidConsultResponse(message);
   if (preMeaningPediatricAdenoidConsultResponse) {
     return enrichResponsePayload(preMeaningPediatricAdenoidConsultResponse, message);
+  }
+
+  const preMeaningRhinitisSurgeryCostResponse = buildRhinitisSurgeryCostResponse(message);
+  if (preMeaningRhinitisSurgeryCostResponse) {
+    return enrichResponsePayload(preMeaningRhinitisSurgeryCostResponse, message);
   }
 
   const preMeaningRoomLocationResponse = buildRoomLocationResponse(message);
@@ -9887,6 +10109,11 @@ async function buildChatResponse(rawMessage, sessionId) {
   const preMeaningPostopDrivingResponse = buildPostopDrivingResponse(message);
   if (preMeaningPostopDrivingResponse) {
     return enrichResponsePayload(preMeaningPostopDrivingResponse, message);
+  }
+
+  const preMeaningDischargeTimingResponse = buildDischargeTimingResponse(message);
+  if (preMeaningDischargeTimingResponse) {
+    return enrichResponsePayload(preMeaningDischargeTimingResponse, message);
   }
 
   const preMeaningFirstReturnVisitResponse = buildFirstReturnVisitResponse(message);
