@@ -1250,6 +1250,20 @@ function updateChatLogFlag(logId, flag, note = '') {
   return updated;
 }
 
+function deleteChatLogForAdmin(logId) {
+  const normalizedLogId = String(logId || '').trim();
+  if (!normalizedLogId) {
+    return false;
+  }
+
+  const result = chatLogDb.prepare(`
+    DELETE FROM chat_logs
+    WHERE id = ?
+  `).run(normalizedLogId);
+
+  return Number(result?.changes || 0) > 0;
+}
+
 function getChatLogsForAdmin(query, options = {}) {
   const getQueryValue = (key) => (typeof query.get === 'function' ? query.get(key) : query[key]);
   const disableLimit = Boolean(options.disableLimit);
@@ -11289,6 +11303,30 @@ async function handleApiAdminLogFlag(req, res) {
     }
 }
 
+async function handleApiAdminLogDelete(req, res) {
+  try {
+      const parsed = await readJsonRequestBody(req);
+      const deleted = deleteChatLogForAdmin(parsed.id);
+      if (!deleted) {
+        sendJson(res, 404, {
+          ok: false,
+          error: 'Log not found',
+        });
+        return;
+      }
+
+      sendJson(res, 200, {
+        ok: true,
+        deletedId: String(parsed.id || ''),
+      });
+    } catch (error) {
+      sendJson(res, 400, {
+        ok: false,
+        error: error.message,
+      });
+    }
+}
+
 function handleApiAdminLogsExport(req, res, requestUrl) {
   const exportFlag = String(requestUrl.searchParams.get('flag') || '').trim();
   const isNormalExport = exportFlag === 'normal';
@@ -11439,6 +11477,11 @@ const server = http.createServer((req, res) => {
 
   if (req.method === 'POST' && pathname === '/api/admin/logs/flag') {
     handleApiAdminLogFlag(req, res);
+    return;
+  }
+
+  if (req.method === 'POST' && pathname === '/api/admin/logs/delete') {
+    handleApiAdminLogDelete(req, res);
     return;
   }
 

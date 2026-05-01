@@ -209,6 +209,15 @@
         font-weight: 700;
       }
 
+      .review-actions {
+        display: grid;
+        gap: 8px;
+      }
+
+      .delete-button {
+        background: var(--danger);
+      }
+
       .badge {
         display: inline-flex;
         align-items: center;
@@ -537,6 +546,29 @@
         await loadLogs();
       }
 
+      async function deleteLog(id, card) {
+        const question = card.querySelector('.question div')?.textContent?.trim() || '';
+        const preview = question.length > 80 ? `${question.slice(0, 80)}...` : question;
+        const confirmed = window.confirm(`이 로그를 삭제할까요?\n\n${preview}\n\n삭제한 항목은 이후 JSON 다운로드에 포함되지 않습니다.`);
+        if (!confirmed) {
+          return;
+        }
+
+        const response = await fetch('/api/admin/logs/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id }),
+        });
+
+        if (!response.ok) {
+          alert('로그 삭제에 실패했습니다.');
+          return;
+        }
+
+        await loadEvalStatus();
+        await loadLogs();
+      }
+
       async function loadEvalStatus() {
         try {
           const response = await fetch('/api/admin/eval-status', { cache: 'no-store' });
@@ -629,7 +661,10 @@
                   <textarea class="admin-note-input" rows="2" placeholder="추가 메모">${escapeHtml(reviewNote.adminNote || '')}</textarea>
                 </label>
               </div>
-              <button type="button" class="save-button">저장</button>
+              <div class="review-actions">
+                <button type="button" class="save-button">저장</button>
+                <button type="button" class="delete-button">삭제</button>
+              </div>
             </section>
           </article>
         `;
@@ -638,8 +673,12 @@
         document.querySelectorAll('.card').forEach((card) => {
           const id = card.dataset.id;
           const saveButton = card.querySelector('.save-button');
+          const deleteButton = card.querySelector('.delete-button');
           saveButton.addEventListener('click', () => {
             updateFlag(id, card);
+          });
+          deleteButton.addEventListener('click', () => {
+            deleteLog(id, card);
           });
         });
       }
