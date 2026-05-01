@@ -4122,6 +4122,103 @@ function buildNamedDoctorScheduleResponse(message) {
   return null;
 }
 
+function getDoctorProfileFromDocs(doctorName) {
+  const name = String(doctorName || '').trim();
+  if (!name || !fs.existsSync(DOCTOR_SPECIALTY_DOC_PATH)) {
+    return null;
+  }
+
+  const docText = repairBrokenKoreanText(fs.readFileSync(DOCTOR_SPECIALTY_DOC_PATH, 'utf8'));
+  const startIndex = docText.indexOf(`이름: ${name}`);
+  if (startIndex < 0) {
+    return null;
+  }
+
+  const nextDoctorIndex = docText.indexOf('\n\n이름:', startIndex + name.length);
+  const body = docText.slice(startIndex, nextDoctorIndex > startIndex ? nextDoctorIndex : undefined);
+  const lines = body
+    .split(/\r?\n/)
+    .map((line) => normalizeDocLine(line))
+    .filter(Boolean);
+  const profile = lines.find((line) => line.includes(name) && /(전문의|병원장|대표원장|원장|부원장|센터장|진료부장|과장|부장)/u.test(line)) || '';
+  const center = (lines.find((line) => /^진료과/u.test(line)) || '').replace(/^진료과\s*/u, '').trim();
+  const specialty = (lines.find((line) => /^전문분야/u.test(line)) || '').replace(/^전문분야\s*/u, '').trim();
+  const scheduleStart = lines.findIndex((line) => line.includes('주간 진료 시간표'));
+  const careerStart = lines.findIndex((line) => line === '경력');
+  const scheduleLines = scheduleStart >= 0
+    ? lines.slice(scheduleStart + 1, careerStart > scheduleStart ? careerStart : scheduleStart + 5).slice(0, 4)
+    : [];
+
+  return {
+    name,
+    profile,
+    center,
+    specialty,
+    scheduleLines,
+  };
+}
+
+function buildNamedDoctorProfileResponse(message) {
+  const text = String(message || '').trim();
+  const doctorName = extractDoctorName(text);
+  if (!doctorName) {
+    return null;
+  }
+
+  if (/(경력|학력|이력|약력|논문|연구실적)/u.test(text)) {
+    return null;
+  }
+
+  const isNameOnly = compactSearchTextSafe(text) === compactSearchTextSafe(doctorName);
+  const asksDoctorInfo = /(진료\s*시간|진료시간|시간표|진료표|진료\s*일정|진료일정|휴진|일정|토요일|토요|소개|전문분야|전문\s*분야|전문|분야|무슨\s*진료|어떤\s*진료|알려|궁금)/u.test(text);
+  if (!isNameOnly && !asksDoctorInfo) {
+    return null;
+  }
+
+  const doctorProfile = getDoctorProfileFromDocs(doctorName);
+  if (!doctorProfile) {
+    return null;
+  }
+
+  const scheduleImage = {
+    title: '진료일정 안내',
+    description: '의료진 외래 진료일정표입니다.',
+    display: 'document',
+    url: resolvePublicImagePath('/images/%EC%A7%84%EB%A3%8C%EC%9D%BC%EC%A0%95%EC%A0%84%EC%B2%B4.png'),
+  };
+  const answerParts = [
+    `${doctorName} 의료진 관련해서 안내드릴게요.`,
+  ];
+
+  if (doctorProfile.profile) {
+    answerParts.push(doctorProfile.profile);
+  }
+  if (doctorProfile.center) {
+    answerParts.push(`진료과는 ${doctorProfile.center}입니다.`);
+  }
+  if (doctorProfile.specialty) {
+    answerParts.push(`전문분야는 ${doctorProfile.specialty}입니다.`);
+  }
+  if (doctorProfile.scheduleLines.length > 0) {
+    answerParts.push(`주간 진료 시간표 기준: ${doctorProfile.scheduleLines.join(' / ')}`);
+  }
+
+  return {
+    type: 'named_doctor_profile',
+    answer: answerParts.join(' '),
+    followUp: [
+      '토요일 진료와 휴진은 날짜별로 달라질 수 있어 진료일정표 이미지와 대표전화 02-6925-1111로 내원 전 확인해 주세요.',
+      '자세한 경력이 궁금하시면 “의료진 이름 + 경력”으로 입력해 주세요.',
+    ],
+    images: [scheduleImage],
+    sources: [
+      buildLocalDocSource('홈페이지-의료진 정보', '홈페이지-의료진 정보.txt'),
+      buildLocalDocSource('홈페이지-외래진료안내', '홈페이지-외래진료안내.txt'),
+      buildLocalDocSource('외래-의료진 명단', DOCTOR_LIST_DOC_FILENAME),
+    ],
+  };
+}
+
 function buildSnoringCareResponse(message) {
   const text = String(message || '');
   if (!/(코골이|수면무호흡)/u.test(text) || !/(진료|가능|상담|치료|검사)/u.test(text)) {
@@ -10494,6 +10591,11 @@ async function buildChatResponse(rawMessage, sessionId) {
   const preMeaningHomepageSurgeryInfoResponse = findHomepageSurgeryInfoResponse(message);
   if (preMeaningHomepageSurgeryInfoResponse) {
     return enrichResponsePayload(preMeaningHomepageSurgeryInfoResponse, message);
+  }
+
+  const preMeaningNamedDoctorProfileResponse = buildNamedDoctorProfileResponse(message);
+  if (preMeaningNamedDoctorProfileResponse) {
+    return enrichResponsePayload(preMeaningNamedDoctorProfileResponse, message);
   }
 
   const preMeaningNamedDoctorScheduleResponse = buildNamedDoctorScheduleResponse(message);

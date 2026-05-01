@@ -1,10 +1,50 @@
 [
   {
+    "question": "정종인",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "현재 확인된 병원 문서만으로는 정확히 안내드리기 어렵습니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.\n- 외래진료안내\n- 서류발급안내",
+    "expectedIntent": "의료진 진료일정, 정종인 소개",
+    "expectedSource": "홈페이지-의료진 정보.txt,홈페이지-외래진료안내.txt, 외래-의료진 명단.txt",
+    "expectedAnswerHint": "토요일 진료일정 포함 알려줘",
+    "adminNote": "",
+    "reviewedLogId": "log-1777608037783-8a2uhy"
+  },
+  {
+    "question": "정종인",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "현재 확인된 병원 문서만으로는 정확히 안내드리기 어렵습니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.\n- 외래진료안내\n- 서류발급안내",
+    "expectedIntent": "의료진 진료일정, 정종인 소개",
+    "expectedSource": "홈페이지-의료진 정보.txt,홈페이지-외래진료안내.txt, 외래-의료진 명단.txt",
+    "expectedAnswerHint": "토요일 진료일정 포함 알려줘",
+    "adminNote": "",
+    "reviewedLogId": "log-1777607945761-j0qqy1"
+  },
+  {
+    "question": "정종인 진료일정",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "의료진별 진료 요일과 일정은 병원 홈페이지의 의료진 또는 진료 일정 안내에서 확인하실 수 있습니다. 진료 일정은 병원 사정에 따라 변경될 수 있어 예약 전 대표전화로 확인하는 것이 가장 정확합니다.\n- 특정 의료진 이름을 알려주시면 문서 기준으로 해당 의료진 안내를 도와드릴 수 있습니다.\n- 대표전화 02-6925-1111",
+    "expectedIntent": "의료진 진료일정, 정종인 소개",
+    "expectedSource": "홈페이지-의료진 정보.txt,홈페이지-외래진료안내.txt, 외래-의료진 명단.txt",
+    "expectedAnswerHint": "토요일 진료일정 포함 알려줘",
+    "adminNote": "",
+    "reviewedLogId": "log-1777607908502-08g4r7"
+  },
+  {
+    "question": "정종인",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "정종인 진료부장은 본원 코센터에서 진료를 담당합니다.\n문서에 따르면 정종인 진료부장 진료 시 환자 상태를 확인한 뒤 코성형(코 수술)을 진행할 수 있습니다.\n다만 구체적인 진료 요일·시간 등 진료일정은 제공 문서에 없으니 예약 전 병원 홈페이지의 의료진/진료일정 확인 또는 대표전화 02-6925-1111 로 확인해 주세요.\n참고로 병원 안내에는 솜패킹은 보통 7~10 일, 비행기 탑승·사우나·수영 등은 수술 후 적어도 4 주 이후를 권장한다고 안내되어 있습니다.",
+    "expectedIntent": "의료진 진료일정, 정종인 소개",
+    "expectedSource": "홈페이지-의료진 정보.txt,홈페이지-외래진료안내.txt, 외래-의료진 명단.txt",
+    "expectedAnswerHint": "토요일 진료일정 포함 알려줘",
+    "adminNote": "",
+    "reviewedLogId": "log-1777607295863-tmv58r"
+  },
+  {
     "question": "정종인 진료일정",
     "caseType": "actual_wrong_answer",
     "wrongAnswer": "의료진별 진료 요일과 일정은 병원 홈페이지의 의료진 또는 진료 일정 안내에서 확인하실 수 있습니다. 진료 일정은 병원 사정에 따라 변경될 수 있어 예약 전 대표전화로 확인하는 것이 가장 정확합니다.\n- 특정 의료진 이름을 알려주시면 문서 기준으로 해당 의료진 안내를 도와드릴 수 있습니다.\n- 대표전화 02-6925-1111",
     "expectedIntent": "의료진 진료일정, 정종인",
-    "expectedSource": "홈페이지-외래진료안내.txt",
+    "expectedSource": "홈페이지-외래진료안내.txt, 외래-의료진 명단.txt",
     "expectedAnswerHint": "토요일 진료일정 포함 알려줘",
     "adminNote": "",
     "reviewedLogId": "log-1777607241285-1gokn4"
