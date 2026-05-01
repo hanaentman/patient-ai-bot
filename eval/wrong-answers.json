@@ -1,10 +1,150 @@
 [
   {
+    "question": "정종인 진료일정",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "의료진별 진료 요일과 일정은 병원 홈페이지의 의료진 또는 진료 일정 안내에서 확인하실 수 있습니다. 진료 일정은 병원 사정에 따라 변경될 수 있어 예약 전 대표전화로 확인하는 것이 가장 정확합니다.\n- 특정 의료진 이름을 알려주시면 문서 기준으로 해당 의료진 안내를 도와드릴 수 있습니다.\n- 대표전화 02-6925-1111",
+    "expectedIntent": "의료진 진료일정, 정종인",
+    "expectedSource": "홈페이지-외래진료안내.txt",
+    "expectedAnswerHint": "토요일 진료일정 포함 알려줘",
+    "adminNote": "",
+    "reviewedLogId": "log-1777607241285-1gokn4"
+  },
+  {
+    "question": "정종인",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "현재 확인된 병원 문서만으로는 정확히 안내드리기 어렵습니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.\n- 외래진료안내\n- 서류발급안내",
+    "expectedIntent": "정종인, 진료일정, 경력, 전문분야",
+    "expectedSource": "홈페이지-외래진료안내.txt, 외래-의료진 명단.txt",
+    "expectedAnswerHint": "특정의료진에 대한 진료일정, 경력 전문분야, 토요일 진료까지 알려줘",
+    "adminNote": "",
+    "reviewedLogId": "log-1777607233385-rebu35"
+  },
+  {
+    "question": "드라이기 있어?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "현재 확인된 병원 문서만으로는 정확히 안내드리기 어렵습니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.\n- 코 질환 센터\n- 오시는 길",
+    "expectedIntent": "드라이기",
+    "expectedSource": "통합-FAQ.txt",
+    "expectedAnswerHint": "관리자 메모에 기대 답변 방향을 적어 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777605706441-epp5vo"
+  },
+  {
+    "question": "재원중인데 배달 해도될까",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "현재 확인된 병원 문서만으로는 정확히 안내드리기 어렵습니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.\n- 외래진료안내",
+    "expectedIntent": "재원, 배달",
+    "expectedSource": "통합-FAQ.txt",
+    "expectedAnswerHint": "관리자 메모에 기대 답변 방향을 적어 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777603836195-989yf9"
+  },
+  {
+    "question": "드라이기 있어?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "현재 확인된 병원 문서만으로는 정확히 안내드리기 어렵습니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.\n- 코 질환 센터\n- 오시는 길",
+    "expectedIntent": "드라이기",
+    "expectedSource": "통합-FAQ.txt",
+    "expectedAnswerHint": "관리자 메모에 기대 답변 방향을 적어 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777603795870-f6y89e"
+  },
+  {
+    "question": "동헌종 진료일정",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "의료진별 진료 요일과 일정은 병원 홈페이지의 의료진 또는 진료 일정 안내에서 확인하실 수 있습니다. 진료 일정은 병원 사정에 따라 변경될 수 있어 예약 전 대표전화로 확인하는 것이 가장 정확합니다.\n- 특정 의료진 이름을 알려주시면 문서 기준으로 해당 의료진 안내를 도와드릴 수 있습니다.\n- 대표전화 02-6925-1111",
+    "expectedIntent": "진료일정, 토요일 진료일정, 경력, 전문분야",
+    "expectedSource": "홈페이지-의료진 정보.txt",
+    "expectedAnswerHint": "특정의료진에 대한 진료일정, 경력 전문분야, 토요일 진료까지 알려줘",
+    "adminNote": "",
+    "reviewedLogId": "log-1777591456704-urtvth"
+  },
+  {
+    "question": "동헌종 진료일정",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "의료진별 진료 요일과 일정은 병원 홈페이지의 의료진 또는 진료 일정 안내에서 확인하실 수 있습니다. 진료 일정은 병원 사정에 따라 변경될 수 있어 예약 전 대표전화로 확인하는 것이 가장 정확합니다.\n- 특정 의료진 이름을 알려주시면 문서 기준으로 해당 의료진 안내를 도와드릴 수 있습니다.\n- 대표전화 02-6925-1111",
+    "expectedIntent": "진료일정, 토요일 진료일정, 경력, 전문분야",
+    "expectedSource": "홈페이지-의료진 정보.txt",
+    "expectedAnswerHint": "특정의료진에 대한 진료일정, 경력 전문분야, 토요일 진료까지 알려줘",
+    "adminNote": "",
+    "reviewedLogId": "log-1777589863085-eff5az"
+  },
+  {
+    "question": "이상덕 진료일정",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "의료진별 진료 요일과 일정은 병원 홈페이지의 의료진 또는 진료 일정 안내에서 확인하실 수 있습니다. 진료 일정은 병원 사정에 따라 변경될 수 있어 예약 전 대표전화로 확인하는 것이 가장 정확합니다.\n- 특정 의료진 이름을 알려주시면 문서 기준으로 해당 의료진 안내를 도와드릴 수 있습니다.\n- 대표전화 02-6925-1111",
+    "expectedIntent": "진료일정, 토요일 진료일정, 경력, 전문분야",
+    "expectedSource": "홈페이지-의료진 정보.txt",
+    "expectedAnswerHint": "특정의료진에 대한 진료일정, 경력 전문분야, 토요일 진료까지 알려줘",
+    "adminNote": "",
+    "reviewedLogId": "log-1777589825181-ylcxhp"
+  },
+  {
+    "question": "이상덕 토요일 진료",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "문의하신 내용에 대해 안내드릴게요.\n\n진료시간은 평일 오전 9시부터 오후 6시까지이며, 토요일은 오전 9시부터 오후 1시 30분까지입니다. 일요일과 공휴일은 휴진으로 안내되어 있고, 별도 야간진료는 문서에 안내되어 있지 않습니다.\n- 평일 접수 마감은 오후 5시 30분입니다.\n- 토요일 접수 마감은 오후 1시입니다.\n- 응급수술 등 진료 상황에 따라 접수가 조기 마감될 수 있어 내원 전 확인해 주세요.",
+    "expectedIntent": "진료일정, 토요일 진료일정, 경력, 전문분야",
+    "expectedSource": "홈페이지-의료진 정보.txt",
+    "expectedAnswerHint": "특정의료진에 대한 진료일정, 경력 전문분야, 토요일 진료까지 알려줘",
+    "adminNote": "",
+    "reviewedLogId": "log-1777589817502-2n1s97"
+  },
+  {
+    "question": "비염수술",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "코 증상 관련해서 안내드릴게요.\n\n코막힘, 콧물, 코피, 후각저하 같은 증상은 코 질환 센터 진료로 안내드릴 수 있습니다. 증상만으로 원인을 단정하기는 어렵고, 진료와 필요한 검사를 통해 확인이 필요합니다.\n\n증상이 지속되거나 반복되면 대표전화 02-6925-1111로 상담 후 내원해 주세요.\n- 안내 센터: 코 질환 센터\n- 코센터 의료진: 동헌종 대표원장, 이상덕 병원장, 정도광 원장, 김태현 부원장, 정종인 진료부장, 장규선 과장, 김병길 과장\n- 의료진별 진료일정은 병원 사정에 따라 달라질 수 있어 내원 전 확인해 주세요.\n- 증상이 갑자기 심해졌거나 불편이 크면 대표전화 02-6925-1111로 상담 후 내원해 주세요.",
+    "expectedIntent": "비염수술 안내",
+    "expectedSource": "홈페이지-비중격만곡증.txt, 홈페이지-축농증.txt",
+    "expectedAnswerHint": "관리자 메모에 기대 답변 방향을 적어 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777529429456-fu533s"
+  },
+  {
+    "question": "대표 홈페이지 주소ㅠ알려줘",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "홈페이지 주소는 https://hanaent.co.kr/입니다.\n- 진료 예약, 의료진 안내, 오시는 길 등은 홈페이지에서 확인하실 수 있습니다.",
+    "expectedIntent": "",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "https://hanaent.co.kr/-> https://hanaent.co.kr",
+    "adminNote": "",
+    "reviewedLogId": "log-1777529370932-8en9gr"
+  },
+  {
+    "question": "코에 혹이 생겼는데 어떻게 해야되?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "문의하신 내용에 대해 안내드릴게요.\n\n경우에 따라서는 지켜보는 상황도 있습니다. 하지만 부비동 입구를 막고 있다거나 크기가 큰 경우 수술이 필요한 경우가 많습니다.",
+    "expectedIntent": "코 증상",
+    "expectedSource": "코증상.txt",
+    "expectedAnswerHint": "관리자 메모에 기대 답변 방향을 적어 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777529263171-ywtkzo"
+  },
+  {
+    "question": "코에 혹이 생겼는데 어떻게 해야되?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "문의하신 내용에 대해 안내드릴게요.\n\n경우에 따라서는 지켜보는 상황도 있습니다. 하지만 부비동 입구를 막고 있다거나 크기가 큰 경우 수술이 필요한 경우가 많습니다.",
+    "expectedIntent": "코증상",
+    "expectedSource": "코증상.txt",
+    "expectedAnswerHint": "관리자 메모에 기대 답변 방향을 적어 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777529260979-cer2nw"
+  },
+  {
+    "question": "외래진료표",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "의료진 관련해서 안내드릴게요.\n\n의료진 진료일정은 외래 진료표 기준으로 확인하시면 됩니다. 다만 오늘 실제 진료 가능 여부는 당일 수술, 휴진, 대기 상황에 따라 달라질 수 있어 내원 전 대표전화 02-6925-1111로 확인해 주세요.\n- 아래 진료일정표 이미지를 참고해 주세요.\n- 특정 의료진 이름을 알려주시면 해당 의료진 기준으로도 안내해 드릴게요.",
+    "expectedIntent": "진료일정",
+    "expectedSource": "홈페이지-외래진료안내.txt",
+    "expectedAnswerHint": "의료진에 관련해서 안내핻드릴게요. 문구 삭제",
+    "adminNote": "",
+    "reviewedLogId": "log-1777529176570-qu4q2g"
+  },
+  {
     "question": "귀질환 센터가 뭐야",
     "caseType": "actual_wrong_answer",
     "wrongAnswer": "현재 확인된 병원 문서만으로는 정확히 안내드리기 어렵습니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.\n- 귀 질환 센터\n- 의료진 소개",
     "expectedIntent": "귀센터 소개, 귀센터 의료진 소개",
-    "expectedSource": "홈페이지-의료진 정보.txt",
+    "expectedSource": "홈페이지-의료진 정보.txt, 귀증상.txt",
     "expectedAnswerHint": "귀센터에 대해 소개하고 귀센터 의료진을 안내해주세요",
     "adminNote": "",
     "reviewedLogId": "log-1777523100914-biztqz"
@@ -14,7 +154,7 @@
     "caseType": "actual_wrong_answer",
     "wrongAnswer": "현재 확인된 병원 문서만으로는 정확히 안내드리기 어렵습니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.\n- 귀 질환 센터",
     "expectedIntent": "귀 증상",
-    "expectedSource": "",
+    "expectedSource": "귀증상.txt",
     "expectedAnswerHint": "관리자 메모에 기대 답변 방향을 적어 주세요.",
     "adminNote": "",
     "reviewedLogId": "log-1777522314894-9atbgi"
@@ -24,7 +164,7 @@
     "caseType": "actual_wrong_answer",
     "wrongAnswer": "문의하신 내용에 대해 안내드릴게요.\n\n진료시간은 평일 오전 9시부터 오후 6시까지이며, 토요일은 오전 9시부터 오후 1시 30분까지입니다. 일요일과 공휴일은 휴진으로 안내되어 있고, 별도 야간진료는 문서에 안내되어 있지 않습니다.\n- 평일 접수 마감은 오후 5시 30분입니다.\n- 토요일 접수 마감은 오후 1시입니다.\n- 응급수술 등 진료 상황에 따라 접수가 조기 마감될 수 있어 내원 전 확인해 주세요.",
     "expectedIntent": "귀 증상",
-    "expectedSource": "홈페이지-외래진료안내 / 통합-FAQ",
+    "expectedSource": "귀증상.txt",
     "expectedAnswerHint": "관리자 메모에 기대 답변 방향을 적어 주세요.",
     "adminNote": "",
     "reviewedLogId": "log-1777522287592-m3u1xb"
@@ -34,7 +174,7 @@
     "caseType": "actual_wrong_answer",
     "wrongAnswer": "문의하신 내용에 대해 안내드릴게요.\n\n본원은 진료에서 검사, 치료방침과 수술 결정까지 진료 당일 1~2 시간 이내로 가능한 원스톱시스템을 운영하고 있습니다. 대부분의 검사는 당일 검사 가능하시며 결과를 확인하실 수 있습니다. 다만, 귀 검사의 경우 검사 진행 상황에 따라 예약진행 될 수 있으며, 코골이수면무호흡 검사의 경우 검사 특성 상 1박 2일 입원해 진행합니다. 질환에 따라서 검사 시간은 일부 차이가 날 수 있으므로 자세한 사항은 대표전화 [대표전화 02-6925-1111] 로 문의주시기 바랍니다.",
     "expectedIntent": "목 증상",
-    "expectedSource": "통합-FAQ",
+    "expectedSource": "목증상.txt",
     "expectedAnswerHint": "관리자 메모에 기대 답변 방향을 적어 주세요.",
     "adminNote": "",
     "reviewedLogId": "log-1777522254660-ddpk39"
@@ -44,7 +184,7 @@
     "caseType": "actual_wrong_answer",
     "wrongAnswer": "문의하신 내용에 대해 안내드릴게요.\n\n진료시간은 평일 오전 9시부터 오후 6시까지이며, 토요일은 오전 9시부터 오후 1시 30분까지입니다. 일요일과 공휴일은 휴진으로 안내되어 있고, 별도 야간진료는 문서에 안내되어 있지 않습니다.\n- 평일 접수 마감은 오후 5시 30분입니다.\n- 토요일 접수 마감은 오후 1시입니다.\n- 응급수술 등 진료 상황에 따라 접수가 조기 마감될 수 있어 내원 전 확인해 주세요.",
     "expectedIntent": "목증상",
-    "expectedSource": "홈페이지-외래진료안내 / 통합-FAQ",
+    "expectedSource": "목증상.txt",
     "expectedAnswerHint": "관리자 메모에 기대 답변 방향을 적어 주세요.",
     "adminNote": "",
     "reviewedLogId": "log-1777522248183-6tx697"
@@ -54,7 +194,7 @@
     "caseType": "actual_wrong_answer",
     "wrongAnswer": "문의하신 내용에 대해 안내드릴게요.\n\n경우에 따라서는 지켜보는 상황도 있습니다. 하지만 부비동 입구를 막고 있다거나 크기가 큰 경우 수술이 필요한 경우가 많습니다.",
     "expectedIntent": "코 증상",
-    "expectedSource": "통합-FAQ",
+    "expectedSource": "코증상.txt",
     "expectedAnswerHint": "관리자 메모에 기대 답변 방향을 적어 주세요.",
     "adminNote": "",
     "reviewedLogId": "log-1777522228045-4txr8l"
@@ -75,7 +215,7 @@
     "wrongAnswer": "하나이비인후과병원 홈페이지 주소는 https://hanaent.co.kr/입니다.\n- 진료 예약, 의료진 안내, 오시는 길 등은 홈페이지에서 확인하실 수 있습니다.",
     "expectedIntent": "대표 홈페이지 주소",
     "expectedSource": "통합-FAQ.txt",
-    "expectedAnswerHint": "홈페이지 주소는 https://hanaent.co.kr/입니다. 입니다 앞에 한칸 띄어쓰기가 들어가야되",
+    "expectedAnswerHint": "홈페이지 주소는 https://hanaent.co.kr 입니다. 입니다 앞에 한칸 띄어쓰기가 들어가야되",
     "adminNote": "",
     "reviewedLogId": "log-1777520700260-t7cp0o"
   },
@@ -85,7 +225,7 @@
     "wrongAnswer": "하나이비인후과병원 홈페이지 주소는 https://hanaent.co.kr/입니다.\n- 진료 예약, 의료진 안내, 오시는 길 등은 홈페이지에서 확인하실 수 있습니다.",
     "expectedIntent": "대표 홈페이지 주소",
     "expectedSource": "통합-FAQ.txt",
-    "expectedAnswerHint": "홈페이지 주소는 https://hanaent.co.kr/입니다. 입니다 앞에 한칸 띄어쓰기가 들어가야되",
+    "expectedAnswerHint": "홈페이지 주소는 https://hanaent.co.kr 입니다. 입니다 앞에 한칸 띄어쓰기가 들어가야되",
     "adminNote": "",
     "reviewedLogId": "log-1777520660109-sksen3"
   },
@@ -104,7 +244,7 @@
     "caseType": "actual_wrong_answer",
     "wrongAnswer": "문의하신 내용에 대해 안내드릴게요.\n\n소아환자(15세 이하)의 경우, 의료진이 환자안전증진 및 정서적지지가 필요하다고 판단하는 경우 1인실에 한하여 보호자 상주를 요청할 수 있습니다.",
     "expectedIntent": "독감주사",
-    "expectedSource": "통합-FAQ",
+    "expectedSource": "기타-비급여비용.txt",
     "expectedAnswerHint": "관리자 메모에 기대 답변 방향을 적어 주세요.",
     "adminNote": "",
     "reviewedLogId": "log-1777516531925-b0ldn6"

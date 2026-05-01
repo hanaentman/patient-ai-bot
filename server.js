@@ -276,6 +276,7 @@ const inpatientOutingPatterns = [
   /입원.{0,10}(외출|외박)/u,
   /(외출|외박).{0,10}입원/u,
   /병동.{0,10}(외출|외박)/u,
+  /^(외출|외박)\s*(가능|되나|되나요|할\s*수|할수|해도)/u,
 ];
 
 const shuttleBusPatterns = [
@@ -10568,6 +10569,21 @@ async function buildChatResponse(rawMessage, sessionId) {
   const preMeaningParkingAndClinicHoursResponse = buildParkingAndClinicHoursResponse(message);
   if (preMeaningParkingAndClinicHoursResponse) {
     return enrichResponsePayload(preMeaningParkingAndClinicHoursResponse, message);
+  }
+
+  const preMeaningSmallTalkIntent = getSmallTalkIntent(message);
+  if (preMeaningSmallTalkIntent) {
+    return enrichResponsePayload(createSmallTalkResponse(preMeaningSmallTalkIntent), message);
+  }
+
+  const preMeaningRhinitisExamResponse = buildRhinitisExamResponse(message);
+  if (preMeaningRhinitisExamResponse) {
+    return enrichResponsePayload(preMeaningRhinitisExamResponse, message);
+  }
+
+  const preMeaningExamTypeClarificationResponse = buildExamTypeClarificationResponse(message);
+  if (preMeaningExamTypeClarificationResponse) {
+    return enrichResponsePayload(preMeaningExamTypeClarificationResponse, message);
   }
 
   const preMeaningSeptoplastyInfoResponse = buildSeptoplastyInfoResponse(message);
