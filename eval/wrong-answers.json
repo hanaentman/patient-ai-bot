@@ -1,5 +1,185 @@
 [
   {
+    "question": "내일 진료 있어?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "내일 진료 가능 여부는 요일에 따라 다릅니다 — 평일과 토요일은 외래 진료가 있으며, 일요일·공휴일은 휴진입니다.\n진료시간은 평일 오전 09:00–13:00(접수마감 12:30), 오후 14:00–18:00(접수마감 17:30)이며, 토요일은 09:00–13:30(접수마감 13:00)입니다.\n당일 방문 진료는 가능하지만 대기시간이 있을 수 있고, 예약 후 내원하시면 더 편리합니다.\n내일 특정 예약(본인 예약 여부)을 확인해드리길 원하시면 예약자 성함/생년월일을 알려주시거나 대표번호(대표전화 02-6925-1111)로 확인해 주세요.",
+    "expectedIntent": "진료일정",
+    "expectedSource": "홈페이지-외래진료안내.txt",
+    "expectedAnswerHint": "온라인 예약은 안되므로 문구 삭제해주세요 '내일 특정 예약(본인 예약 여부)을 확인해드리길 원하시면 예약자 성함/생년월일을 알려주시거나 대표번호(대표전화 02-6925-1111)로 확인해 주세요.' 삭제",
+    "adminNote": "",
+    "reviewedLogId": "log-1777695681369-v4wksd"
+  },
+  {
+    "question": "의료기관평가인증 받았어?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "현재 확인된 병원 문서만으로는 정확히 안내드리기 어렵습니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.\n- 의료진 소개",
+    "expectedIntent": "의료기관평가인증",
+    "expectedSource": "통합-FAQ.txt",
+    "expectedAnswerHint": "하나이비인후과병원은 의료기관평가인증을 받은 전문병원 입니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777646692363-p458oy"
+  },
+  {
+    "question": "의료기관평가인증 받았어?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "현재 확인된 병원 문서만으로는 정확히 안내드리기 어렵습니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.\n- 의료진 소개",
+    "expectedIntent": "의료기관평가인증",
+    "expectedSource": "통합-FAQ.txt",
+    "expectedAnswerHint": "하나이비인후과병원은 의료기관평가인증을 받은 전문병원 입니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777646665689-gas9wt"
+  },
+  {
+    "question": "전문병원이야?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "예 — 하나이비인후과병원은 귀·코·목 분야(이비인후과)를 중심으로 한 전문 진료를 제공하는 병원입니다.\n병원 층별 안내에 음성클리닉, 보청기상담실, 청력검사실·어지러움검사실 등 이비인후과 관련 전문 시설이 구비되어 있고, FAQ 에도 코·목·귀 분야별 전문 의료진이 상주한다고 안내되어 있습니다.\n다만 문서에는 ‘정부 지정 전문병원’ 같은 공식 명칭 보유 여부는 명시돼 있지 않으니, 그 부분을 확인하려면 대표전화 02-6925-1111 이나 홈페이지로 문의해 주세요.\n\n보청기 관련 영상 보기: https://www.youtube.com/watch?v=B94y3cXqHAo",
+    "expectedIntent": "전문병원",
+    "expectedSource": "통합-FAQ.txt",
+    "expectedAnswerHint": "하나이비인후과병원은 의료기관평가인증을 받은 전문병원 입니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777628545685-xxdn49"
+  },
+  {
+    "question": "누가 잘봐?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "현재 확인된 병원 문서만으로는 정확히 안내드리기 어렵습니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.\n- 자주 묻는 질문",
+    "expectedIntent": "의료진 정보, 의료진 소개",
+    "expectedSource": "홈페이지-의료진 정보.txt",
+    "expectedAnswerHint": "코센터, 목센터, 두경부센터, 귀센터, 내과 소개",
+    "adminNote": "",
+    "reviewedLogId": "log-1777628462706-utcx9z"
+  },
+  {
+    "question": "김병길 의료진",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "의료진 관련해서 안내드릴게요.\n\n김병길 과장은(는) 마취통증의학과 진료를 담당합니다. 오전은 월요일, 화요일, 수요일, 목요일, 금요일에 진료합니다. 오후는 월요일, 화요일, 수요일, 목요일, 금요일에 진료합니다.\n- ※ 토요일 진료 : 4/4, 4/25\n- ※ 응급 수술 등에 의해 진료시간이 변경될 수 있으니 예약 및 내원 시 확인바랍니다.\n- ※ 휴진 : 3/19(목)\n- ※ 토요일 진료 없음",
+    "expectedIntent": "김병길 의료진, 김병길 의사, 김병길 전문의, 김병길",
+    "expectedSource": "홈페이지-의료진 정보.txt",
+    "expectedAnswerHint": "김병길은 마취통증의학과 진료가 아니라 코센터 진료 입니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777628339325-0rzrsd"
+  },
+  {
+    "question": "의료진 진료표를 확인할 수 있나요?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "의료진 정보 문서 기준으로 안내 가능한 의료진은 총 15명입니다.\n- 동헌종, 이상덕, 정도광, 남순열, 주형로, 장선오, 장정훈, 김태현, 정종인, 김종세, 장규선, 김병길, 이영미, 강매화, 문보은 의료진이 문서에 포함되어 있습니다.",
+    "expectedIntent": "진료표",
+    "expectedSource": "홈페이지-의료진 정보.txt",
+    "expectedAnswerHint": "의료진 시간표 보여주세요",
+    "adminNote": "",
+    "reviewedLogId": "log-1777621897687-85r1p3"
+  },
+  {
+    "question": "양압기 상담은 어디서 받을 수 있나요?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "양압기 상담은 코골이, 수면무호흡 증상과 수면다원검사 결과를 바탕으로 진행됩니다. 양압기 처방이나 사용 여부는 진료와 검사 결과를 확인한 뒤 안내받으시는 것이 정확합니다.\n- 수면다원검사는 코골이나 수면무호흡의 정도를 확인하는 검사입니다.\n- 예약 및 상담 문의는 대표전화 02-6925-1111로 확인해 주세요.",
+    "expectedIntent": "양압기 상담",
+    "expectedSource": "코골이증상.txt",
+    "expectedAnswerHint": "목센터 주형로 또는 신경과 진료 후 양압기 상담",
+    "adminNote": "",
+    "reviewedLogId": "log-1777621888129-15mn5l"
+  },
+  {
+    "question": "코골이 검사는 입원이 필요한가요?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "코골이와 수면무호흡 관련 진료가 가능합니다. 코골이와 수면무호흡은 증상 정도와 폐쇄 부위에 따라 수술적 치료와 비수술적 치료를 함께 검토할 수 있으며, 필요한 경우 수면다원검사 등으로 상태를 확인합니다.\n- 코막힘, 입으로 숨쉬기, 낮 졸림, 수면 중 숨 멎음이 함께 있으면 진료 시 같이 말씀해 주세요.\n- 진료 가능 시간은 의료진 일정에 따라 달라질 수 있어 예약 전 확인을 권장드립니다.\n- 대표전화 02-6925-1111",
+    "expectedIntent": "수면검사, 코골이검사",
+    "expectedSource": "입원-수면검사 입원 안내.txt",
+    "expectedAnswerHint": "코골이 검사, 수면검사는 1박2일로 진행됩니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777621884941-mcom3l"
+  },
+  {
+    "question": "축농증 누가봐",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "문의하신 내용에 대해 안내드릴게요.\n\n부비동염은 축농증과 같은 코 질환으로, 하나이비인후과병원 코 질환 센터에서 진료 가능합니다. 홈페이지 축농증 안내 기준으로 문진, 내시경검사, X-ray 또는 CT 검사 등을 통해 상태를 확인하고, 급성 축농증은 약물치료와 코세척을 우선 고려하며 만성 축농증은 상태에 따라 부비동 내시경 수술을 시행할 수 있습니다.\n- 부비동염 진료 의료진은 코센터 기준으로 확인하시면 됩니다.\n- 정확한 치료 방향은 진료와 검사 후 의료진이 결정합니다.",
+    "expectedIntent": "축농증 의료진 소개",
+    "expectedSource": "홈페이지-의료진 정보.txt, 홈페이지-축농증.txt,",
+    "expectedAnswerHint": "전문분야 의료진 소개",
+    "adminNote": "",
+    "reviewedLogId": "log-1777619805581-qb92gn"
+  },
+  {
+    "question": "장정훈 진료일정 알려줘 토요일 포함해서",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "의료진별 진료 요일과 일정은 병원 홈페이지의 의료진 또는 진료 일정 안내에서 확인하실 수 있습니다. 진료 일정은 병원 사정에 따라 변경될 수 있어 예약 전 대표전화로 확인하는 것이 가장 정확합니다.\n- 특정 의료진 이름을 알려주시면 문서 기준으로 해당 의료진 안내를 도와드릴 수 있습니다.\n- 대표전화 02-6925-1111",
+    "expectedIntent": "장정훈 의료진 소개",
+    "expectedSource": "홈페이지-의료진 정보.txt",
+    "expectedAnswerHint": "장정훈 의료진에 대해 알려줘",
+    "adminNote": "",
+    "reviewedLogId": "log-1777619694193-cd93qb"
+  },
+  {
+    "question": "김병길",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "김병길 의료진 관련해서 안내드릴게요. 김병길 과장 이비인후과 전문의 진료과는 코 센터입니다. 전문분야는 부비동내시경수술, 비염, 비중격만곡증, 수면무호흡, 성인편도, 소아이비인후과입니다. 주간 진료 시간표 기준: 시간 월 화 수 목 금 토 / 오전 진료 비고 / 참조 / 오후 진료 진료 진료 진료 비고\n\n비중격만곡증 관련 영상 보기: https://www.youtube.com/watch?v=vpwYbln5tLE\n- 토요일 진료와 휴진은 날짜별로 달라질 수 있어 진료일정표 이미지와 대표전화 02-6925-1111로 내원 전 확인해 주세요.\n- 자세한 경력이 궁금하시면 “의료진 이름 + 경력”으로 입력해 주세요.",
+    "expectedIntent": "의료진 정보, 김병길",
+    "expectedSource": "홈페이지-의료진 정보.txt",
+    "expectedAnswerHint": "주간 진료 시간표 기준: 시간 월 화 수 목 금 토 / 오전 진료 진료 진료 진료 / 오후 진료 진료 진료 / 삭제, 경력도 나오면 좋을것같아",
+    "adminNote": "",
+    "reviewedLogId": "log-1777609393628-qc6gqe"
+  },
+  {
+    "question": "김종세",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "김종세 의료진 관련해서 안내드릴게요. 김종세 과장 이비인후과 전문의 진료과는 귀 센터입니다. 전문분야는 어지럼증, 이명, 내시경귀수술, 중이염수술, 난청, 돌발성난청, 메니에르병, 전이개누공, 보청기, 안면마비입니다. 주간 진료 시간표 기준: 시간 월 화 수 목 금 토 / 오전 진료 진료 진료 진료 / 오후 진료 진료 진료 / 비고 ※ 토요일 진료 : 4/11, 4/25\n\n이명 관련 영상 보기: https://youtube.com/shorts/TihA3LVtWlU?feature=share\n- 토요일 진료와 휴진은 날짜별로 달라질 수 있어 진료일정표 이미지와 대표전화 02-6925-1111로 내원 전 확인해 주세요.\n- 자세한 경력이 궁금하시면 “의료진 이름 + 경력”으로 입력해 주세요.",
+    "expectedIntent": "김종세 의료진 정보",
+    "expectedSource": "홈페이지-의료진 정보.txt",
+    "expectedAnswerHint": "주간 진료 시간표 기준: 시간 월 화 수 목 금 토 / 오전 진료 진료 진료 진료 / 오후 진료 진료 진료 / 삭제, 경력도 나오면 좋을것같아",
+    "adminNote": "",
+    "reviewedLogId": "log-1777609387758-133apd"
+  },
+  {
+    "question": "정종인 전문분야",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "정종인 의료진 관련해서 안내드릴게요. 정종인 진료부장 이비인후과 전문의 진료과는 코 센터입니다. 전문분야는 부비동내시경수술, 비염, 기능적코성형, 비중격만곡증, 수면무호흡, 성인편도입니다. 주간 진료 시간표 기준: 시간 월 화 수 목 금 토 / 오전 진료 비고 / 참조 / 오후 진료 진료 진료 비고\n\n비중격만곡증 관련 영상 보기: https://www.youtube.com/watch?v=vpwYbln5tLE\n- 토요일 진료와 휴진은 날짜별로 달라질 수 있어 진료일정표 이미지와 대표전화 02-6925-1111로 내원 전 확인해 주세요.\n- 자세한 경력이 궁금하시면 “의료진 이름 + 경력”으로 입력해 주세요.",
+    "expectedIntent": "전문분야",
+    "expectedSource": "홈페이지-의료진 정보.txt",
+    "expectedAnswerHint": "주간 진료 시간표 기준: 시간 월 화 수 목 금 토 / 오전 진료 비고 / 참조 / 오후 진료 진료 진료 비고 이 문구는 삭제하고 토요일 진료일정을 일려줘 문구 삭제",
+    "adminNote": "",
+    "reviewedLogId": "log-1777608968246-cjdqm1"
+  },
+  {
+    "question": "정종인 토요일",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "정종인 의료진 관련해서 안내드릴게요. 정종인 진료부장 이비인후과 전문의 진료과는 코 센터입니다. 전문분야는 부비동내시경수술, 비염, 기능적코성형, 비중격만곡증, 수면무호흡, 성인편도입니다. 주간 진료 시간표 기준: 시간 월 화 수 목 금 토 / 오전 진료 비고 / 참조 / 오후 진료 진료 진료 비고\n\n비중격만곡증 관련 영상 보기: https://www.youtube.com/watch?v=vpwYbln5tLE\n- 토요일 진료와 휴진은 날짜별로 달라질 수 있어 진료일정표 이미지와 대표전화 02-6925-1111로 내원 전 확인해 주세요.\n- 자세한 경력이 궁금하시면 “의료진 이름 + 경력”으로 입력해 주세요.",
+    "expectedIntent": "정종인, 토요일 진료일정",
+    "expectedSource": "홈페이지-의료진 정보.txt, 외래-의료진 명단.txt",
+    "expectedAnswerHint": "주간 진료 시간표 기준: 시간 월 화 수 목 금 토 / 오전 진료 비고 / 참조 / 오후 진료 진료 진료 비고 이 문구는 삭제하고 토요일 진료일정을 일려줘",
+    "adminNote": "",
+    "reviewedLogId": "log-1777608865327-ar8o8a"
+  },
+  {
+    "question": "김종세",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "문의하신 내용에 대해 안내드릴게요.\n\n김종세 과장은(는) 코 센터,두경부 센터 진료를 담당합니다. 오전은 월요일, 목요일, 금요일에 진료합니다. 오후는 월요일, 금요일에 진료합니다.\n- ※ 토요일 진료 : 4/11, 4/25\n- ※ 응급 수술 등에 의해 진료시간이 변경될 수 있으니 예약 및 내원 시 확인바랍니다.\n- ※ 토요일 진료 : 4/11\n- 응급 수술 등에 따라 진료시간이 변경될 수 있어 내원 전 확인이 필요합니다.",
+    "expectedIntent": "김종세",
+    "expectedSource": "홈페이지-의료진 정보.txt, 외래-의료진 명단.txt",
+    "expectedAnswerHint": "김종세 의료진은 귀센터입니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777608271736-4mgwrg"
+  },
+  {
+    "question": "김병길",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "문의하신 내용에 대해 안내드릴게요.\n\n김병길 과장은(는) 마취통증의학과 진료를 담당합니다. 오전은 월요일, 화요일, 수요일, 목요일, 금요일에 진료합니다. 오후는 월요일, 화요일, 수요일, 목요일, 금요일에 진료합니다.\n- ※ 토요일 진료 : 4/4, 4/25\n- ※ 응급 수술 등에 의해 진료시간이 변경될 수 있으니 예약 및 내원 시 확인바랍니다.\n- ※ 휴진 : 3/19(목)\n- ※ 토요일 진료 없음",
+    "expectedIntent": "김병길, 김병길 의료진",
+    "expectedSource": "홈페이지-의료진 정보.txt",
+    "expectedAnswerHint": "김병길 마취가 아님. 코센터 입니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1777608211233-i3uhsc"
+  },
+  {
+    "question": "이상덕",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "문의하신 내용에 대해 안내드릴게요.\n\n이상덕 병원장은(는) 코 센터 진료를 담당합니다. 오후는 월요일, 목요일에 진료합니다.\n- ※ 토요일 진료 : 4/4, 4/11\n- ※ 응급 수술 등에 의해 진료시간이 변경될 수 있으니 예약 및 내원 시 확인바랍니다.\n- 응급 수술 등에 따라 진료시간이 변경될 수 있어 내원 전 확인이 필요합니다.",
+    "expectedIntent": "이상덕, 의료진 소개, 경력, 전문분야",
+    "expectedSource": "홈페이지-의료진 정보.txt",
+    "expectedAnswerHint": "좀더 자세하게 의료진 소개글이 들어가면 좋겠어",
+    "adminNote": "",
+    "reviewedLogId": "log-1777608107504-aq2ora"
+  },
+  {
     "question": "정종인",
     "caseType": "actual_wrong_answer",
     "wrongAnswer": "현재 확인된 병원 문서만으로는 정확히 안내드리기 어렵습니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.\n- 외래진료안내\n- 서류발급안내",
