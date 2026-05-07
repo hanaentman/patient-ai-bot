@@ -1,5 +1,225 @@
 [
   {
+    "question": "수면내시경",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "질문 의도는 이해했지만, 비슷한 안내가 여러 개라 바로 단정하면 엉뚱한 답변이 될 수 있습니다. 아래 중 어느 쪽인지 알려주시면 그 기준으로 정확히 안내드릴게요.\n- 진료시간이 궁금해요\n- 의료진 정보가 궁금해요\n- 서류 발급이 궁금해요",
+    "expectedIntent": "수면내시경",
+    "expectedSource": "입원-수면검사 입원 안내.txt",
+    "expectedAnswerHint": "수면내시경에 대해 알려주세요",
+    "adminNote": "",
+    "reviewedLogId": "log-1778073850785-22gvjn"
+  },
+  {
+    "question": "예약하고 싶어",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "예약과 접수 관련해서 안내드릴게요.\n\n예약하신 경우 1층 원무과 접수 창구로 가시거나 키오스크로 접수가능합니다.",
+    "expectedIntent": "예약안내",
+    "expectedSource": "통합-FAQ.txt",
+    "expectedAnswerHint": "예약 방법에 대해 안내",
+    "adminNote": "",
+    "reviewedLogId": "log-1778073748627-ak314w"
+  },
+  {
+    "question": "예약하고 싶은데.어떻게해야되",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "예약과 접수 관련해서 안내드릴게요.\n\n예약하신 경우 1층 원무과 접수 창구로 가시거나 키오스크로 접수가능합니다.",
+    "expectedIntent": "예약안내, 예약방법",
+    "expectedSource": "통합-FAQ.txt",
+    "expectedAnswerHint": "예약 방법에 대해서 안내해주세요",
+    "adminNote": "",
+    "reviewedLogId": "log-1778073718570-88c1tc"
+  },
+  {
+    "question": "이상덕",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "이상덕 의료진 관련해서 안내드릴게요. 이상덕 병원장 이비인후과 전문의 진료과는 코 센터입니다. 전문분야는 부비동내시경수술, 코물혹, 코 막힘, 비중격만곡증, 알레르기 비염입니다. 주간 진료 시간표 기준: 시간 월 화 수 목 금 토 / 오전 비고 / 참조 / 오후 진료 진료 비고\n\n비중격만곡증 관련 영상 보기: https://www.youtube.com/watch?v=vpwYbln5tLE\n- 토요일 진료와 휴진은 날짜별로 달라질 수 있어 진료일정표 이미지와 대표전화 02-6925-1111로 내원 전 확인해 주세요.\n- 자세한 경력이 궁금하시면 “의료진 이름 + 경력”으로 입력해 주세요.",
+    "expectedIntent": "이상덕 소개, 이상덕 안내",
+    "expectedSource": "홈페이지-의료진 정보.txt",
+    "expectedAnswerHint": "홈페이지-의료진 정보.txt, 주간 진료 시간표가 이상하게 나와 그리고 토요일 진료는 나왔으면 좋겠어",
+    "adminNote": "",
+    "reviewedLogId": "log-1778060190042-o37sb1"
+  },
+  {
+    "question": "장선오 원장님은 어떤 진료를 보시나요?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "장선오 의료진 관련해서 안내드릴게요. 장선오 귀질환 센터장 이비인후과 전문의 진료과는 귀 센터입니다. 전문분야는 인공와우, 난청, 중이염 수술, 보청기입니다. 주간 진료 시간표 기준: 시간 월 화 수 목 금 토 / 오전 진료 진료 비고 / 참조 / 오후 진료 진료 비고\n\n보청기 관련 영상 보기: https://www.youtube.com/watch?v=B94y3cXqHAo\n- 토요일 진료와 휴진은 날짜별로 달라질 수 있어 진료일정표 이미지와 대표전화 02-6925-1111로 내원 전 확인해 주세요.\n- 자세한 경력이 궁금하시면 “의료진 이름 + 경력”으로 입력해 주세요.",
+    "expectedIntent": "장선오 전문분야, 진료일정",
+    "expectedSource": "홈페이지-의료진 정보.txt",
+    "expectedAnswerHint": "주간 진료 시간표 기준: 시간 월 화 수 목 금 토 / 오전 진료 진료 비고 / 참조 / 오후 진료 진료 비고 이부분이 보기 힘든 형태로 나와",
+    "adminNote": "",
+    "reviewedLogId": "log-1778043469279-ctieqa"
+  },
+  {
+    "question": "김태현 원장님 진료일정이 궁금합니다.",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "의료진별 진료 요일과 일정은 병원 홈페이지의 의료진 또는 진료 일정 안내에서 확인하실 수 있습니다. 진료 일정은 병원 사정에 따라 변경될 수 있어 예약 전 대표전화로 확인하는 것이 가장 정확합니다.\n- 특정 의료진 이름을 알려주시면 문서 기준으로 해당 의료진 안내를 도와드릴 수 있습니다.\n- 대표전화 02-6925-1111",
+    "expectedIntent": "김태현 진료일정, 의료진 진료일정, 진료시간",
+    "expectedSource": "홈페이지-의료진 정보.txt",
+    "expectedAnswerHint": "의료진+진료일정 이므로 해당 의료진 진료일정을 보여주세요",
+    "adminNote": "",
+    "reviewedLogId": "log-1778043466089-jm3ej4"
+  },
+  {
+    "question": "목센터 의료진 명단을 볼 수 있나요?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "의료진 정보 문서 기준으로 안내 가능한 의료진은 총 15명입니다.\n- 동헌종, 이상덕, 정도광, 남순열, 주형로, 장선오, 장정훈, 김태현, 정종인, 김종세, 장규선, 김병길, 이영미, 강매화, 문보은 의료진이 문서에 포함되어 있습니다.",
+    "expectedIntent": "목센터, 두경부센터",
+    "expectedSource": "홈페이지-의료진 정보.txt",
+    "expectedAnswerHint": "목센터, 두경부센터 의료진에 대해 설명해주세요",
+    "adminNote": "",
+    "reviewedLogId": "log-1778043462859-p83osa"
+  },
+  {
+    "question": "편도결석 상담도 받을 수 있나요?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "문의하신 내용에 대해 안내드릴게요.\n\n편도절제술은 홈페이지 편도 안내 기준으로 1년에 3번 이상 고열을 동반한 편도선염을 앓는 경우, 편도결석이 반복되어 불편한 경우, 편도비대로 코골이나 수면무호흡증이 심한 경우 고려할 수 있습니다.\n\n하나이비인후과병원 안내에는 편도절제술 수술시간은 약 20~30분, 마취방법은 전신마취, 입원기간은 2박 3일, 회복기간은 약 2~3주로 안내되어 있습니다.\n- 성인 편도절제술 수술비용은 문서 기준 90만원으로 안내되어 있습니다.\n- 소아 편도절제술은 130만원으로 안내되어 있습니다.\n- 실제 수술 여부는 진찰과 검사 후 의료진 판단이 필요합니다.",
+    "expectedIntent": "편도결석, 목센터 의료진 소개",
+    "expectedSource": "목증상.txt",
+    "expectedAnswerHint": "편도결석에 대해 설명해주세요. 담당 목센터 의료진입니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778043364977-5s129a"
+  },
+  {
+    "question": "코피가 자주 나면 진료 가능한가요?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "코피은 코 질환 센터에서 진료 상담이 가능합니다. 당일 방문 진료도 가능하지만 외래 상황에 따라 대기시간이 발생할 수 있어, 가능하면 예약 후 내원하시는 것을 권장드립니다.\n- 증상이 심하거나 출혈, 고열, 심한 통증이 있으면 전화로 먼저 확인해 주세요.\n- 대표전화 02-6925-1111",
+    "expectedIntent": "코피, 코센터 소개, 코센터 의료진 소개, 코증상",
+    "expectedSource": "코증상.txt, 홈페이지-의료진 정보.txt",
+    "expectedAnswerHint": "코센터 의료진 소개도 해주세요",
+    "adminNote": "",
+    "reviewedLogId": "log-1778043361798-tuuzw1"
+  },
+  {
+    "question": "CT 촬영은 진료 당일 가능한가요?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "문의하신 내용에 대해 안내드릴게요.\n\n성대물혹이나 목의 혹은 진료 가능합니다. 홈페이지 목의 혹 안내 기준으로 환자 나이, 혹의 위치, 발생 시기, 크기, 통증 여부 등을 확인하고 후두내시경검사, 혈액검사, 초음파검사, 방사선검사, CT검사 등을 시행할 수 있습니다. 검사결과는 최소 5~7일 정도 소요됩니다.",
+    "expectedIntent": "ct촬영, 당일검사",
+    "expectedSource": "통합-FAQ.txt",
+    "expectedAnswerHint": "관리자 메모에 기대 답변 방향을 적어 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778043345820-jls42v"
+  },
+  {
+    "question": "후각 저하 검사는 어디서 받나요?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "후각이 떨어졌을 때는 후각장애 진료에서 원인을 확인합니다. 홈페이지 후각장애 안내 기준으로 후각검사, 이비인후과 전용 CT 검사, 필요 시 MRI 검사 등이 안내되어 있습니다.\n- 후각장애는 코 질환 센터 영역으로 안내됩니다.\n- 비염, 축농증, 후각 신경 손상 등 원인에 따라 치료 방향이 달라질 수 있습니다.\n- 비급여비용 문서에는 후각기능검사 항목이 안내되어 있습니다.",
+    "expectedIntent": "후각검사, 당일검사, 검사실",
+    "expectedSource": "통합-FAQ.txt",
+    "expectedAnswerHint": "MRI 검사장비는 병원에 없으므로 해당 내용 삭제해주세요",
+    "adminNote": "",
+    "reviewedLogId": "log-1778043339420-7n6l2b"
+  },
+  {
+    "question": "서류 발급 비용은 어디에서 확인하나요?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "서류 비용은 서류 종류에 따라 다릅니다. 병원 비급여 안내 기준으로 입퇴원확인서는 3,000원, 입퇴원확인서 재발행은 1,000원, 진료기록사본은 1,000원으로 안내되어 있습니다.\n- 원하시는 서류명이 정해져 있으면 해당 서류명으로 문의해 주시면 더 정확히 안내드릴 수 있습니다.\n- 서류 발급은 본인 확인이 필요할 수 있어 신분증을 지참해 주세요.\n- 대리 발급은 관계 확인 서류나 위임 서류가 필요할 수 있습니다.",
+    "expectedIntent": "서류발급비용, 비급여, 제증명 비용",
+    "expectedSource": "기타-비급여비용.txt",
+    "expectedAnswerHint": "홈페이지 비급여페이지 안내해주세요 https://hanaent.co.kr/nonpay.html",
+    "adminNote": "",
+    "reviewedLogId": "log-1778043233651-fvm45v"
+  },
+  {
+    "question": "영상 자료를 CD로 받을 수 있나요?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "현재 확인된 문서 기준으로 바로 안내드리기 어려운 질문입니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.\n- 진료시간 알려줘\n- 의료진 안내해줘\n- 서류 발급 방법 알려줘",
+    "expectedIntent": "CD발급",
+    "expectedSource": "기타-비급여비용.txt, 통합-FAQ.txt",
+    "expectedAnswerHint": "검사 영상 자료는 CD로 발급받을 수있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778043230460-57gdrs"
+  },
+  {
+    "question": "수술 기록지는 발급받을 수 있나요?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "수술 관련해서 안내드릴게요.\n\n진료기록이나 검사 결과는 서류 종류에 따라 발급 방식이 다릅니다. 검사 영상자료는 CD 복사로 발급할 수 있고, 기타 진료기록은 진료기록사본으로 발급할 수 있습니다. 비급여비용 문서 기준으로 CD복사는 10,000원, 진료기록사본은 1,000원 항목이 안내되어 있습니다.\n- 개인정보보호법에 따라 본인이 신분증을 지참하고 내원해 본인 확인 후 발급하는 것이 원칙입니다.\n- 보호자나 대리인이 내원하는 경우 필요한 구비서류를 확인해 주세요.",
+    "expectedIntent": "수술기록지 발급, 제증명 발급, 서류발급",
+    "expectedSource": "기타-비급여비용.txt",
+    "expectedAnswerHint": "수술 관련해서 안내드릴게요. 멘트는 삭제해주세요 수술기록지 발급 가능합니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778043227265-tqve8f"
+  },
+  {
+    "question": "입원 중 세탁실을 이용할 수 있나요?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "입원 생활 관련해서 안내드릴게요.\n\n환자분들의 안전관리와 감염병 예방을 위해 입원환자 면회를 전면 금지 합니다. 면회시에는 다른 환자의 안정과 쾌유를 위해 1층 또는 2층 대기실을 이용해 주십시오. 소아환자(15세 이하)의 경우 보호자 한 분이 계실 수 있습니다.",
+    "expectedIntent": "시설안내, 세탁실",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "세탁실이 별도로 있지 않아 세탁은 어렵습니다. 라고 안내해주세요",
+    "adminNote": "",
+    "reviewedLogId": "log-1778043094573-08nbxk"
+  },
+  {
+    "question": "퇴원 계산은 몇 층에서 하나요?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "질문 의도는 이해했지만, 비슷한 안내가 여러 개라 바로 단정하면 엉뚱한 답변이 될 수 있습니다. 아래 중 어느 쪽인지 알려주시면 그 기준으로 정확히 안내드릴게요.\n- 진료시간이 궁금해요\n- 의료진 정보가 궁금해요\n- 서류 발급이 궁금해요",
+    "expectedIntent": "퇴원계산, 원무과 위치",
+    "expectedSource": "기타-층별안내도.txt, 통합-FAQ.txt",
+    "expectedAnswerHint": "퇴원계산은 1층 원무과에서 가능합니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778043081820-5251cs"
+  },
+  {
+    "question": "재진 환자는 바로 진료실로 가면 되나요?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "문의하신 내용에 대해 안내드릴게요.\n\n예약하신 경우 1층 원무과 접수 창구로 가시거나 키오스크로 접수가능합니다.",
+    "expectedIntent": "재진환자, 접수방법",
+    "expectedSource": "통합-FAQ.txt",
+    "expectedAnswerHint": "1층원무과나 키오스크로 접수 해야 합니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778042977428-c212h8"
+  },
+  {
+    "question": "의료기관평가인증 병원 맞아?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "현재 확인된 병원 문서만으로는 정확히 안내드리기 어렵습니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.\n- 의료진 소개\n- 입퇴원안내\n- 하나이비인후과병원 메인",
+    "expectedIntent": "인증병원, 전문병원",
+    "expectedSource": "통합-FAQ.txt",
+    "expectedAnswerHint": "하나이비인후과병원은 의료기관평가인증을 받은 전문병원 입니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778040811627-1z1ln4"
+  },
+  {
+    "question": "인증 기관 맞아?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "현재 확인된 병원 문서만으로는 정확히 안내드리기 어렵습니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.\n- 귀 질환 센터\n- 서류발급안내\n- 입퇴원안내",
+    "expectedIntent": "인증병원, 전문병원",
+    "expectedSource": "통합-FAQ.txt",
+    "expectedAnswerHint": "하나이비인후과병원은 의료기관평가인증을 받은 전문병원 입니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778040526008-jrfmyo"
+  },
+  {
+    "question": "의료기관평가 인증 기관 이야?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "현재 확인된 병원 문서만으로는 정확히 안내드리기 어렵습니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.\n- 의료진 소개\n- 입퇴원안내",
+    "expectedIntent": "인증병원, 전문병원",
+    "expectedSource": "통합-FAQ.txt",
+    "expectedAnswerHint": "하나이비인후과병원은 의료기관평가인증을 받은 전문병원 입니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778040493808-8r3xch"
+  },
+  {
+    "question": "의료기관평가 인증 기관이야?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "현재 확인된 병원 문서만으로는 정확히 안내드리기 어렵습니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.\n- 의료진 소개\n- 온라인 예약 - 하나이비인후과병원 #6",
+    "expectedIntent": "인증병원, 전문병원",
+    "expectedSource": "통합-FAQ.txt",
+    "expectedAnswerHint": "하나이비인후과병원은 의료기관평가인증을 받은 전문병원 입니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778040452446-0vkdja"
+  },
+  {
+    "question": "전문병원이야?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "제공된 문서들에는 병원이 공식적으로 \"전문병원\"으로 표기되었다는 명시는 없습니다.\n다만 문서에 따르면 코·목·귀 분야별 전문 의료진이 상주하는 구조로 전문 진료 체계는 갖추고 있다고 안내되어 있습니다.\n공식 인증 여부(정식 명칭·인증기관·연도 등)는 병원에 확인이 필요하니 원하시면 대표전화 02-6925-1111 로 확인해 드리겠습니다.",
+    "expectedIntent": "인증병원, 전문병원",
+    "expectedSource": "통합-FAQ.txt",
+    "expectedAnswerHint": "하나이비인후과병원은 의료기관평가인증을 받은 전문병원 입니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778040406971-kwerc4"
+  },
+  {
     "question": "내일 진료 있어?",
     "caseType": "actual_wrong_answer",
     "wrongAnswer": "내일 진료 가능 여부는 요일에 따라 다릅니다 — 평일과 토요일은 외래 진료가 있으며, 일요일·공휴일은 휴진입니다.\n진료시간은 평일 오전 09:00–13:00(접수마감 12:30), 오후 14:00–18:00(접수마감 17:30)이며, 토요일은 09:00–13:30(접수마감 13:00)입니다.\n당일 방문 진료는 가능하지만 대기시간이 있을 수 있고, 예약 후 내원하시면 더 편리합니다.\n내일 특정 예약(본인 예약 여부)을 확인해드리길 원하시면 예약자 성함/생년월일을 알려주시거나 대표번호(대표전화 02-6925-1111)로 확인해 주세요.",
