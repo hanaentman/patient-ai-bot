@@ -6582,6 +6582,24 @@ function resolveMeaningIntentResponse(meaning, message, sessionId) {
     case 'late_arrival':
     case 'same_day_exam_availability':
       return buildReinitializedIntentResponse(intent, message);
+    case 'hearing_test_process':
+      return buildHearingTestProcessResponse(message);
+    case 'sleep_apnea_exam':
+      return buildSleepApneaExamResponse(message);
+    case 'tonsillectomy_info':
+      return buildTonsillectomyInfoResponse(message);
+    case 'referral_document':
+      return buildReferralDocumentResponse(message);
+    case 'clinic_hours_night_weekend':
+      return buildClinicHoursNightWeekendResponse(message);
+    case 'doctor_career':
+      return buildDoctorCareerResponse(message);
+    case 'throat_mass_care':
+      return buildThroatMassCareResponse(message);
+    case 'ear_fullness_hearing_loss':
+      return buildEarFullnessHearingLossResponse(message);
+    case 'floor_guide':
+      return cleanIntentPayload(findFloorGuideResponse(message) || buildFloorByNumberResponse(message));
     default:
       return null;
   }
