@@ -1,9 +1,29 @@
 [
   {
+    "question": "화장실이 어디 있어?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "문의하신 내용에 대해 안내드릴게요.\n\n하나이비인후과병원 주소는 서울특별시 강남구 역삼로 245입니다. 대중교통은 2호선 역삼역 1번 출구를 이용하시면 되고, 역삼역 1번 출구에서 병원 셔틀버스도 이용할 수 있습니다. 자동차로 오실 때는 내비게이션에 “서울특별시 강남구 역삼로 245” 또는 “하나이비인후과병원”을 입력하시면 됩니다.\n- 역삼역 1번 출구에서 도보 약 10분 거리로 안내되어 있습니다.\n- 버스는 동영문화센터, 개나리아파트, 신한은행 전산센터 정류장 하차 안내가 있습니다.",
+    "expectedIntent": "층별안내",
+    "expectedSource": "기타-층별안내도.txt",
+    "expectedAnswerHint": "화장실이 몇층에 있는지 안내해줘",
+    "adminNote": "",
+    "reviewedLogId": "log-1778126143051-gkzwsf"
+  },
+  {
+    "question": "화장실 어디야",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "현재 확인된 병원 문서만으로는 정확히 안내드리기 어렵습니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.\n- 오시는 길",
+    "expectedIntent": "층별안내, 화장실",
+    "expectedSource": "기타-층별안내도.txt",
+    "expectedAnswerHint": "화장실이 어디있는지 알려줘",
+    "adminNote": "",
+    "reviewedLogId": "log-1778126074697-8k42x1"
+  },
+  {
     "question": "화장실이 어디야",
     "caseType": "actual_wrong_answer",
     "wrongAnswer": "현재 확인된 병원 문서만으로는 정확히 안내드리기 어렵습니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.\n- 자주 묻는 질문",
-    "expectedIntent": "화장실 위치, 화장실",
+    "expectedIntent": "층별안내",
     "expectedSource": "기타-층별안내도.txt",
     "expectedAnswerHint": "화장실이 몇층에 있는지 알려줘",
     "adminNote": "",
