@@ -10352,6 +10352,13 @@ async function buildChatResponse(rawMessage, sessionId) {
     return enrichResponsePayload(createWelcomeResponse(), message);
   }
 
+  if (String(meaningIntent.reason || '').startsWith('eval_')) {
+    const evalMeaningIntentResponse = resolveMeaningIntentResponse(meaningIntent, message, sessionId);
+    if (evalMeaningIntentResponse) {
+      return enrichResponsePayload(evalMeaningIntentResponse, message);
+    }
+  }
+
   const preMeaningNasalIrrigationMode = getNasalIrrigationMode(message);
   if (preMeaningNasalIrrigationMode === 'surgery' || preMeaningNasalIrrigationMode === 'general') {
     clearConversationState(sessionId);
