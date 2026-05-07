@@ -4773,7 +4773,7 @@ function buildSmellExamResponse(message) {
 
   return {
     type: 'smell_exam',
-    answer: '후각이 떨어졌을 때는 후각장애 진료에서 원인을 확인합니다. 홈페이지 후각장애 안내 기준으로 후각검사, 이비인후과 전용 CT 검사, 필요 시 MRI 검사 등이 안내되어 있습니다.',
+    answer: '후각이 떨어졌을 때는 후각장애 진료에서 원인을 확인합니다. 홈페이지 후각장애 안내 기준으로 후각검사와 이비인후과 전용 CT 검사 등이 안내되어 있습니다.',
     followUp: [
       '후각장애는 코 질환 센터 영역으로 안내됩니다.',
       '비염, 축농증, 후각 신경 손상 등 원인에 따라 치료 방향이 달라질 수 있습니다.',
@@ -6540,8 +6540,16 @@ function resolveMeaningIntentResponse(meaning, message, sessionId) {
   switch (intent) {
     case 'network_hospital_info':
       return buildNetworkHospitalInfoResponse();
+    case 'reservation_or_reception':
+      return buildReinitializedIntentResponse('reservation_or_reception', message);
     case 'parking_info':
       return buildParkingInfoResponse(message);
+    case 'mri_availability':
+      return buildMriAvailabilityResponse(message);
+    case 'smell_exam':
+      return buildSmellExamResponse(message);
+    case 'smell_exam_fee':
+      return buildSmellExamFeeResponse(message);
     case 'nasal_irrigation_surgery':
       clearConversationState(sessionId);
       return createNasalIrrigationResponse('surgery');
@@ -6566,6 +6574,13 @@ function resolveMeaningIntentResponse(meaning, message, sessionId) {
       return createMedicationStopResponse();
     case 'admission_prep_items':
       return buildReinitializedIntentResponse('admission_prep_items', message);
+    case 'receipt_issuance':
+    case 'certificate_fee':
+    case 'doctor_overview':
+    case 'doctor_specialty':
+    case 'hospital_phone':
+    case 'same_day_exam_availability':
+      return buildReinitializedIntentResponse(intent, message);
     default:
       return null;
   }
