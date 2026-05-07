@@ -8635,6 +8635,88 @@ function mergeSemanticAndKeywordDocuments(semanticDocs, keywordDocs, limit = 7) 
   return merged.slice(0, limit);
 }
 
+function splitExpectedSourceValues(value) {
+  return String(value || '')
+    .split(/[,\n/|]+/u)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function normalizeExpectedSourceValue(value) {
+  let text = String(value || '').trim();
+  if (!text) {
+    return '';
+  }
+
+  if (text.startsWith('local://docs/')) {
+    try {
+      text = decodeURIComponent(text.replace('local://docs/', ''));
+    } catch (error) {
+      text = text.replace('local://docs/', '');
+    }
+  }
+
+  text = text.split('#')[0].trim();
+  text = path.basename(text);
+  text = text.replace(/\.(txt|xls|xlsx|json)$/iu, '');
+  return compactSearchTextSafe(text);
+}
+
+function buildDocumentSourceMatchText(doc) {
+  const values = [
+    doc?.title,
+    doc?.sourceTitle,
+    doc?.chunkLabel,
+    doc?.url,
+  ];
+
+  const decoded = values.map((value) => {
+    const text = String(value || '');
+    try {
+      return decodeURIComponent(text);
+    } catch (error) {
+      return text;
+    }
+  });
+
+  return compactSearchTextSafe(decoded.join(' '));
+}
+
+function matchesExpectedSourceDocument(doc, expectedSource) {
+  const sourceKeys = splitExpectedSourceValues(expectedSource)
+    .map(normalizeExpectedSourceValue)
+    .filter(Boolean);
+  if (sourceKeys.length === 0) {
+    return false;
+  }
+
+  const docText = buildDocumentSourceMatchText(doc);
+  return sourceKeys.some((key) => docText.includes(key));
+}
+
+function getExpectedSourcePriorityDocuments(expectedSource, docs, query, limit = 5) {
+  const sourceDocs = (docs || []).filter((doc) => matchesExpectedSourceDocument(doc, expectedSource));
+  if (sourceDocs.length === 0) {
+    return [];
+  }
+
+  return rankDocuments(query, sourceDocs, limit);
+}
+
+function buildEvalGuidedQuestion(message, meaning) {
+  const expectedSource = String(meaning?.expectedSource || '').trim();
+  const expectedAnswerHint = String(meaning?.expectedAnswerHint || '').trim();
+  return [
+    `사용자 질문: ${message}`,
+    '',
+    '관리자 보정 기준:',
+    expectedSource ? `- 우선 참고 문서: ${expectedSource}` : '',
+    expectedAnswerHint ? `- 답변 방향/주의사항: ${expectedAnswerHint}` : '',
+    '',
+    '위 관리자 보정 기준은 내부 참고용입니다. 메모 문장을 그대로 노출하지 말고, 제공된 문서 근거 안에서 환자 안내문으로 자연스럽게 답변하세요.',
+  ].filter(Boolean).join('\n');
+}
+
 function getConversationState(sessionId) {
   if (!sessionId) {
     return null;
@@ -10340,6 +10422,66 @@ async function validateAIAnswer(question, answer, contextDocs) {
   }
 }
 
+async function buildEvalSourceGuidedResponse(message, meaningIntent, history) {
+  if (!OPENAI_API_KEY) {
+    return null;
+  }
+
+  if (!String(meaningIntent?.reason || '').startsWith('eval_')) {
+    return null;
+  }
+
+  const expectedSource = String(meaningIntent?.expectedSource || '').trim();
+  if (!expectedSource) {
+    return null;
+  }
+
+  const docs = await getDocumentsForRequest();
+  const guidedQuery = [
+    message,
+    meaningIntent.searchQuery,
+    expectedSource,
+    meaningIntent.expectedAnswerHint,
+  ].filter(Boolean).join('\n');
+  const priorityDocs = getExpectedSourcePriorityDocuments(expectedSource, docs, guidedQuery, 5);
+  if (priorityDocs.length === 0) {
+    return null;
+  }
+
+  const keywordDocs = rankDocuments(guidedQuery, docs, 5);
+  const semanticDocs = semanticSearchService
+    ? await semanticSearchService.search(guidedQuery, 5)
+    : [];
+  const contextDocs = mergeSemanticAndKeywordDocuments(
+    priorityDocs,
+    mergeSemanticAndKeywordDocuments(semanticDocs, keywordDocs, 7),
+    7
+  );
+
+  if (contextDocs.length === 0) {
+    return null;
+  }
+
+  const guidedQuestion = buildEvalGuidedQuestion(message, meaningIntent);
+  const generatedAnswer = appendSupportLinks(
+    applyPatientFriendlyTemplate(await callOpenAI(guidedQuestion, history, contextDocs), message),
+    message
+  );
+  const validationResult = await validateAIAnswer(guidedQuestion, generatedAnswer, contextDocs);
+
+  if (!validationResult.valid) {
+    return null;
+  }
+
+  return {
+    type: 'eval_source_guided',
+    answer: generatedAnswer,
+    followUp: [],
+    sources: dedupeSources(contextDocs).slice(0, 3),
+    images: findRelevantImages(message, contextDocs),
+  };
+}
+
 async function buildChatResponse(rawMessage, sessionId) {
   const message = String(rawMessage || '').trim();
   const conversationState = getConversationState(sessionId);
@@ -10353,6 +10495,11 @@ async function buildChatResponse(rawMessage, sessionId) {
   }
 
   if (String(meaningIntent.reason || '').startsWith('eval_')) {
+    const evalSourceGuidedResponse = await buildEvalSourceGuidedResponse(message, meaningIntent, history);
+    if (evalSourceGuidedResponse) {
+      return enrichResponsePayload(evalSourceGuidedResponse, message);
+    }
+
     const evalMeaningIntentResponse = resolveMeaningIntentResponse(meaningIntent, message, sessionId);
     if (evalMeaningIntentResponse) {
       return enrichResponsePayload(evalMeaningIntentResponse, message);
