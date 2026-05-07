@@ -1,5 +1,77 @@
 [
   {
+    "question": "내일 진료 가능해?",
+    "caseType": "admin_normal",
+    "expectedIntent": "clinic_hours_night_weekend",
+    "expectedSource": "홈페이지-외래진료안내 / 통합-FAQ",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n진료시간은 평일 오전 9시부터 오후 6시까지이며, 토요일은 오전 9시부터 오후 1시 30분까지입니다. 일요일과 공휴일은 휴진으로 안내되어 있고, 별도 야간진료는 문서에 안내되어 있지 않습니다.\n- 평일 접수 마감은 오후 5시 30분입니다.\n- 토요일 접수 마감은 오후 1시입니다.\n- 응급수술 등 진료 상황에 따라 접수가 조기 마감될 수 있어 내원 전 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778120520159-7bln75"
+  },
+  {
+    "question": "입원 준비물 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "admission_prep_items",
+    "expectedSource": "통합-FAQ / 입원-입원생활안내문",
+    "expectedAnswerHint": "입원 생활 관련해서 안내드릴게요.\n\n입원 준비물은 병실 종류에 따라 조금 다릅니다. 1인실은 환자용 세면도구(치약, 칫솔, 비누, 수건, 티슈)가 제공되며, 개인컵, 화장품, 드라이기, 샴푸, 린스 등 개인 물품은 지참하셔야 합니다. 2인실과 4인실은 세면도구와 개인용품(티슈, 수건, 개인컵, 슬리퍼, 화장품, 드라이기, 샴푸, 린스 등)을 모두 챙겨오셔야 합니다.\n- 수술 종류나 병실 배정에 따라 추가 준비물이 있을 수 있어 입원 전 안내를 함께 확인해 주세요.\n- 대표전화 02-6925-1111",
+    "adminNote": "",
+    "reviewedLogId": "log-1778120441362-0supxr"
+  },
+  {
+    "question": "진료시간 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "clinic_hours_night_weekend",
+    "expectedSource": "홈페이지-외래진료안내 / 통합-FAQ",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n진료시간은 평일 오전 9시부터 오후 6시까지이며, 토요일은 오전 9시부터 오후 1시 30분까지입니다. 일요일과 공휴일은 휴진으로 안내되어 있고, 별도 야간진료는 문서에 안내되어 있지 않습니다.\n- 평일 접수 마감은 오후 5시 30분입니다.\n- 토요일 접수 마감은 오후 1시입니다.\n- 응급수술 등 진료 상황에 따라 접수가 조기 마감될 수 있어 내원 전 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778120288156-x24ywo"
+  },
+  {
+    "question": "편도수술",
+    "caseType": "admin_normal",
+    "expectedIntent": "tonsillectomy_info",
+    "expectedSource": "홈페이지-편도",
+    "expectedAnswerHint": "수술 관련해서 안내드릴게요.\n\n편도절제술은 홈페이지 편도 안내 기준으로 1년에 3번 이상 고열을 동반한 편도선염을 앓는 경우, 편도결석이 반복되어 불편한 경우, 편도비대로 코골이나 수면무호흡증이 심한 경우 고려할 수 있습니다.\n\n하나이비인후과병원 안내에는 편도절제술 수술시간은 약 20~30분, 마취방법은 전신마취, 입원기간은 2박 3일, 회복기간은 약 2~3주로 안내되어 있습니다.\n- 성인 편도절제술 수술비용은 문서 기준 90만원으로 안내되어 있습니다.\n- 소아 편도절제술은 130만원으로 안내되어 있습니다.\n- 실제 수술 여부는 진찰과 검사 후 의료진 판단이 필요합니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778120026773-nm39vg"
+  },
+  {
+    "question": "내일 진료시간 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "clinic_hours_night_weekend",
+    "expectedSource": "홈페이지-외래진료안내 / 통합-FAQ",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n진료시간은 평일 오전 9시부터 오후 6시까지이며, 토요일은 오전 9시부터 오후 1시 30분까지입니다. 일요일과 공휴일은 휴진으로 안내되어 있고, 별도 야간진료는 문서에 안내되어 있지 않습니다.\n- 평일 접수 마감은 오후 5시 30분입니다.\n- 토요일 접수 마감은 오후 1시입니다.\n- 응급수술 등 진료 상황에 따라 접수가 조기 마감될 수 있어 내원 전 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778119972602-sulhl7"
+  },
+  {
+    "question": "진료본 후 검사 가능해?",
+    "caseType": "admin_normal",
+    "expectedIntent": "same_day_exam_availability",
+    "expectedSource": "통합-FAQ / 홈페이지-외래진료안내",
+    "expectedAnswerHint": "대부분 검사는 진료 당일 진행하고 결과까지 확인하는 흐름으로 안내됩니다. 다만 검사 종류와 당일 상황에 따라 예약 검사로 전환될 수 있습니다. 코 내시경처럼 진료 중 바로 확인하는 검사가 있고, 청력검사나 전정기능검사처럼 상황에 따라 예약으로 안내될 수 있는 검사도 있습니다.\n- 코 검사인지, 청력검사인지, 수면검사인지에 따라 당일 가능 여부가 달라질 수 있습니다.\n- 코골이·수면무호흡 검사는 1박 2일 입원 검사가 필요할 수 있습니다.\n- 내원 전 대표전화 02-6925-1111로 당일 검사 가능 여부를 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778119921313-l2mcld"
+  },
+  {
+    "question": "후각검사 종류가 뭐있어?",
+    "caseType": "admin_normal",
+    "expectedIntent": "smell_exam",
+    "expectedSource": "홈페이지-후각장애 / 기타-비급여비용",
+    "expectedAnswerHint": "후각이 떨어졌을 때는 후각장애 진료에서 원인을 확인합니다. 홈페이지 후각장애 안내 기준으로 후각검사와 이비인후과 전용 CT 검사 등이 안내되어 있습니다.\n- 후각장애는 코 질환 센터 영역으로 안내됩니다.\n- 비염, 축농증, 후각 신경 손상 등 원인에 따라 치료 방향이 달라질 수 있습니다.\n- 비급여비용 문서에는 후각기능검사 항목이 안내되어 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778119908785-qi6yt9"
+  },
+  {
+    "question": "예약하려고해",
+    "caseType": "admin_normal",
+    "expectedIntent": "reservation_or_reception",
+    "expectedSource": "통합-FAQ / 홈페이지-외래진료안내",
+    "expectedAnswerHint": "예약과 접수 관련해서 안내드릴게요.\n\n예약은 온라인 예약, 전화 예약, 방문 예약으로 가능합니다. 처음 내원하시는 경우에는 신분증을 지참하고 1층 접수 데스크에서 등록 후 진료실로 안내됩니다.\n- 예약 변경은 대표전화 02-6925-1111로 문의해 주세요.\n- 온라인 예약은 병원 홈페이지에서 요청 후 상담 확인 절차로 진행됩니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778119413286-a2eqxk"
+  },
+  {
     "question": "수면내시경에 대해 설명해줘",
     "caseType": "admin_normal",
     "expectedIntent": "ai",
