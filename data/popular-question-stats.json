@@ -640,6 +640,11 @@
     "updatedAt": 1776381340893
   },
   {
+    "question": "후각검사 비용 알려줘",
+    "count": 3,
+    "updatedAt": 1778196128740
+  },
+  {
     "question": "하나이비인후과는 언제 창립했나요",
     "count": 3,
     "updatedAt": 1777430798004
@@ -718,6 +723,16 @@
     "question": "수술 후 주의사항 알려줘",
     "count": 3,
     "updatedAt": 1776383246672
+  },
+  {
+    "question": "비중격만곡증 수술 비용 알려줘",
+    "count": 2,
+    "updatedAt": 1778196041843
+  },
+  {
+    "question": "청력검사 비용 알려줘",
+    "count": 2,
+    "updatedAt": 1778196021931
   },
   {
     "question": "코 당일검사 가능한가요?",
@@ -983,20 +998,5 @@
     "question": "2가지 질환 각각 진료 가능한가요?",
     "count": 1,
     "updatedAt": 1777255902655
-  },
-  {
-    "question": "보호자 면회가 안되는데 수술 진행 과정은 어떻게 알 수 있나요?",
-    "count": 1,
-    "updatedAt": 1777254396462
-  },
-  {
-    "question": "수술 후 출혈",
-    "count": 1,
-    "updatedAt": 1777250488696
-  },
-  {
-    "question": "비중격수술 얼마야?",
-    "count": 1,
-    "updatedAt": 1777198863861
   }
 ]

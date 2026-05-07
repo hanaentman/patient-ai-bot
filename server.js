@@ -51,6 +51,8 @@ const DOCTOR_SPECIALTY_DOC_PATH = path.join(DOCS_DIR, DOCTOR_INFO_DOC_FILENAME);
 const DOCTOR_SYNC_SCRIPT_PATH = path.join(__dirname, 'scripts', 'sync_doctor_schedule_faq.js');
 const FLOOR_GUIDE_DOC_PATH = path.join(DOCS_DIR, '기타-층별안내도.txt');
 const CERTIFICATE_FEES_DOC_PATH = findDocPathByKeyword('비급여비용');
+const EXAM_INJECTION_FEES_DOC_PATH = findDocPathByKeyword('검사 및 주사 금액')
+  || path.join(DOCS_DIR, '기타-검사 및 주사 금액.txt');
 const YOUTUBE_LINKS_PATH = path.join(DOCS_DIR, '유튜브-링크.txt');
 const SYMPTOM_GUIDE_FILES = [
   { type: 'nose_symptom_guide', title: '코 증상', filename: '코증상.txt' },
@@ -690,6 +692,7 @@ function createRuntimeData() {
     localDocuments,
     certificateFeeEntries: buildCertificateFeeEntries(),
     nonpayItemEntries: buildNonpayItemEntries(),
+    examInjectionFeeEntries: buildExamInjectionFeeEntries(),
     floorGuideIndex: buildFloorGuideIndex(),
     homepageDiseaseTerms: buildHomepageDiseaseTerms(localDocuments),
     symptomGuideEntries: buildSymptomGuideEntries(),
@@ -2424,6 +2427,7 @@ function shouldUseConsultationTone(payload) {
     'wifi_info_direct',
     'guardian_stay_policy',
     'smell_exam_fee',
+    'exam_injection_fee_reference',
     'thyroid_ultrasound',
     'same_day_symptom_visit',
     'doctor_schedule_lookup',
@@ -2627,6 +2631,7 @@ function enrichResponsePayload(payload, question) {
     'wifi_info_direct',
     'guardian_stay_policy',
     'smell_exam_fee',
+    'exam_injection_fee_reference',
     'thyroid_ultrasound',
     'same_day_symptom_visit',
     'doctor_schedule_lookup',
@@ -6548,6 +6553,8 @@ function resolveMeaningIntentResponse(meaning, message, sessionId) {
       return buildMriAvailabilityResponse(message);
     case 'smell_exam':
       return buildSmellExamResponse(message);
+    case 'exam_injection_fee':
+      return findExamInjectionFeeResponse(message);
     case 'smell_exam_fee':
       return buildSmellExamFeeResponse(message);
     case 'nasal_irrigation_surgery':
@@ -7291,6 +7298,51 @@ function extractPriceText(line) {
   return amountMatches[0] || '';
 }
 
+function formatApproxFeeAmount(value) {
+  const digits = String(value || '').replace(/[^\d]/g, '');
+  if (!digits) {
+    return String(value || '').trim();
+  }
+
+  return `${digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}원`;
+}
+
+function buildExamInjectionFeeEntries() {
+  if (!EXAM_INJECTION_FEES_DOC_PATH || !fs.existsSync(EXAM_INJECTION_FEES_DOC_PATH)) {
+    return [];
+  }
+
+  return fs.readFileSync(EXAM_INJECTION_FEES_DOC_PATH, 'utf8')
+    .replace(/\r/g, '')
+    .split('\n')
+    .map((line) => repairBrokenKoreanText(String(line || '').trim()))
+    .filter(Boolean)
+    .slice(1)
+    .map((line, index) => {
+      const columns = line.split('\t').map((column) => column.trim());
+      if (columns.length < 4) {
+        return null;
+      }
+
+      const [category, code, itemName, amount] = columns;
+      if (!itemName || !amount || /직원/u.test(itemName)) {
+        return null;
+      }
+
+      return {
+        key: compactSearchTextSafe(`${category} ${code} ${itemName} ${amount}`),
+        lineNumber: index + 2,
+        category,
+        code,
+        itemName,
+        amount,
+        formattedAmount: formatApproxFeeAmount(amount),
+        searchText: compactSearchTextSafe(`${code} ${itemName}`),
+      };
+    })
+    .filter(Boolean);
+}
+
 function buildCertificateFeeEntries() {
   if (!CERTIFICATE_FEES_DOC_PATH || !fs.existsSync(CERTIFICATE_FEES_DOC_PATH)) {
     return [];
@@ -7859,6 +7911,152 @@ function findNonpayItemResponse(message) {
         url: NONPAY_PAGE_URL,
       },
     ],
+  };
+}
+
+function getExamInjectionFeeAliasTerms(message) {
+  const text = String(message || '');
+  const lowered = text.toLowerCase();
+  const terms = [];
+  const add = (...values) => values.forEach((value) => {
+    const compact = compactSearchTextSafe(value);
+    if (compact && !terms.includes(compact)) {
+      terms.push(compact);
+    }
+  });
+
+  const aliasConfigs = [
+    { pattern: /알레르기|알러지|알레르겐/u, terms: ['알레르겐', '피부반응'] },
+    { pattern: /후각/u, terms: ['후각'] },
+    { pattern: /미각/u, terms: ['미각'] },
+    { pattern: /청력|순음/u, terms: ['청력', '순음'] },
+    { pattern: /수면\s*다원|수면다원/u, terms: ['수면다원'] },
+    { pattern: /ct|씨티|시티|pns/i, terms: ['ct', 'pns'] },
+    { pattern: /초음파/u, terms: ['초음파'] },
+    { pattern: /심전도|ekg/i, terms: ['심전도', 'ekg'] },
+    { pattern: /이명/u, terms: ['이명'] },
+    { pattern: /고막/u, terms: ['고막'] },
+    { pattern: /평형|어지럼|어지러움|전정/u, terms: ['평형', '전정'] },
+    { pattern: /구취/u, terms: ['구취'] },
+    { pattern: /음성|발성|성대/u, terms: ['음성', '발성', 'stroboscopy'] },
+    { pattern: /이관/u, terms: ['이관'] },
+    { pattern: /내시경|후두경|비인강경/u, terms: ['내시경', '후두경', '비인강경'] },
+    { pattern: /독감|인플루엔자/u, terms: ['플루', '백신'] },
+    { pattern: /대상포진|싱그릭스/u, terms: ['싱그릭스', '대상포진'] },
+    { pattern: /위고비/u, terms: ['위고비'] },
+    { pattern: /마운자로/u, terms: ['마운자로'] },
+    { pattern: /아큐판/u, terms: ['아큐판'] },
+    { pattern: /비타모|비타민/u, terms: ['비타모', '비타민'] },
+    { pattern: /셀레늄/u, terms: ['셀레늄'] },
+    { pattern: /수액/u, terms: ['수액'] },
+  ];
+
+  aliasConfigs.forEach((config) => {
+    if (config.pattern.test(text) || config.pattern.test(lowered)) {
+      add(...config.terms);
+    }
+  });
+
+  const compactCore = compactSearchTextSafe(text)
+    .replace(/대략적인|대략|참고|비용|금액|가격|얼마|수가|검사비|주사비|검사|주사|주세요|알려줘|알려주세요|궁금해요|궁금합니다/gu, '');
+  if (compactCore.length >= 2) {
+    add(compactCore);
+  }
+
+  return terms;
+}
+
+function isExamInjectionFeeQuestion(message) {
+  const text = String(message || '');
+  if (!text || /(수술|수술비|수술비용|수술금액|절제술|교정술)/u.test(text)) {
+    return false;
+  }
+
+  const asksFee = /(비용|금액|가격|얼마|수가|검사비|주사비)/u.test(text);
+  const asksExamOrInjection = /(검사|주사|수액|예방접종|백신|ct|씨티|시티|초음파|청력|후각|미각|수면다원|알레르기|알러지|알레르겐|심전도|고막|이명|평형|어지럼|구취|위고비|마운자로|내시경|후두경|비인강경|이관)/iu.test(text);
+
+  return asksFee && asksExamOrInjection;
+}
+
+function findExamInjectionFeeResponse(message) {
+  const text = String(message || '');
+  if (!isExamInjectionFeeQuestion(text)) {
+    return null;
+  }
+
+  const entries = runtimeData.examInjectionFeeEntries || [];
+  const sourceFileName = path.basename(EXAM_INJECTION_FEES_DOC_PATH || '기타-검사 및 주사 금액.txt');
+  const source = buildLocalDocSource('기타-검사 및 주사 금액', sourceFileName);
+
+  if (entries.length === 0) {
+    return {
+      type: 'exam_injection_fee_reference',
+      answer: '검사 및 주사 금액표를 아직 확인하지 못했습니다. 검사명이나 주사명을 알려주시면 확인 가능한 문서 기준으로 다시 안내드릴게요.',
+      followUp: ['정확한 적용 금액은 진료 상황과 급여 여부에 따라 달라질 수 있습니다.'],
+      sources: [source],
+    };
+  }
+
+  const compactMessage = compactSearchTextSafe(text);
+  const aliasTerms = getExamInjectionFeeAliasTerms(text);
+  const scoredEntries = entries
+    .map((entry) => {
+      let score = 0;
+      aliasTerms.forEach((term) => {
+        if (entry.searchText.includes(term)) {
+          score += term.length >= 4 ? 8 : 5;
+        }
+      });
+      if (entry.code && compactMessage.includes(compactSearchTextSafe(entry.code))) {
+        score += 12;
+      }
+      return { ...entry, score };
+    })
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score || a.itemName.localeCompare(b.itemName, 'ko'));
+
+  const uniqueEntries = [];
+  const seen = new Set();
+  scoredEntries.forEach((entry) => {
+    const key = `${entry.category}|${entry.code}|${entry.itemName}|${entry.amount}`;
+    if (seen.has(key)) {
+      return;
+    }
+    seen.add(key);
+    uniqueEntries.push(entry);
+  });
+
+  if (uniqueEntries.length === 0) {
+    return {
+      type: 'exam_injection_fee_reference',
+      answer: '검사 및 주사 금액은 항목별로 달라 검사명이나 주사명을 알아야 참고 금액을 안내드릴 수 있습니다. 원하시는 검사명 또는 주사명을 한 가지로 알려주세요.',
+      followUp: [
+        '예: 후각검사 비용',
+        '예: 청력검사 비용',
+        '예: 알레르기 피부반응검사 비용',
+      ],
+      sources: [source],
+    };
+  }
+
+  const topEntries = uniqueEntries.slice(0, 5);
+  const itemLines = topEntries.map((entry) => (
+    `- ${entry.itemName}${entry.category ? ` (${entry.category} 기준)` : ''}: 대략 ${entry.formattedAmount}`
+  ));
+
+  const answer = topEntries.length === 1
+    ? `${topEntries[0].itemName}${topEntries[0].category ? ` (${topEntries[0].category} 기준)` : ''}의 참고용 대략적인 금액은 ${topEntries[0].formattedAmount}입니다.`
+    : `문서 기준 참고용으로, 문의하신 내용과 가까운 검사 및 주사 항목의 대략적인 금액은 다음과 같습니다.\n${itemLines.join('\n')}`;
+
+  return {
+    type: 'exam_injection_fee_reference',
+    answer,
+    followUp: [
+      '기준 문서: 기타-검사 및 주사 금액.txt',
+      '이 금액은 참고용 대략 금액이며, 실제 적용 금액은 급여/비급여 여부, 입원/외래 구분, 진료 상황에 따라 달라질 수 있습니다.',
+      '정확한 금액은 원무과 또는 대표전화 02-6925-1111로 확인해 주세요.',
+    ],
+    sources: [source],
   };
 }
 
@@ -9160,6 +9358,10 @@ function classifyUserIntent(message) {
     return { type: 'exam_preparation' };
   }
 
+  if (findExamInjectionFeeResponse(text)) {
+    return { type: 'exam_injection_fee' };
+  }
+
   if (isMedicationStopQuestion(text)) {
     return { type: 'medication_stop' };
   }
@@ -9734,6 +9936,8 @@ function buildReinitializedIntentResponse(intentType, message) {
       return buildCleanCertificateFeeResponse(message);
     case 'single_room_fee':
       return buildCleanSingleRoomFeeResponse(message);
+    case 'exam_injection_fee':
+      return findExamInjectionFeeResponse(message);
     case 'nonpay_item_fee':
       return buildCleanNonpayItemResponse(message);
     case 'hospital_phone':
@@ -10697,6 +10901,11 @@ async function buildChatResponse(rawMessage, sessionId) {
   const preMeaningTinnitusSameDayVisitResponse = buildTinnitusSameDayVisitResponse(message);
   if (preMeaningTinnitusSameDayVisitResponse) {
     return enrichResponsePayload(preMeaningTinnitusSameDayVisitResponse, message);
+  }
+
+  const preMeaningExamInjectionFeeResponse = findExamInjectionFeeResponse(message);
+  if (preMeaningExamInjectionFeeResponse) {
+    return enrichResponsePayload(preMeaningExamInjectionFeeResponse, message);
   }
 
   const preMeaningSmellExamFeeResponse = buildSmellExamFeeResponse(message);

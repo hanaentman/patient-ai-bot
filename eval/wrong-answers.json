@@ -1,5 +1,65 @@
 [
   {
+    "question": "청력검사 가격 알려줘",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "검사 관련해서 안내드릴게요.\n\n청력검사는 문진과 진료 후 필요한 검사로 청력 상태와 난청의 정도, 종류를 확인하는 과정입니다. 홈페이지 난청 안내 기준으로 순음청력검사, 어음청력검사, 임피던스청력검사, 이음향방사검사, 청성뇌간반응청력검사 등이 청력검사 종류에 포함됩니다. 어지럼증이 함께 있으면 청력검사와 전정기능검사, 필요 시 영상검사까지 함께 검토될 수 있습니다.\n- 수면검사와는 다른 귀/난청 관련 검사입니다.\n- 검사 종류와 소요시간은 증상과 진료 결과에 따라 달라질 수 있습니다.\n- 정확한 검사 안내는 진료 후 의료진이 결정합니다.",
+    "expectedIntent": "검사금액",
+    "expectedSource": "기타-검사 및 주사 금액.txt",
+    "expectedAnswerHint": "기타-검사 및 주사 금액.txt 참고해서 답변해주세요",
+    "adminNote": "",
+    "reviewedLogId": "log-1778147121277-6eibgf"
+  },
+  {
+    "question": "청력검사 얼마야",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "비용 관련해서 안내드릴게요.\n\n청력검사는 문진과 진료 후 필요한 검사로 청력 상태와 난청의 정도, 종류를 확인하는 과정입니다. 홈페이지 난청 안내 기준으로 순음청력검사, 어음청력검사, 임피던스청력검사, 이음향방사검사, 청성뇌간반응청력검사 등이 청력검사 종류에 포함됩니다. 어지럼증이 함께 있으면 청력검사와 전정기능검사, 필요 시 영상검사까지 함께 검토될 수 있습니다.\n- 수면검사와는 다른 귀/난청 관련 검사입니다.\n- 검사 종류와 소요시간은 증상과 진료 결과에 따라 달라질 수 있습니다.\n- 정확한 검사 안내는 진료 후 의료진이 결정합니다.",
+    "expectedIntent": "검사금액",
+    "expectedSource": "기타-검사 및 주사 금액.txt",
+    "expectedAnswerHint": "기타-검사 및 주사 금액.txt 참고해서 답변해주세요",
+    "adminNote": "",
+    "reviewedLogId": "log-1778147097918-erc1di"
+  },
+  {
+    "question": "차트복사는 얼마야?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "비용 관련해서 안내드릴게요.\n\n1인실 : 350,000원, 2인실 : 대략7~8만원, 4인실 : 대략3만원",
+    "expectedIntent": "차트복사비용",
+    "expectedSource": "기타-비급여비용.txt",
+    "expectedAnswerHint": "차트복사는 1000원임",
+    "adminNote": "",
+    "reviewedLogId": "log-1778141853602-hhyy5y"
+  },
+  {
+    "question": "진단서 비용 얼마야",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "비용 관련해서 안내드릴게요.\n\n1인실 : 350,000원, 2인실 : 대략7~8만원, 4인실 : 대략3만원",
+    "expectedIntent": "제증명비용, 진단서비용",
+    "expectedSource": "기타-비급여비용.txt",
+    "expectedAnswerHint": "관리자 메모에 기대 답변 방향을 적어 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778141637195-tvgoz3"
+  },
+  {
+    "question": "진단서 처방 어떻게 받아?",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "질문 의도는 이해했지만, 비슷한 안내가 여러 개라 바로 단정하면 엉뚱한 답변이 될 수 있습니다. 아래 중 어느 쪽인지 알려주시면 그 기준으로 정확히 안내드릴게요.\n- 서류 발급 방법 알려줘\n- 검사 결과지는 어디서 받을 수 있나요?\n- 진료기록 사본은 어떻게 발급받나요?\n- 진단서 발급 비용 알려줘\n- 퇴원할 때 서류를 받을 수 있나요?",
+    "expectedIntent": "서류발급",
+    "expectedSource": "홈페이지-서류발급.txt",
+    "expectedAnswerHint": "관리자 메모에 기대 답변 방향을 적어 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778141609619-j5sk36"
+  },
+  {
+    "question": "약도",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "현재 확인된 병원 문서만으로는 정확히 안내드리기 어렵습니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.\n- 하나이비인후과병원 메인\n- 오시는 길\n- 진료시간 알려줘\n- 예약 방법 알려줘\n- 주차 가능한가요?",
+    "expectedIntent": "위치안내",
+    "expectedSource": "홈페이지-셔틀버스 및 오시는길.txt",
+    "expectedAnswerHint": "병원 약도도 첨부해주세요",
+    "adminNote": "",
+    "reviewedLogId": "log-1778137349059-ukss4k"
+  },
+  {
     "question": "화장실 어디있어?",
     "caseType": "actual_wrong_answer",
     "wrongAnswer": "문의하신 내용에 대해 안내드릴게요.\n\n하나이비인후과병원 주소는 서울특별시 강남구 역삼로 245입니다. 대중교통은 2호선 역삼역 1번 출구를 이용하시면 되고, 역삼역 1번 출구에서 병원 셔틀버스도 이용할 수 있습니다. 자동차로 오실 때는 내비게이션에 “서울특별시 강남구 역삼로 245” 또는 “하나이비인후과병원”을 입력하시면 됩니다.\n- 역삼역 1번 출구에서 도보 약 10분 거리로 안내되어 있습니다.\n- 버스는 동영문화센터, 개나리아파트, 신한은행 전산센터 정류장 하차 안내가 있습니다.",
