@@ -3,11 +3,21 @@
     "question": "예약하고 싶어",
     "caseType": "actual_wrong_answer",
     "wrongAnswer": "예약과 접수 관련해서 안내드릴게요.\n\n예약하신 경우 1층 원무과 접수 창구로 가시거나 키오스크로 접수가능합니다.",
-    "expectedIntent": "예약안내",
-    "expectedSource": "홈페이지-외래진료안내.txt",
-    "expectedAnswerHint": "예약방법에 대해 설명해줘",
+    "expectedIntent": "예약",
+    "expectedSource": "홈페이지-외래진료안내.txt, 통합-FAQ.txt",
+    "expectedAnswerHint": "예약은 전화 예약, 방문 예약, 홈페이지 예약 요청 방식으로 가능하며, 예약 변경은 대표전화 02-6925-1111로 문의하도록 안내",
     "adminNote": "",
     "reviewedLogId": "log-1778117399389-0yieiw"
+  },
+  {
+    "question": "예약하고 싶어",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "예약과 접수 관련해서 안내드릴게요.\n\n예약하신 경우 1층 원무과 접수 창구로 가시거나 키오스크로 접수가능합니다.",
+    "expectedIntent": "예약",
+    "expectedSource": "홈페이지-외래진료안내.txt, 통합-FAQ.txt",
+    "expectedAnswerHint": "예약은 전화 예약, 방문 예약, 홈페이지 예약 요청 방식으로 가능하며, 예약 변경은 대표전화 02-6925-1111로 문의하도록 안내",
+    "adminNote": "",
+    "reviewedLogId": "log-1778117393682-nfshj1"
   },
   {
     "question": "수면내시경",
