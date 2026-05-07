@@ -1,5 +1,45 @@
 [
   {
+    "question": "수면내시경 알려줘",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "질문 의도는 이해했지만, 비슷한 안내가 여러 개라 바로 단정하면 엉뚱한 답변이 될 수 있습니다. 아래 중 어느 쪽인지 알려주시면 그 기준으로 정확히 안내드릴게요.\n- 진료시간이 궁금해요\n- 의료진 정보가 궁금해요\n- 서류 발급이 궁금해요",
+    "expectedIntent": "",
+    "expectedSource": "입원-수면검사 입원 안내.txt",
+    "expectedAnswerHint": "수면검사에 대해 설명해주세요",
+    "adminNote": "",
+    "reviewedLogId": "log-1778119268603-5d39no"
+  },
+  {
+    "question": "수면내시경이 궁금해요",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "현재 확인된 병원 문서만으로는 정확히 안내드리기 어렵습니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.\n- 입퇴원안내\n- 수면 센터",
+    "expectedIntent": "",
+    "expectedSource": "입원-수면검사 입원 안내.txt",
+    "expectedAnswerHint": "수면검사에 대해 설명해주세요",
+    "adminNote": "",
+    "reviewedLogId": "log-1778119262936-si3rr2"
+  },
+  {
+    "question": "수면내시경",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "질문 의도는 이해했지만, 비슷한 안내가 여러 개라 바로 단정하면 엉뚱한 답변이 될 수 있습니다. 아래 중 어느 쪽인지 알려주시면 그 기준으로 정확히 안내드릴게요.\n- 진료시간이 궁금해요\n- 의료진 정보가 궁금해요\n- 서류 발급이 궁금해요",
+    "expectedIntent": "",
+    "expectedSource": "입원-수면검사 입원 안내.txt",
+    "expectedAnswerHint": "수면검사에 대해 설명해주세요",
+    "adminNote": "",
+    "reviewedLogId": "log-1778119203674-bk7s5s"
+  },
+  {
+    "question": "예약하고 싶어",
+    "caseType": "actual_wrong_answer",
+    "wrongAnswer": "예약과 접수 관련해서 안내드릴게요.\n\n예약하신 경우 1층 원무과 접수 창구로 가시거나 키오스크로 접수가능합니다.",
+    "expectedIntent": "예약안내",
+    "expectedSource": "통합-FAQ.txt",
+    "expectedAnswerHint": "예약방법에 대해 설명해주세요",
+    "adminNote": "",
+    "reviewedLogId": "log-1778118140197-ngi5jm"
+  },
+  {
     "question": "예약하고 싶어",
     "caseType": "actual_wrong_answer",
     "wrongAnswer": "예약과 접수 관련해서 안내드릴게요.\n\n예약하신 경우 1층 원무과 접수 창구로 가시거나 키오스크로 접수가능합니다.",
