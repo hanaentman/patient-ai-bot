@@ -7,7 +7,6 @@ const { DatabaseSync } = require('node:sqlite');
 const XLSX = require('xlsx');
 const CPEXCEL = require('xlsx/dist/cpexcel.js');
 const { createSemanticSearchService } = require('./lib/semantic-search');
-const { classifyIntentMeaning } = require('./lib/intent-classifier');
 
 const PORT = process.env.PORT || 3000;
 const IS_RENDER = Boolean(process.env.RENDER || process.env.RENDER_SERVICE_ID);
@@ -33,6 +32,8 @@ const EVAL_SOURCE_DIR = path.join(__dirname, 'eval');
 const EVAL_DIR = process.env.EVAL_DATA_DIR
   ? path.resolve(process.env.EVAL_DATA_DIR)
   : (IS_RENDER ? path.join(PERSISTENT_DATA_DIR, 'eval') : EVAL_SOURCE_DIR);
+process.env.EVAL_DATA_DIR = EVAL_DIR;
+const { classifyIntentMeaning } = require('./lib/intent-classifier');
 const SEED_QUESTIONS_PATH = path.join(EVAL_DIR, 'seed-questions.json');
 const WRONG_ANSWERS_PATH = path.join(EVAL_DIR, 'wrong-answers.json');
 const DOCS_DIR = path.join(__dirname, 'docs');
@@ -505,8 +506,20 @@ function ensureEvalDataFiles() {
   ['seed-questions.json', 'wrong-answers.json'].forEach((fileName) => {
     const targetPath = path.join(EVAL_DIR, fileName);
     const sourcePath = path.join(EVAL_SOURCE_DIR, fileName);
-    if (!fs.existsSync(targetPath) && fs.existsSync(sourcePath)) {
+    if (!fs.existsSync(sourcePath)) {
+      return;
+    }
+
+    if (!fs.existsSync(targetPath)) {
       fs.copyFileSync(sourcePath, targetPath);
+      return;
+    }
+
+    const sourceStat = fs.statSync(sourcePath);
+    const targetStat = fs.statSync(targetPath);
+    if (sourceStat.mtimeMs > targetStat.mtimeMs + 1000) {
+      fs.copyFileSync(sourcePath, targetPath);
+      console.log(`[eval] Updated persistent ${fileName} from deployed eval source.`);
     }
   });
 }
