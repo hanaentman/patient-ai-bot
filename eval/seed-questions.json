@@ -1,5 +1,14 @@
 [
   {
+    "question": "검사실 어디있어?",
+    "caseType": "admin_normal",
+    "expectedIntent": "exam_location",
+    "expectedSource": "기타-층별안내도",
+    "expectedAnswerHint": "검사 관련해서 안내드릴게요.\n\n검사 종류에 따라 위치가 다릅니다. 층별안내도 기준으로 청력검사실은 지하 2층에 있고, CT·보청기상담실·외래검사실 등은 1층에 안내되어 있습니다. 코 내시경은 일반적으로 진료실에서 진료 중 시행될 수 있습니다.\n- 검사 동선은 당일 진료 후 직원 안내에 따라 이동하시면 됩니다.\n- 검사 종류와 당일 상황에 따라 위치나 순서가 달라질 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778126900171-7y9rjt"
+  },
+  {
     "question": "화장실이 어디 있어?",
     "caseType": "admin_normal",
     "expectedIntent": "eval_source_guided",
