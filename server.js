@@ -6605,19 +6605,124 @@ function resolveMeaningIntentResponse(meaning, message, sessionId) {
   }
 }
 
-function createFallbackInsufficientEvidenceResponse(contextTitles) {
+const FALLBACK_RECOMMENDED_QUESTIONS = [
+  '진료시간 알려줘',
+  '예약 방법 알려줘',
+  '주차 가능한가요?',
+  '원무과는 어디에 있나요?',
+  '서류 발급 방법 알려줘',
+];
+
+function getFallbackTopicRecommendedQuestions(message) {
+  const text = String(message || '');
+
+  if (/(화장실|층|어디|위치|원무과|수납|접수처|주사실|검사실|약국|약제과|진료실)/u.test(text)) {
+    return [
+      '2층에 화장실 있어?',
+      '원무과는 어디에 있나요?',
+      '청력검사실은 몇 층인가요?',
+      '주사실은 어디에 있나요?',
+      '접수 마감 시간 알려줘',
+    ];
+  }
+
+  if (/(예약|접수|방문|대기|늦|지각|당일\s*진료|당일진료)/u.test(text)) {
+    return [
+      '예약 방법 알려줘',
+      '예약 시간에 늦으면 어떻게 하나요?',
+      '예약 없이 방문해도 되나요?',
+      '초진 접수는 어떻게 하나요?',
+      '접수 마감 시간 알려줘',
+    ];
+  }
+
+  if (/(서류|진단서|소견서|의무기록|진료기록|검사\s*결과지|결과지|영수증|세부내역)/u.test(text)) {
+    return [
+      '서류 발급 방법 알려줘',
+      '검사 결과지는 어디서 받을 수 있나요?',
+      '진료기록 사본은 어떻게 발급받나요?',
+      '진단서 발급 비용 알려줘',
+      '퇴원할 때 서류를 받을 수 있나요?',
+    ];
+  }
+
+  if (/(검사|검진|청력|수면|내시경|CT|MRI|엠알아이|후각|어지럼|전정)/iu.test(text)) {
+    return [
+      '청력검사는 어떻게 진행되나요?',
+      '수면검사는 어떻게 진행되나요?',
+      '코 검사는 당일 가능한가요?',
+      'MRI 검사는 병원에서 가능한가요?',
+      '검사 결과지는 어디서 받을 수 있나요?',
+    ];
+  }
+
+  if (/(입원|퇴원|병동|병실|보호자|면회|식사|준비물|와이파이|샤워)/u.test(text)) {
+    return [
+      '입원 준비물 알려줘',
+      '보호자 상주가 가능한가요?',
+      '보호자 식사는 신청할 수 있나요?',
+      '병동 와이파이를 사용할 수 있나요?',
+      '퇴원 절차 알려줘',
+    ];
+  }
+
+  if (/(주차|발렛|차량|주차장)/u.test(text)) {
+    return [
+      '주차 가능한가요?',
+      '주차는 무료인가요?',
+      '발렛파킹 가능한가요?',
+      '입원 환자도 주차 가능한가요?',
+      '주차권은 어디서 확인받나요?',
+    ];
+  }
+
+  if (/(의료진|의사|원장|전문의|진료일정|진료\s*일정|경력|전문분야)/u.test(text)) {
+    return [
+      '의료진 안내해줘',
+      '의료진 진료일정 알려줘',
+      '코센터 의료진 알려줘',
+      '목센터 의료진 알려줘',
+      '의료진 경력 알려줘',
+    ];
+  }
+
+  if (/(진료시간|몇\s*시|점심시간|토요일|야간|주말|휴진)/u.test(text)) {
+    return [
+      '진료시간 알려줘',
+      '토요일 진료시간 알려줘',
+      '접수 마감 시간 알려줘',
+      '점심시간 알려줘',
+      '야간 진료도 하나요?',
+    ];
+  }
+
+  return [];
+}
+
+function getFallbackRecommendedQuestions(extraItems = [], message = '') {
+  return [...new Set([
+    ...getFallbackTopicRecommendedQuestions(message),
+    ...(Array.isArray(extraItems) ? extraItems : []),
+    ...FALLBACK_RECOMMENDED_QUESTIONS,
+  ])].slice(0, 5);
+}
+
+function createFallbackInsufficientEvidenceResponse(contextTitles, message = '') {
   return {
     type: 'fallback_insufficient_evidence',
     answer: '현재 확인된 병원 문서만으로는 정확히 안내드리기 어렵습니다. 질문을 조금 더 구체적으로 남겨 주시거나 대표전화 02-6925-1111로 확인해 주세요.',
-    followUp: contextTitles.length > 0 ? contextTitles : ['진료시간 안내', '의료진 일정', '서류 발급 안내'],
+    followUp: getFallbackRecommendedQuestions(contextTitles, message),
   };
 }
 
-function createFallbackNeedsClarificationResponse() {
+function createFallbackNeedsClarificationResponse(message = '') {
   return {
     type: 'fallback_needs_clarification',
     answer: '질문 범위가 넓어 한 번에 정확히 안내드리기 어렵습니다. 궁금한 항목을 조금만 더 구체적으로 알려주시면 그 내용부터 바로 안내해 드릴게요.',
-    followUp: ['수술 종류를 알려주세요', '검사 종류를 알려주세요', '외래인지 입원인지 알려주세요'],
+    followUp: getFallbackRecommendedQuestions([
+      '검사 종류를 알려주세요',
+      '입원 준비물 알려줘',
+    ], message),
   };
 }
 
@@ -6641,9 +6746,7 @@ function createConsultationClarificationResponse(message) {
     followUp.push('예약 방법이 궁금해요', '당일 접수가 가능한지 궁금해요');
   }
 
-  const normalizedFollowUp = followUp.length > 0
-    ? [...new Set(followUp)].slice(0, 3)
-    : ['진료시간이 궁금해요', '의료진 정보가 궁금해요', '서류 발급이 궁금해요'];
+  const normalizedFollowUp = getFallbackRecommendedQuestions(followUp, message);
 
   return {
     type: 'consultation_clarification',
@@ -6652,11 +6755,11 @@ function createConsultationClarificationResponse(message) {
   };
 }
 
-function createFallbackInferenceResponse() {
+function createFallbackInferenceResponse(message = '') {
   return {
     type: 'fallback_inference',
     answer: '문서에서 관련 근거는 확인되지만 직접 명시된 안내는 아니라 확정해서 말씀드리기는 어렵습니다. 정확한 운영 방식은 병동 또는 대표전화 02-6925-1111로 확인해 주세요.',
-    followUp: ['문서에서 확인한 관련 항목을 기준으로 안내드립니다.', '운영 방식은 시점에 따라 달라질 수 있습니다.'],
+    followUp: getFallbackRecommendedQuestions([], message),
   };
 }
 
@@ -6722,14 +6825,14 @@ function createFallbackResponse(message, contextTitles = []) {
   }
 
   if (fallbackType === 'needs_clarification') {
-    return createFallbackNeedsClarificationResponse();
+    return createFallbackNeedsClarificationResponse(message);
   }
 
   if (fallbackType === 'inference') {
-    return createFallbackInferenceResponse();
+    return createFallbackInferenceResponse(message);
   }
 
-  return createFallbackInsufficientEvidenceResponse(contextTitles);
+  return createFallbackInsufficientEvidenceResponse(contextTitles, message);
 }
 
 function legacyGetSmallTalkIntent(message) {
