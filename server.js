@@ -6579,6 +6579,7 @@ function resolveMeaningIntentResponse(meaning, message, sessionId) {
     case 'doctor_overview':
     case 'doctor_specialty':
     case 'hospital_phone':
+    case 'late_arrival':
     case 'same_day_exam_availability':
       return buildReinitializedIntentResponse(intent, message);
     default:

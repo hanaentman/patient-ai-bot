@@ -1,5 +1,194 @@
 [
   {
+    "question": "예약 취소는 어떻게 하나요",
+    "caseType": "admin_normal",
+    "expectedIntent": "eval_source_guided",
+    "expectedSource": "자주 묻는 질문",
+    "expectedAnswerHint": "예약과 접수 관련해서 안내드릴게요.\n\n예약 취소는 대표전화 02-6925-1111 로 전화하셔서 0 번(상담원 연결)으로 상담원에게 말씀하시면 됩니다.\n예약자 성함과 예약일시를 알려주시면 상담원이 확인 후 취소 처리를 도와드립니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778123397724-1dek0x"
+  },
+  {
+    "question": "퇴원할 때 진단서를 바로 받을 수 있나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "discharge_certificate",
+    "expectedSource": "통합-FAQ / 홈페이지-서류발급",
+    "expectedAnswerHint": "퇴원 시 진단서나 입퇴원 관련 서류가 필요하면 퇴원 하루 전 주치의 또는 병동 간호사에게 신청서를 제출해 주세요. 퇴원 수납 시 원무과에서 받을 수 있습니다.\n- 퇴원 후에는 외래 진료 시 서류 발급을 신청할 수 있습니다.\n- 서류 종류에 따라 본인 확인과 구비서류가 필요할 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778123185968-0mb8l4"
+  },
+  {
+    "question": "병동에서 와이파이를 사용할 수 있나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "wifi_info_direct",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "입원 중 병실에서 와이파이를 이용할 수 있습니다. 와이파이 비밀번호는 0269251111로 안내됩니다.\n- 연결이 어렵거나 병실 내 이용이 불편하면 병동 간호사에게 문의해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778123178743-znu66n"
+  },
+  {
+    "question": "보호자 식사는 병원에서 신청할 수 있나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "guardian_meal",
+    "expectedSource": "기타-비급여비용",
+    "expectedAnswerHint": "비급여비용 문서에 보호자 식대 9,000 항목이 있어 보호자 식사가 제공되거나 신청 가능한 운영일 가능성이 높습니다. 다만 문서에 신청 방법이나 제공 기준이 직접 적혀 있지는 않아 정확한 운영 방식은 병동 또는 대표전화 02-6925-1111로 확인해 주세요.\n\n비급여 안내 페이지: https://hanaent.co.kr/nonpay.html\n- 문서 근거: 보호자식대\t보호자 일반식\tY2300001 9,000 2022-12-01\n- 이 답변은 문서의 간접 근거를 바탕으로 한 추정입니다.\n- 정확한 신청 방법이나 제공 기준은 병동 또는 대표전화 02-6925-1111로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778123171494-uivlyb"
+  },
+  {
+    "question": "입원할 때 슬리퍼를 챙겨야 하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "eval_source_guided",
+    "expectedSource": "자주 묻는 질문",
+    "expectedAnswerHint": "입원 생활 관련해서 안내드릴게요.\n\n네.\n2 인실·4 인실로 입원하시면 슬리퍼를 포함한 개인용품을 꼭 챙겨오셔야 합니다.\n1 인실은 치약·칫솔·비누·수건·티슈 등 세면도구만 제공되므로 슬리퍼는 제공 항목에 포함되어 있지 않아 편의를 위해 지참하시는 것을 권합니다.\n병실 배정이나 수술 종류에 따라 추가 준비물이 있을 수 있으니 입원 전 안내문을 한 번 더 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778123164217-m6wgj4"
+  },
+  {
+    "question": "진료의뢰서를 가져가면 어디에 제출하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "referral_document",
+    "expectedSource": "통합-FAQ / 홈페이지-외래진료안내",
+    "expectedAnswerHint": "진료의뢰서가 있으시면 내원 후 접수하실 때 미리 제출해 주세요. 타병원 CD나 소견서를 가지고 오신 경우에도 접수 시 함께 제출해 주시면 됩니다. 전자의뢰인 경우에는 접수 직원에게 전자의뢰가 되어 있다고 알려 주세요.\n- 진료의뢰환자는 전용 접수창구를 이용하면 빠르고 편리하게 접수할 수 있습니다.\n- 진료협력센터 담당자 연락처는 문서 기준 010-3661-8998입니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778123127250-xwuzqc"
+  },
+  {
+    "question": "편도 수술",
+    "caseType": "admin_normal",
+    "expectedIntent": "eval_source_guided",
+    "expectedSource": "목 질환 센터",
+    "expectedAnswerHint": "수술 관련해서 안내드릴게요.\n\n편도절제술은 1 년에 3 회 이상 고열을 동반한 편도염이 반복되거나 편도결석이 계속 생겨 불편할 때, 또는 편도비대로 인해 코골이·수면무호흡이 심할 때 고려합니다.\n수술은 보통 약 20–30 분 소요되며 전신마취 하에 시행하고, 입원기간은 2 박 3 일, 회복기간은 대체로 2–3 주 정도입니다(성인 수술비 약 90 만원, 소아 약 130 만원·실비보험 적용 가능).\n소아는 일반적으로 만 3 세 이상이거나 체중 15kg 이상인 경우 전신마취로 안전하게 시행할 수 있는지 판단해 수술을 진행합니다.\n수술 전에는 전문의 진찰과 검사로 상태를 확인한 뒤 수술일을 예약하며, 수술 후에는 2 주가량 부드러운 음식(찬 죽 등)으로 식사 조절하고 최소 5 일~1 주일은 안정이 권장됩니다.\n출혈이 있거나 회복에 이상이 있으면 즉시 내원해 주세요 — 수술 전 상담·검사 예약을 원하시면 방문 일정을 잡아드리겠습니다.\n\n편도결석 관련 영상 보기: https://www.yout",
+    "adminNote": "",
+    "reviewedLogId": "log-1778122731919-h1w22o"
+  },
+  {
+    "question": "비염수술",
+    "caseType": "admin_normal",
+    "expectedIntent": "eval_source_guided",
+    "expectedSource": "코 질환 센터 / 목 질환 센터",
+    "expectedAnswerHint": "수술 관련해서 안내드릴게요.\n\n보통 비염수술은 약물치료(비강수축제·항히스타민·흡입 스테로이드 등)로 호전되지 않거나 비중격만곡증·만성 축농증 같은 동반 질환이 있을 때 고려합니다.\n검사로는 문진, 코내시경, X-ray 또는 이비인후과 전용 CT, 비강음향통기도검사 등을 시행해 원인과 구조를 확인합니다.\n하나이비인후과에서는 비중격만곡증일 경우 비중격 교정 수술(수술비 약 150–200 만원), 만성 축농증일 경우 부비동 내시경수술(수술비 약 160–450 만원) 등을 시행하며, 수술시간은 대체로 30 분~1 시간, 마취는 수면마취+국소마취, 입원은 1 박 2 일 또는 2~3 일, 회복기간은 약 3~4 주로 안내됩니다.\n정확한 수술 여부와 어떤 수술이 필요한지는 진료와 검사가 필요하니 외래 예약 후 진료 받아 보시길 권합니다.\n\n축농증 관련 영상 보기: https://youtu.be/QdgmmzSu-I0",
+    "adminNote": "",
+    "reviewedLogId": "log-1778122689719-d4xrk7"
+  },
+  {
+    "question": "항노화클리닉이 뭐야",
+    "caseType": "admin_normal",
+    "expectedIntent": "anti_aging_clinic",
+    "expectedSource": "홈페이지-신경회복케어 프로그램 / 기타-층별안내도",
+    "expectedAnswerHint": "항노화 클리닉은 H Reverse Aging Center로 안내되어 있으며, 층별안내도 기준 7층에 있습니다. 신경회복케어 프로그램 등 관련 항목과 함께 안내됩니다.\n- 프로그램 내용이나 예약 가능 여부는 대표전화 02-6925-1111로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778122648100-zi8slq"
+  },
+  {
+    "question": "1층에 뭐가 있어?",
+    "caseType": "admin_normal",
+    "expectedIntent": "floor_guide",
+    "expectedSource": "기타-층별안내도",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n1층에는 원무과, 이비인후과진료실(7~8진료실), 음성클리닉, 방사선실, 초음파실, CT실, 보청기상담실, 외래검사실, 화장실가 있습니다.\n\n보청기 관련 영상 보기: https://www.youtube.com/watch?v=B94y3cXqHAo\n- 다른 층 안내가 필요하시면 1층, 2층, 3층처럼 다시 질문해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778122618252-78j8e6"
+  },
+  {
+    "question": "보청기 처방 가능해?",
+    "caseType": "admin_normal",
+    "expectedIntent": "hearing_aid_consult",
+    "expectedSource": "홈페이지-보청기 / 기타-층별안내도",
+    "expectedAnswerHint": "보청기는 종류와 특성이 다양하기 때문에 정확한 청력검사 후 전문의와 상담을 받아 알맞은 보청기를 착용하는 것이 중요합니다. 층별안내도 기준 보청기상담실은 1층에 있습니다.\n- 난청 정도와 종류를 확인하기 위해 순음청력검사, 어음청력검사 등 청력검사가 필요할 수 있습니다.\n- 보청기 관련 상담은 귀 질환 센터 진료와 함께 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778122612112-95o1xl"
+  },
+  {
+    "question": "보청기 상담 받고 싶어",
+    "caseType": "admin_normal",
+    "expectedIntent": "hearing_aid_consult",
+    "expectedSource": "홈페이지-보청기 / 기타-층별안내도",
+    "expectedAnswerHint": "보청기는 종류와 특성이 다양하기 때문에 정확한 청력검사 후 전문의와 상담을 받아 알맞은 보청기를 착용하는 것이 중요합니다. 층별안내도 기준 보청기상담실은 1층에 있습니다.\n- 난청 정도와 종류를 확인하기 위해 순음청력검사, 어음청력검사 등 청력검사가 필요할 수 있습니다.\n- 보청기 관련 상담은 귀 질환 센터 진료와 함께 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778122608042-up7bxy"
+  },
+  {
+    "question": "수면내시경",
+    "caseType": "admin_normal",
+    "expectedIntent": "eval_source_guided",
+    "expectedSource": "입퇴원안내 / 수면 센터",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n수면내시경은 수면 유도(마취) 상태에서 상기도를 직접 관찰하는 검사로, 검사 전 마취 가능 여부를 확인하는 내과 검사(사전 평가)가 필요합니다.\n검사 당일은 보통 오전 7 시에 내원하셔서 8 시간 금식(양치·가글은 가능) 상태로 진행하고, 검사 후 정리·설명 때문에 보통 낮 ~12 시경 퇴원합니다.\n검사 2 일 전부터는 낮잠·음주·흡연·커피·파마·성형·네일·가발 등을 피하시고, 개인 세면도구를 지참해 주세요(병원에서 일회용품 제공 가능).\n당일 운전은 금지되며, 주차가 어려우니 가급적 차는 가져오지 마시고, 검사 결과를 보호자와 함께 듣고 싶으시면 오전 10 시 30 분까지 내원해 주세요.\n예약·일정이나 추가 확인은 병원(대표 대표전화 02-6925-1111)으로 문의해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778122589760-jcbsjw"
+  },
+  {
+    "question": "보청기",
+    "caseType": "admin_normal",
+    "expectedIntent": "symptom_guide",
+    "expectedSource": "귀 증상 / 외래-의료진 명단",
+    "expectedAnswerHint": "귀 증상 관련해서 안내드릴게요.\n\n귀 먹먹함, 이명, 난청, 귀 통증, 어지럼 같은 증상은 귀 질환 센터 진료로 안내드릴 수 있습니다. 증상만으로 원인을 단정하기는 어렵고, 진료와 필요한 검사를 통해 확인이 필요합니다.\n\n갑자기 청력이 떨어졌거나 어지럼이 심하면 늦추지 말고 대표전화 02-6925-1111로 상담 후 내원해 주세요.\n- 안내 센터: 귀 질환 센터\n- 귀센터 의료진: 장선오 귀질환 센터장, 장정훈 원장, 김종세 과장\n- 의료진별 진료일정은 병원 사정에 따라 달라질 수 있어 내원 전 확인해 주세요.\n- 증상이 갑자기 심해졌거나 불편이 크면 대표전화 02-6925-1111로 상담 후 내원해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778122546253-ah09p6"
+  },
+  {
+    "question": "편도 수술 후 출혈이 있어",
+    "caseType": "admin_normal",
+    "expectedIntent": "eval_source_guided",
+    "expectedSource": "자주 묻는 질문",
+    "expectedAnswerHint": "수술 관련해서 안내드릴게요.\n\n침에 피가 조금 섞여 나오는 정도라면 미지근하지 않고 시원한 얼음물로 20~30 분간 천천히 가글해 보세요.\n출혈이 계속되거나 양이 많으면 즉시 대표전화 02-6925-1111 로 연락하시거나 퇴원 시 안내받은 주치의에게 연락해 주세요.\n대표번호로 연락이 안 되거나 즉시 내원하기 어려운 원거리 상황이면 이비인후과 의사가 상주하는 가까운 응급실로 바로 가시기 바랍니다.\n편도 수술 후 출혈은 수술 후 약 5~10 일 사이에 발생할 수 있으니 빨대 사용과 무리한 활동은 피하고 안정하시길 권합니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778122499228-x6w321"
+  },
+  {
+    "question": "모레 진료 있어?",
+    "caseType": "admin_normal",
+    "expectedIntent": "eval_source_guided",
+    "expectedSource": "외래진료안내 / 입퇴원안내 / 코 질환 센터",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n모레가 일요일·공휴일이 아니면 병원은 진료합니다.\n진료시간은 평일 오전 09:00–13:00(접수마감 12:30), 오후 14:00–18:00(접수마감 17:30)이고 토요일은 09:00–13:30(접수마감 13:00)이며 점심시간은 13:00–14:00 입니다.\n다만 특정 의사나 진료실 일정은 병원 사정으로 변경될 수 있고, 예약·접수 여부는 확인이 필요하니 온라인 예약 확인이나 대표전화 02-6925-1111 로 문의해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778122453270-6yb5zw"
+  },
+  {
+    "question": "홈페이지 주소 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "homepage_url",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "홈페이지 주소는 https://hanaent.co.kr/입니다.\n- 진료 예약, 의료진 안내, 오시는 길 등은 홈페이지에서 확인하실 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778121581323-k0jvqa"
+  },
+  {
+    "question": "대표번호 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "hospital_phone",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "하나이비인후과병원 대표전화는 02-6925-1111입니다.\n- 전화 예약이나 예약 변경은 대표전화 연결 후 0번 상담원 연결로 진행할 수 있습니다.\n- 진료시간은 평일 오전 9시부터 오후 6시, 토요일 오전 9시부터 오후 1시 30분까지입니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778121577768-9rytz0"
+  },
+  {
+    "question": "내일 진료 있어?",
+    "caseType": "admin_normal",
+    "expectedIntent": "ai",
+    "expectedSource": "외래진료안내",
+    "expectedAnswerHint": "병원은 평일과 토요일에 진료하므로, '내일'이 평일(월~금) 또는 토요일이면 진료가 있습니다.\n일요일·공휴일에는 휴진입니다.\n진료시간은 평일 오전 09:00–13:00(오전 접수마감 12:30), 오후 14:00–18:00(오후 접수마감 17:30), 토요일은 09:00–13:30(접수마감 13:00)이며 평일 점심시간은 13:00–14:00 입니다.\n당일 방문 진료는 가능하나 대기 발생할 수 있고, 정확한 예약 가능 여부나 특정 진료실 일정은 대표전화 02-6925-1111 로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778121503185-674v64"
+  },
+  {
+    "question": "코세척 방법 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "guided_question",
+    "expectedSource": "",
+    "expectedAnswerHint": "코세척은 수술 후 코세척인지 일반 코세척인지에 따라 안내가 달라집니다. 어느 경우인지 먼저 선택해 주세요.\n- 수술 후 코세척이에요\n- 일반 코세척이에요",
+    "adminNote": "",
+    "reviewedLogId": "log-1778121492800-hxmr50"
+  },
+  {
+    "question": "이상덕 진료일정",
+    "caseType": "admin_normal",
+    "expectedIntent": "doctor_schedule_lookup",
+    "expectedSource": "홈페이지-의료진 정보 / 홈페이지-외래진료안내",
+    "expectedAnswerHint": "의료진별 진료 요일과 일정은 병원 홈페이지의 의료진 또는 진료 일정 안내에서 확인하실 수 있습니다. 진료 일정은 병원 사정에 따라 변경될 수 있어 예약 전 대표전화로 확인하는 것이 가장 정확합니다.\n- 특정 의료진 이름을 알려주시면 문서 기준으로 해당 의료진 안내를 도와드릴 수 있습니다.\n- 대표전화 02-6925-1111",
+    "adminNote": "",
+    "reviewedLogId": "log-1778121480350-cb7ss8"
+  },
+  {
     "question": "내일 진료 가능해?",
     "caseType": "admin_normal",
     "expectedIntent": "clinic_hours_night_weekend",
