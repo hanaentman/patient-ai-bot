@@ -4136,6 +4136,34 @@ function buildNamedDoctorScheduleResponse(message) {
   return null;
 }
 
+function formatDoctorScheduleFromRows(rawLines) {
+  const rows = Array.isArray(rawLines) ? rawLines : [];
+  const weekdays = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+  const scheduleParts = [];
+
+  ['오전', '오후'].forEach((period) => {
+    const row = rows.find((line) => String(line || '').trim().startsWith(period));
+    if (!row) {
+      return;
+    }
+
+    const cells = String(row)
+      .split('\t')
+      .map((cell) => cell.trim());
+    const days = weekdays.filter((_day, index) => /진료/u.test(cells[index + 1] || ''));
+    if (days.length > 0) {
+      scheduleParts.push(`${period}: ${days.join(', ')}`);
+    }
+  });
+
+  const noteLines = rows
+    .map((line) => normalizeDocLine(line))
+    .filter((line) => /^※\s*(토요일 진료|휴진|매주|매월|당일 접수)/u.test(line))
+    .map((line) => line.replace(/^※\s*/u, ''));
+
+  return [...scheduleParts, ...noteLines].join(' / ');
+}
+
 function getDoctorProfileFromDocs(doctorName) {
   const name = String(doctorName || '').trim();
   if (!name || !fs.existsSync(DOCTOR_SPECIALTY_DOC_PATH)) {
@@ -4150,6 +4178,7 @@ function getDoctorProfileFromDocs(doctorName) {
 
   const nextDoctorIndex = docText.indexOf('\n\n이름:', startIndex + name.length);
   const body = docText.slice(startIndex, nextDoctorIndex > startIndex ? nextDoctorIndex : undefined);
+  const rawLines = body.split(/\r?\n/);
   const lines = body
     .split(/\r?\n/)
     .map((line) => normalizeDocLine(line))
@@ -4162,6 +4191,12 @@ function getDoctorProfileFromDocs(doctorName) {
   const scheduleLines = scheduleStart >= 0
     ? lines.slice(scheduleStart + 1, careerStart > scheduleStart ? careerStart : scheduleStart + 5).slice(0, 4)
     : [];
+  const rawScheduleStart = rawLines.findIndex((line) => normalizeDocLine(line).includes('주간 진료 시간표'));
+  const rawCareerStart = rawLines.findIndex((line) => normalizeDocLine(line) === '경력');
+  const rawScheduleLines = rawScheduleStart >= 0
+    ? rawLines.slice(rawScheduleStart + 1, rawCareerStart > rawScheduleStart ? rawCareerStart : rawScheduleStart + 12)
+    : [];
+  const scheduleSummary = formatDoctorScheduleFromRows(rawScheduleLines);
 
   return {
     name,
@@ -4169,6 +4204,7 @@ function getDoctorProfileFromDocs(doctorName) {
     center,
     specialty,
     scheduleLines,
+    scheduleSummary,
   };
 }
 
@@ -4213,8 +4249,10 @@ function buildNamedDoctorProfileResponse(message) {
   if (doctorProfile.specialty) {
     answerParts.push(`전문분야는 ${doctorProfile.specialty}입니다.`);
   }
-  if (doctorProfile.scheduleLines.length > 0) {
-    answerParts.push(`주간 진료 시간표 기준: ${doctorProfile.scheduleLines.join(' / ')}`);
+  if (doctorProfile.scheduleSummary) {
+    answerParts.push(`요일별 진료시간은 ${doctorProfile.scheduleSummary}입니다.`);
+  } else if (doctorProfile.scheduleLines.length > 0) {
+    answerParts.push('요일별 진료시간은 진료일정표 이미지에서 확인해 주세요.');
   }
 
   return {

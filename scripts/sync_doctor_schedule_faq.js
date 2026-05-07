@@ -41,14 +41,10 @@ function unique(values) {
   return [...new Set(values.filter(Boolean))];
 }
 
-function isDoctorNameLine(line) {
-  return /^[가-힣]{2,4}$/.test(normalizeWhitespace(line));
-}
-
 function extractRole(profile, name) {
   return normalizeWhitespace(profile)
     .replace(name, '')
-    .replace(/이비인후과 전문의/gu, '')
+    .replace(/이비인후과\s*전문의/gu, '')
     .trim();
 }
 
@@ -57,22 +53,19 @@ function splitDoctorBlocks(text) {
   const blocks = [];
   let current = [];
 
-  for (let index = 0; index < lines.length; index += 1) {
-    const line = normalizeWhitespace(lines[index]);
-    const nextLine = normalizeWhitespace(lines[index + 1] || '');
-
-    if (isDoctorNameLine(line) && nextLine.startsWith(line) && nextLine.includes('이비인후과 전문의')) {
+  lines.forEach((line) => {
+    if (/^이름:\s*\S+/u.test(normalizeWhitespace(line))) {
       if (current.length > 0) {
         blocks.push(current);
       }
-      current = [lines[index]];
-      continue;
+      current = [line];
+      return;
     }
 
     if (current.length > 0) {
-      current.push(lines[index]);
+      current.push(line);
     }
-  }
+  });
 
   if (current.length > 0) {
     blocks.push(current);
@@ -81,11 +74,23 @@ function splitDoctorBlocks(text) {
   return blocks;
 }
 
+function parseScheduleCells(rawLine) {
+  const tabCells = String(rawLine || '').replace(/\r/g, '').split('\t').map((cell) => normalizeWhitespace(cell));
+  if (tabCells.length >= 7) {
+    return tabCells.slice(1, 7);
+  }
+
+  const cells = normalizeWhitespace(rawLine).split(' ');
+  return cells.slice(1, 7);
+}
+
 function parseDoctorBlocks(text) {
   return splitDoctorBlocks(text).map((rawLines) => {
+    const firstLine = normalizeWhitespace(rawLines[0]);
+    const name = firstLine.replace(/^이름:\s*/u, '').trim();
     const lines = rawLines.map((line) => String(line || '').replace(/\r/g, ''));
-    const name = normalizeWhitespace(lines[0]);
-    const profile = normalizeWhitespace(lines[1]);
+    const normalizedLines = lines.map(normalizeWhitespace);
+    const profile = normalizedLines.find((line) => line.includes(name) && /(전문의|병원장|대표원장|원장|부원장|센터장|진료부장|과장|부장)/u.test(line)) || '';
     const role = extractRole(profile, name);
     const entry = {
       name,
@@ -102,7 +107,7 @@ function parseDoctorBlocks(text) {
     };
 
     let mode = '';
-    lines.slice(2).forEach((rawLine) => {
+    lines.slice(1).forEach((rawLine) => {
       const line = normalizeWhitespace(rawLine);
       if (!line) {
         return;
@@ -127,11 +132,8 @@ function parseDoctorBlocks(text) {
         mode = 'schedule';
         return;
       }
-      if (line === '주요경력') {
-        mode = 'career';
-        return;
-      }
-      if (line === '온라인예약' || line === '논문&연구실적') {
+      if (/^(경력|주요경력|논문&연구실적|온라인예약)$/u.test(line)) {
+        mode = line === '경력' || line === '주요경력' ? 'career' : mode;
         return;
       }
 
@@ -146,16 +148,12 @@ function parseDoctorBlocks(text) {
       if (mode === 'schedule') {
         entry.schedule.raw.push(line);
 
-        if (rawLine.startsWith('오전\t')) {
-          entry.schedule.morning = rawLine.split('\t').slice(1, 7).map((cell) => normalizeWhitespace(cell));
+        if (line.startsWith('오전')) {
+          entry.schedule.morning = parseScheduleCells(rawLine);
           return;
         }
-        if (rawLine.startsWith('오후\t')) {
-          entry.schedule.afternoon = rawLine.split('\t').slice(1, 7).map((cell) => normalizeWhitespace(cell));
-          return;
-        }
-        if (line.startsWith('비고')) {
-          entry.schedule.notes.push(line.replace(/^비고\s*/u, '').trim());
+        if (line.startsWith('오후')) {
+          entry.schedule.afternoon = parseScheduleCells(rawLine);
           return;
         }
         if (line.startsWith('※')) {
@@ -171,7 +169,7 @@ function parseDoctorBlocks(text) {
 
 function getOpenDays(dayCells) {
   return dayCells
-    .map((value, index) => (value === '진료' ? DAY_LABELS[index] : ''))
+    .map((value, index) => (/진료/u.test(value) ? DAY_LABELS[index] : ''))
     .filter(Boolean);
 }
 
@@ -190,6 +188,9 @@ function buildScheduleAnswer(entry) {
   if (entry.center) {
     parts.push(`${displayName}은(는) ${entry.center} 진료를 담당합니다.`);
   }
+  if (entry.specialty) {
+    parts.push(`전문분야는 ${entry.specialty}입니다.`);
+  }
   if (morningDays.length > 0) {
     parts.push(`오전은 ${formatDayList(morningDays)}에 진료합니다.`);
   }
@@ -204,7 +205,7 @@ function buildScheduleAnswer(entry) {
 }
 
 function buildScheduleFollowUp(entry) {
-  const followUp = [...entry.schedule.notes];
+  const followUp = entry.schedule.notes.map((note) => note.replace(/^※\s*/u, '').trim());
   followUp.push('응급 수술 등에 따라 진료시간이 변경될 수 있어 내원 전 확인이 필요합니다.');
   return unique(followUp).slice(0, 4);
 }
@@ -217,6 +218,7 @@ function doctorKeywords(name, role) {
     `${name} 일정`,
     `${name} 진료일정`,
     `${name} 요일별 진료`,
+    `${name} 토요일`,
   ];
   if (role) {
     keywords.push(`${name} ${role}`);
@@ -230,10 +232,10 @@ function matches(entry, patterns) {
 }
 
 function buildDoctorOverviewFaq(entries) {
-  const representatives = entries.slice(0, 10).map((entry) => entry.role ? `${entry.name} ${entry.role}` : entry.name);
-  const nose = entries.filter((entry) => matches(entry, [/코 센터/u, /비염|부비동|축농증|비중격|코물혹|코 막힘/u]));
-  const ear = entries.filter((entry) => matches(entry, [/귀 센터/u, /난청|이명|어지럼|인공와우|중이염|보청기|메니에르/u]));
-  const throatSleep = entries.filter((entry) => matches(entry, [/두경부/u, /수면클리닉/u, /음성|인후두|갑상선|후두|구강암|침샘/u]));
+  const representatives = entries.slice(0, 10).map((entry) => (entry.role ? `${entry.name} ${entry.role}` : entry.name));
+  const nose = entries.filter((entry) => matches(entry, [/코\s*센터/u, /비염|부비동|축농증|비중격|코물혹|코 막힘/u]));
+  const ear = entries.filter((entry) => matches(entry, [/귀\s*센터/u, /청력|이명|난청|어지럼|중이염|보청기|메니에르/u]));
+  const throatSleep = entries.filter((entry) => matches(entry, [/목\s*센터|두경부/u, /수면무호흡|코골이|음성|인후두|갑상선|편도|구강|침샘/u]));
   const internal = entries.filter((entry) => matches(entry, [/내과/u]));
 
   return {
@@ -243,11 +245,11 @@ function buildDoctorOverviewFaq(entries) {
       ? `하나이비인후과병원 홈페이지 기준으로 현재 의료진 정보를 확인할 수 있습니다. 대표 의료진으로는 ${representatives.join(', ')} 등이 있습니다.`
       : '하나이비인후과병원 홈페이지 기준으로 현재 의료진 정보를 확인할 수 있습니다.',
     followUp: [
-      nose.length > 0 ? `코 질환 의사: ${unique(nose.map((entry) => entry.name)).join(', ')}` : '',
-      throatSleep.length > 0 ? `목·두경부·수면클리닉: ${unique(throatSleep.map((entry) => entry.name)).join(', ')}` : '',
-      ear.length > 0 ? `귀 질환 의사: ${unique(ear.map((entry) => entry.name)).join(', ')}` : '',
+      nose.length > 0 ? `코 질환 의료진: ${unique(nose.map((entry) => entry.name)).join(', ')}` : '',
+      throatSleep.length > 0 ? `목·두경부·수면 의료진: ${unique(throatSleep.map((entry) => entry.name)).join(', ')}` : '',
+      ear.length > 0 ? `귀 질환 의료진: ${unique(ear.map((entry) => entry.name)).join(', ')}` : '',
       internal.length > 0 ? `내과: ${unique(internal.map((entry) => entry.name)).join(', ')}` : '',
-      '세부 일정은 내원 전 대표전화 02-6925-1111로 확인해 주세요.',
+      '의료진 일정은 내원 전 02-6925-1111로 확인해 주세요.',
     ].filter(Boolean),
   };
 }
@@ -257,9 +259,9 @@ function buildDoctorSpecialtyFaq(category, keywords, answer, followUp) {
 }
 
 function buildDoctorFaqEntries(entries) {
-  const nose = entries.filter((entry) => matches(entry, [/코 센터/u, /비염|부비동|축농증|비중격|코물혹|코 막힘/u]));
-  const ear = entries.filter((entry) => matches(entry, [/귀 센터/u, /난청|이명|어지럼|인공와우|중이염|보청기|메니에르/u]));
-  const throatSleep = entries.filter((entry) => matches(entry, [/두경부/u, /수면클리닉/u, /음성|인후두|갑상선|후두|구강암|침샘/u]));
+  const nose = entries.filter((entry) => matches(entry, [/코\s*센터/u, /비염|부비동|축농증|비중격|코물혹|코 막힘/u]));
+  const ear = entries.filter((entry) => matches(entry, [/귀\s*센터/u, /청력|이명|난청|어지럼|중이염|보청기|메니에르/u]));
+  const throatSleep = entries.filter((entry) => matches(entry, [/목\s*센터|두경부/u, /수면무호흡|코골이|음성|인후두|갑상선|편도|구강|침샘/u]));
   const internal = entries.filter((entry) => matches(entry, [/내과/u]));
 
   const faqEntries = [
@@ -267,31 +269,31 @@ function buildDoctorFaqEntries(entries) {
     buildDoctorSpecialtyFaq(
       'doctors_nose',
       ['코센터', '코 의사', '비염', '비염 의사', '비염 의료진', '비염 추천', '축농증', '축농증 의사', '코 수술', '비중격만곡증', '코막힘', ...unique(nose.map((entry) => entry.name))],
-      `코 센터 의료진으로는 ${unique(nose.map((entry) => entry.role ? `${entry.name} ${entry.role}` : entry.name)).join(', ')}이(가) 현재 홈페이지에 안내되어 있습니다.`,
+      `코 센터 의료진으로는 ${unique(nose.map((entry) => (entry.role ? `${entry.name} ${entry.role}` : entry.name))).join(', ')}이(가) 현재 홈페이지에 안내되어 있습니다.`,
       [
         nose.length > 0 ? `비염 관련 코 센터 의료진: ${unique(nose.map((entry) => entry.name)).join(', ')}` : '',
-        '세부 일정은 내원 전 대표전화 02-6925-1111로 확인해 주세요.',
+        '의료진 일정은 내원 전 02-6925-1111로 확인해 주세요.',
       ].filter(Boolean),
     ),
     buildDoctorSpecialtyFaq(
       'doctors_ear',
       ['귀센터', '귀 의사', '어지럼증 의사', '이명 의사', '난청 의사', '중이염 의사', '보청기', ...unique(ear.map((entry) => entry.name))],
-      `귀 질환 관련 의료진으로는 ${unique(ear.map((entry) => entry.role ? `${entry.name} ${entry.role}` : entry.name)).join(', ')}이(가) 현재 홈페이지에 안내되어 있습니다.`,
-      ['세부 일정은 내원 전 대표전화 02-6925-1111로 확인해 주세요.'],
+      `귀 질환 관련 의료진으로는 ${unique(ear.map((entry) => (entry.role ? `${entry.name} ${entry.role}` : entry.name))).join(', ')}이(가) 현재 홈페이지에 안내되어 있습니다.`,
+      ['의료진 일정은 내원 전 02-6925-1111로 확인해 주세요.'],
     ),
     buildDoctorSpecialtyFaq(
       'doctors_throat_sleep',
       ['목센터', '목 의사', '코골이 의사', '수면무호흡 의사', '편도 의사', '갑상선 의사', '음성'],
-      `목·두경부·수면클리닉 의료진으로는 ${unique(throatSleep.map((entry) => entry.role ? `${entry.name} ${entry.role}` : entry.name)).join(', ')}이(가) 현재 홈페이지에 안내되어 있습니다.`,
-      ['세부 일정은 내원 전 대표전화 02-6925-1111로 확인해 주세요.'],
+      `목·두경부·수면 관련 의료진으로는 ${unique(throatSleep.map((entry) => (entry.role ? `${entry.name} ${entry.role}` : entry.name))).join(', ')}이(가) 현재 홈페이지에 안내되어 있습니다.`,
+      ['의료진 일정은 내원 전 02-6925-1111로 확인해 주세요.'],
     ),
     buildDoctorSpecialtyFaq(
       'doctors_internal',
       ['내과', '내과 의사', '예방접종', '소화기', '건강검진', '신경과', '두통', '불면증'],
       internal.length > 0
-        ? `내과 의료진으로는 ${unique(internal.map((entry) => entry.role ? `${entry.name} ${entry.role}` : entry.name)).join(', ')}이(가) 현재 홈페이지에 안내되어 있습니다.`
+        ? `내과 의료진으로는 ${unique(internal.map((entry) => (entry.role ? `${entry.name} ${entry.role}` : entry.name))).join(', ')}이(가) 현재 홈페이지에 안내되어 있습니다.`
         : '현재 홈페이지 기준으로 내과 의료진 정보를 확인할 수 있습니다.',
-      ['세부 일정은 내원 전 대표전화 02-6925-1111로 확인해 주세요.'],
+      ['의료진 일정은 내원 전 02-6925-1111로 확인해 주세요.'],
     ),
     {
       category: 'doctor_schedule_general',
@@ -314,8 +316,19 @@ function buildDoctorFaqEntries(entries) {
 }
 
 function replaceDoctorFaqEntries(existingFaq, doctorFaqEntries) {
-  const doctorCategories = new Set(doctorFaqEntries.map((entry) => entry.category));
-  const preserved = existingFaq.filter((entry) => !doctorCategories.has(entry.category));
+  const doctorCategories = new Set([
+    'doctors_overview',
+    'doctors_nose',
+    'doctors_ear',
+    'doctors_throat_sleep',
+    'doctors_internal',
+    'doctor_schedule_general',
+    ...doctorFaqEntries.map((entry) => entry.category),
+  ]);
+  const preserved = existingFaq.filter((entry) => (
+    !doctorCategories.has(entry.category)
+    && !String(entry.category || '').startsWith('doctor_schedule_')
+  ));
   return [...preserved, ...doctorFaqEntries];
 }
 
