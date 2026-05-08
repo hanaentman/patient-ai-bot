@@ -255,6 +255,64 @@
         color: var(--danger);
       }
 
+      .quality-check {
+        display: grid;
+        gap: 10px;
+        margin: -4px 0 16px;
+        padding: 12px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+      }
+
+      .quality-check-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .quality-check button {
+        min-width: 150px;
+      }
+
+      .quality-check button.secondary {
+        background: #6c7f91;
+      }
+
+      .quality-check button:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+      }
+
+      .quality-progress {
+        width: 100%;
+        height: 8px;
+        overflow: hidden;
+        background: #e7f0f7;
+        border-radius: 999px;
+      }
+
+      .quality-progress-bar {
+        width: 0%;
+        height: 100%;
+        background: var(--primary);
+        transition: width 0.2s ease;
+      }
+
+      .quality-log {
+        max-height: 120px;
+        overflow: auto;
+        padding: 8px 10px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #fbfdff;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.5;
+        white-space: pre-line;
+      }
+
       @media (max-width: 800px) {
         .filters,
         .review {
@@ -293,6 +351,18 @@
         <button id="export-button" type="button">수정필요 JSON</button>
       </section>
 
+      <section class="quality-check" aria-label="품질검사 자동실행">
+        <div class="quality-check-row">
+          <button id="quality-run-button" type="button">품질검사 자동실행</button>
+          <button id="quality-stop-button" class="secondary" type="button" disabled>중지</button>
+          <span class="muted" id="quality-status">대기 중입니다. 20개 질문을 8초 간격으로 천천히 입력합니다.</span>
+        </div>
+        <div class="quality-progress" aria-hidden="true">
+          <div class="quality-progress-bar" id="quality-progress-bar"></div>
+        </div>
+        <div class="quality-log" id="quality-log">실행하면 질문별 결과가 여기에 표시됩니다.</div>
+      </section>
+
       <section class="stats muted" id="stats">로드 중...</section>
       <section class="pager" id="pager">
         <div class="muted" id="page-info">페이지 계산 중...</div>
@@ -320,10 +390,72 @@
       const nextPageButton = document.getElementById('next-page-button');
       const evalStatus = document.getElementById('eval-status');
       const logList = document.getElementById('log-list');
+      const qualityRunButton = document.getElementById('quality-run-button');
+      const qualityStopButton = document.getElementById('quality-stop-button');
+      const qualityStatus = document.getElementById('quality-status');
+      const qualityLog = document.getElementById('quality-log');
+      const qualityProgressBar = document.getElementById('quality-progress-bar');
       let lastEvalStatus = null;
       const pageSize = 300;
       let currentPage = 1;
       const localWrongAnswersPath = 'C:\\Users\\OCSEMR\\patient-ai-bot\\eval\\wrong-answers.json';
+      const qualityQuestionDelayMs = 8000;
+      const qualityRateLimitWaitMs = 70000;
+      const qualityQuestionCount = 20;
+      let qualityRunAbort = false;
+      let qualityRunInProgress = false;
+      const qualityQuestionPool = [
+        '보청기 상담은 미리 예약해야 하나요?',
+        '귀에서 삐 소리가 나면 어떤 진료를 받아야 하나요?',
+        '코 안이 자주 헐면 진료 가능한가요?',
+        '목이 자주 쉬는데 어느 진료로 가야 하나요?',
+        '수면검사는 하루 입원이 필요한가요?',
+        '코골이 검사는 어떤 순서로 진행되나요?',
+        '수술 전 복용 중인 약은 어떻게 알려야 하나요?',
+        '입원 당일 몇 시까지 도착해야 하나요?',
+        '퇴원할 때 처방약은 어디서 받나요?',
+        '수술 후 피가 나면 바로 연락해야 하나요?',
+        '청력검사실 위치를 알려주세요',
+        '난청 상담은 어떤 검사부터 하나요?',
+        '후각검사는 당일 받을 수 있나요?',
+        '알레르기 주사 금액을 알 수 있나요?',
+        '수액 비용은 대략 얼마인가요?',
+        '진료비 세부내역서는 어디서 발급받나요?',
+        '진료확인서 발급할 때 신분증이 필요한가요?',
+        '병원 셔틀 타는 곳은 어디인가요?',
+        '역삼역에서 걸어가도 되나요?',
+        '주차 등록은 어디서 하나요?',
+        '보호자 상주는 어떤 경우에 가능한가요?',
+        '병실에서 와이파이를 사용할 수 있나요?',
+        '입원 준비물은 병실마다 다른가요?',
+        '퇴원 수속은 몇 층에서 하나요?',
+        '검사 결과지는 원무과에서 받을 수 있나요?',
+        '진료기록 사본은 어떻게 신청하나요?',
+        '토요일에도 서류 발급이 가능한가요?',
+        '예약을 변경하려면 어디로 연락해야 하나요?',
+        '처음 방문할 때 접수는 어떻게 하나요?',
+        '당일 진료 접수 마감은 언제인가요?',
+        '코피가 반복되면 어느 센터로 가야 하나요?',
+        '후각이 약해졌을 때 어떤 검사를 하나요?',
+        '귀가 먹먹하면 청력검사가 필요한가요?',
+        '어지럼증 검사는 당일 가능한가요?',
+        '목에 이물감이 있으면 진료 가능해요?',
+        '편도 수술 후 출혈이 있으면 어떻게 해야 하나요?',
+        '비중격 수술 후 부작용이 걱정돼요',
+        '비염 수술 후 통원은 얼마나 해야 하나요?',
+        '축농증 수술 비용은 어디서 확인하나요?',
+        '코 내시경 검사는 어디서 진행되나요?',
+        '수면다원검사 비용은 대략 얼마인가요?',
+        '알레르기 피부검사는 비용이 얼마인가요?',
+        '외국인 통역 지원이 가능한가요?',
+        '병원 안에 약국이 있나요?',
+        '휠체어 이용자는 어디로 들어가면 되나요?',
+        '수유실이나 유아 공간이 있나요?',
+        '진료 후 결과를 문자로 받을 수 있나요?',
+        '보험 적용 여부는 어디서 확인하나요?',
+        '대기 인원이 많으면 알림을 받을 수 있나요?',
+        '감염 예방을 위해 병동 면회가 제한되나요?'
+      ];
 
       function toDateRangeIso(value, isEnd) {
         if (!value) return '';
@@ -739,6 +871,174 @@
         }
       }
 
+      function delay(ms) {
+        return new Promise((resolve) => {
+          window.setTimeout(resolve, ms);
+        });
+      }
+
+      function appendQualityLog(message) {
+        const current = qualityLog.textContent === '실행하면 질문별 결과가 여기에 표시됩니다.'
+          ? ''
+          : qualityLog.textContent;
+        qualityLog.textContent = `${current}${current ? '\n' : ''}${message}`;
+        qualityLog.scrollTop = qualityLog.scrollHeight;
+      }
+
+      function setQualityProgress(done, total) {
+        const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+        qualityProgressBar.style.width = `${Math.min(Math.max(percent, 0), 100)}%`;
+        qualityStatus.textContent = qualityRunInProgress
+          ? `진행 중: ${done}/${total} 완료`
+          : `대기 중입니다. ${qualityQuestionCount}개 질문을 ${Math.round(qualityQuestionDelayMs / 1000)}초 간격으로 천천히 입력합니다.`;
+      }
+
+      function getStoredQualityQuestions() {
+        try {
+          const parsed = JSON.parse(localStorage.getItem('hanaentQualityAskedQuestions') || '[]');
+          return Array.isArray(parsed) ? parsed.map((item) => String(item || '').trim()).filter(Boolean) : [];
+        } catch (error) {
+          return [];
+        }
+      }
+
+      function rememberQualityQuestions(questions) {
+        const merged = [...getStoredQualityQuestions(), ...(questions || [])]
+          .map((item) => String(item || '').trim())
+          .filter(Boolean);
+        localStorage.setItem('hanaentQualityAskedQuestions', JSON.stringify([...new Set(merged)].slice(-500)));
+      }
+
+      async function loadRecentAdminQuestionsForQualityCheck() {
+        try {
+          const response = await fetch('/api/admin/logs?limit=1000', { cache: 'no-store' });
+          if (!response.ok) return [];
+          const data = await response.json();
+          return (data.items || [])
+            .map((item) => String(item.question || '').trim())
+            .filter(Boolean);
+        } catch (error) {
+          return [];
+        }
+      }
+
+      async function selectQualityQuestions() {
+        const recentQuestions = await loadRecentAdminQuestionsForQualityCheck();
+        const used = new Set([...recentQuestions, ...getStoredQualityQuestions()]);
+        const freshQuestions = qualityQuestionPool.filter((question) => !used.has(question));
+        const fallbackQuestions = qualityQuestionPool.filter((question) => !freshQuestions.includes(question));
+        return [...freshQuestions, ...fallbackQuestions].slice(0, qualityQuestionCount);
+      }
+
+      async function sendQualityQuestion(question, index, total) {
+        const sessionId = `admin-quality-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 8)}`;
+        const maxAttempts = 3;
+
+        for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+          if (qualityRunAbort) {
+            return { ok: false, stopped: true };
+          }
+
+          const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json; charset=utf-8' },
+            body: JSON.stringify({ message: question, sessionId }),
+          });
+
+          let payload = {};
+          try {
+            payload = await response.json();
+          } catch (error) {
+            payload = {};
+          }
+
+          if (response.status === 429 && attempt < maxAttempts) {
+            const retryAfterSeconds = Number(response.headers.get('Retry-After')) || 0;
+            const waitMs = Math.max(retryAfterSeconds * 1000, qualityRateLimitWaitMs);
+            appendQualityLog(`${index}/${total} 요청 제한 감지: ${Math.round(waitMs / 1000)}초 대기 후 재시도`);
+            await delay(waitMs);
+            continue;
+          }
+
+          return {
+            ok: response.ok,
+            status: response.status,
+            type: payload.type || '',
+            answer: payload.answer || '',
+          };
+        }
+
+        return { ok: false, status: 429, type: 'rate_limited', answer: '요청 제한으로 중단되었습니다.' };
+      }
+
+      async function runQualityCheck() {
+        if (qualityRunInProgress) {
+          return;
+        }
+
+        qualityRunInProgress = true;
+        qualityRunAbort = false;
+        qualityRunButton.disabled = true;
+        qualityStopButton.disabled = false;
+        qualityLog.textContent = '';
+        setQualityProgress(0, qualityQuestionCount);
+
+        const questions = await selectQualityQuestions();
+        if (!questions.length) {
+          appendQualityLog('실행할 질문이 없습니다.');
+          qualityRunInProgress = false;
+          qualityRunButton.disabled = false;
+          qualityStopButton.disabled = true;
+          setQualityProgress(0, qualityQuestionCount);
+          return;
+        }
+
+        let successCount = 0;
+        rememberQualityQuestions(questions);
+        appendQualityLog(`품질검사를 시작합니다. ${questions.length}개 질문, 질문 사이 대기 ${Math.round(qualityQuestionDelayMs / 1000)}초`);
+
+        for (let index = 0; index < questions.length; index += 1) {
+          if (qualityRunAbort) {
+            appendQualityLog('사용자 요청으로 중지했습니다.');
+            break;
+          }
+
+          const question = questions[index];
+          const displayIndex = index + 1;
+          qualityStatus.textContent = `진행 중: ${displayIndex}/${questions.length} 질문 전송 중`;
+          appendQualityLog(`${displayIndex}/${questions.length} 질문: ${question}`);
+
+          try {
+            const result = await sendQualityQuestion(question, displayIndex, questions.length);
+            if (result.stopped) {
+              appendQualityLog('사용자 요청으로 중지했습니다.');
+              break;
+            }
+
+            if (result.ok) {
+              successCount += 1;
+              appendQualityLog(`  성공: ${result.type || 'unknown'}`);
+            } else {
+              appendQualityLog(`  실패: HTTP ${result.status || 'unknown'} ${result.type || ''}`);
+            }
+          } catch (error) {
+            appendQualityLog(`  실패: ${error.message || error}`);
+          }
+
+          setQualityProgress(displayIndex, questions.length);
+
+          if (displayIndex < questions.length && !qualityRunAbort) {
+            await delay(qualityQuestionDelayMs);
+          }
+        }
+
+        qualityRunInProgress = false;
+        qualityRunButton.disabled = false;
+        qualityStopButton.disabled = true;
+        qualityStatus.textContent = `완료: 성공 ${successCount}/${questions.length}개`;
+        await loadLogs();
+      }
+
       function resetToFirstPageAndLoad() {
         currentPage = 1;
         loadLogs();
@@ -756,6 +1056,12 @@
       });
       normalExportButton.addEventListener('click', () => downloadReviewLogs('normal', 'seed-questions.json'));
       exportButton.addEventListener('click', () => downloadReviewLogs('needs_review', 'wrong-answers.json'));
+      qualityRunButton.addEventListener('click', runQualityCheck);
+      qualityStopButton.addEventListener('click', () => {
+        qualityRunAbort = true;
+        qualityStopButton.disabled = true;
+        qualityStatus.textContent = '중지 요청 중입니다. 현재 요청이 끝나면 멈춥니다.';
+      });
       logoutButton.addEventListener('click', async () => {
         await fetch('/api/admin/logout', { method: 'POST' });
         window.location.href = '/admin/login';
