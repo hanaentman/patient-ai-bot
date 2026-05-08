@@ -19,11 +19,11 @@ let pendingMessageElement = null;
 let imageViewerElement = null;
 const fallbackQuickActions = [
   { label: '진료시간', question: '진료시간 알려줘' },
-  { label: '셔틀버스', question: '셔틀버스시간 알려줘' },
+  { label: '오시는길', question: '병원 위치 알려줘' },
+  { label: '셔틀버스', question: '셔틀버스 시간 알려줘' },
   { label: '입원전 약물', question: '입원전 금지 약물 알려줘' },
-  { label: '병원 진료시간', question: '진료시간 안내해줘' },
-  { label: '예약 변경', question: '예약 변경 방법 알려줘' },
-  { label: '코골이 상담', question: '코골이 진료 과를 알려줘' },
+  { label: '주차 안내', question: '주차 가능한가요?' },
+  { label: '예약 방법', question: '예약 방법 알려줘' },
 ];
 
 function isValidExternalUrl(value) {

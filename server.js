@@ -449,12 +449,16 @@ const popularQuestionStats = loadPopularQuestionStats();
 const POPULAR_QUESTION_LIMIT = 6;
 const POPULAR_QUESTION_ACTIVE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 const DEFAULT_POPULAR_QUESTIONS = [
-  { label: '진료시간', question: '진료시간 알려줘' },
-  { label: '셔틀버스', question: '셔틀버스시간 알려줘' },
-  { label: '입원전 약물', question: '입원전 금지 약물 알려줘' },
-  { label: '병원 진료시간', question: '진료시간 안내해줘' },
-  { label: '예약 변경', question: '예약 변경 방법 알려줘' },
-  { label: '코질환 상담', question: '코질환 진료 과목 알려줘' },
+  { label: '진료시간', question: '진료시간 알려줘', priority: 96, reliable: true },
+  { label: '오시는길', question: '병원 위치 알려줘', priority: 94, reliable: true, hasImage: true },
+  { label: '셔틀버스', question: '셔틀버스 시간 알려줘', priority: 93, reliable: true, hasImage: true },
+  { label: '입원전 약물', question: '입원전 금지 약물 알려줘', priority: 92, reliable: true, hasImage: true },
+  { label: '주차 안내', question: '주차 가능한가요?', priority: 89, reliable: true },
+  { label: '예약 방법', question: '예약 방법 알려줘', priority: 88, reliable: true },
+  { label: '서류 발급', question: '서류 발급 방법 알려줘', priority: 86, reliable: true },
+  { label: '진료일정표', question: '의료진 진료일정 알려줘', priority: 68, reliable: true, hasImage: true },
+  { label: '입원 준비물', question: '입원 준비물 알려줘', priority: 82, reliable: true },
+  { label: '검사 위치', question: '검사실 위치를 알려주세요', priority: 78, reliable: true },
 ];
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_DAILY_WINDOW_MS = 24 * 60 * 60 * 1000;
@@ -1806,42 +1810,38 @@ function buildPopularQuestionLabel(question) {
   return label.length > 18 ? `${label.slice(0, 18)}...` : label;
 }
 
+function getCuratedPopularQuestionItems() {
+  return DEFAULT_POPULAR_QUESTIONS.map((item, index) => {
+    const normalized = normalizeSearchTextSafe(item.question);
+    const liveStat = popularQuestionStats.get(normalized);
+    const count = Number(liveStat?.count) || 0;
+
+    return {
+      ...item,
+      count,
+      score: Number(item.priority || 0)
+        + Math.min(count, 20)
+        + (item.reliable ? 30 : 0)
+        + (item.hasImage ? 20 : 0)
+        - index * 0.01,
+      source: count > 0 ? 'curated_live' : 'curated',
+    };
+  });
+}
+
 function getPopularQuestions(limit = POPULAR_QUESTION_LIMIT) {
-  const now = Date.now();
-  const dynamicItems = [...popularQuestionStats.values()]
-    .filter((item) => (
-      item
-      && String(item.question || '').trim()
-      && isGoodPopularQuestion(item.question)
-      && Number(item.updatedAt) > 0
-      && now - Number(item.updatedAt) <= POPULAR_QUESTION_ACTIVE_WINDOW_MS
-    ))
-    .sort((a, b) => (
-      b.updatedAt - a.updatedAt || b.count - a.count
-    ))
+  return getCuratedPopularQuestionItems()
+    .filter((item) => item.question && item.label)
+    .sort((a, b) => b.score - a.score || b.count - a.count)
     .slice(0, limit)
     .map((item) => ({
-      label: buildPopularQuestionLabel(item.question),
+      label: item.label || buildPopularQuestionLabel(item.question),
       question: item.question,
       count: item.count,
-      source: 'live',
+      source: item.source,
+      hasImage: Boolean(item.hasImage),
+      reliable: Boolean(item.reliable),
     }));
-
-  if (dynamicItems.length >= limit) {
-    return dynamicItems;
-  }
-
-  const seen = new Set(dynamicItems.map((item) => normalizeSearchTextSafe(item.question)));
-  const fallbackItems = DEFAULT_POPULAR_QUESTIONS
-    .filter((item) => !seen.has(normalizeSearchTextSafe(item.question)))
-    .slice(0, Math.max(limit - dynamicItems.length, 0))
-    .map((item) => ({
-      ...item,
-      count: 0,
-      source: 'default',
-    }));
-
-  return [...dynamicItems, ...fallbackItems];
 }
 
 function getCachedResponse(message) {
