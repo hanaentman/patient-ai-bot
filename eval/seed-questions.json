@@ -1,5 +1,311 @@
 [
   {
+    "question": "주말에도 수술가능해?",
+    "caseType": "admin_normal",
+    "expectedIntent": "clinic_hours_night_weekend",
+    "expectedSource": "홈페이지-외래진료안내 / 통합-FAQ",
+    "expectedAnswerHint": "수술 관련해서 안내드릴게요.\n\n진료시간은 평일 오전 9시부터 오후 6시까지이며, 토요일은 오전 9시부터 오후 1시 30분까지입니다. 일요일과 공휴일은 휴진으로 안내되어 있고, 별도 야간진료는 문서에 안내되어 있지 않습니다.\n- 평일 접수 마감은 오후 5시 30분입니다.\n- 토요일 접수 마감은 오후 1시입니다.\n- 응급수술 등 진료 상황에 따라 접수가 조기 마감될 수 있어 내원 전 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778206660291-3tnnfj"
+  },
+  {
+    "question": "비중격만곡증 수술하고나서 회복은 얼마나 걸려?",
+    "caseType": "admin_normal",
+    "expectedIntent": "homepage_surgery_cost",
+    "expectedSource": "홈페이지-비중격만곡증",
+    "expectedAnswerHint": "수술 관련해서 안내드릴게요.\n\n비중격만곡증 수술 안내드립니다. 하나이비인후과병원 기준으로 수술비용은 약 150~200만원(실비보험 적용 가능)입니다. 수술시간은 약 30분입니다. 마취방법은 수면마취+국소마취입니다. 입원기간은 1박 2일 또는 2박 3일입니다. 수술 후 내원치료는 수술 후 8~12회입니다. 회복기간은 약 3주~4주 하나이비인후과병원 비중격만곡증 수술 장점 부작용 최소화 비중격교정술입니다. 정확한 수술 적응증과 비용 적용 방식은 진료와 검사 후 결정되므로 자세한 상담이나 예약은 대표전화 02-6925-1111로 문의해 주세요.\n\n비중격만곡증 관련 영상 보기: https://www.youtube.com/watch?v=vpwYbln5tLE\n- 보험 적용 여부와 실제 비용은 질환 상태와 검사 결과에 따라 달라질 수 있습니다.\n- 다른 수술이나 질환명을 말씀해 주시면 해당 문서 기준으로 다시 안내해 드릴게요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778206624096-j9b0d4"
+  },
+  {
+    "question": "진료시간 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "clinic_hours_night_weekend",
+    "expectedSource": "홈페이지-외래진료안내 / 통합-FAQ",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n진료시간은 평일 오전 9시부터 오후 6시까지이며, 토요일은 오전 9시부터 오후 1시 30분까지입니다. 일요일과 공휴일은 휴진으로 안내되어 있고, 별도 야간진료는 문서에 안내되어 있지 않습니다.\n- 평일 접수 마감은 오후 5시 30분입니다.\n- 토요일 접수 마감은 오후 1시입니다.\n- 응급수술 등 진료 상황에 따라 접수가 조기 마감될 수 있어 내원 전 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778205838598-vu9n0d"
+  },
+  {
+    "question": "코 비염이랑 비중격만곡증이 있는데 수술하면 비용 얼마나 들까",
+    "caseType": "admin_normal",
+    "expectedIntent": "rhinitis_surgery_cost",
+    "expectedSource": "홈페이지-비중격만곡증 / 기타-비급여비용",
+    "expectedAnswerHint": "비염 또는 코막힘 관련 수술 비용은 수술 범위와 동반 질환 여부에 따라 달라질 수 있습니다. 병원 안내 기준으로 비중격만곡증 수술비용은 약 150~200만원으로 안내되어 있으며, 비염 수술도 상태와 보험 적용 여부에 따라 비용이 달라질 수 있습니다.\n- 실제 비용은 코내시경, X-ray 또는 CT 검사 등으로 상태를 확인한 뒤 안내받는 것이 정확합니다.\n- 수술 여부는 약물치료 효과, 비염·축농증 동반 여부, 코막힘 정도 등을 보고 의료진이 판단합니다.\n- 정확한 비용은 진료 후 상담 또는 대표전화 02-6925-1111로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778205305468-oozejs"
+  },
+  {
+    "question": "주차 가능한가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "parking_info",
+    "expectedSource": "통합-FAQ / 홈페이지-셔틀버스 및 오시는길",
+    "expectedAnswerHint": "주차는 가능합니다. 문서 기준으로 환자 및 방문객은 주차권 또는 영수증 제출 시 무료주차가 가능하고, 무료 발렛파킹 서비스도 운영됩니다. 다만 입원 환자는 밤샘 주차가 불가능하며, 퇴원 시 운전이 어려울 수 있어 차량 이용이 권장되지 않습니다.\n- 외래 방문 주차 안내\n- 입원 환자 주차 안내\n- 주차장 높이 1.9m 이상 차량은 주차가 어려울 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778205198143-lswwlq"
+  },
+  {
+    "question": "1인실 비용 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "room_fee",
+    "expectedSource": "통합-FAQ / 기타-비급여비용",
+    "expectedAnswerHint": "비용 관련해서 안내드릴게요.\n\n병실 비용은 통합 FAQ 기준으로 1인실 350,000원, 2인실 대략 7~8만원, 4인실 대략 3만원으로 안내되어 있습니다. 1인실 당일퇴원 비용은 비급여비용 문서 기준 175,000원 항목도 확인됩니다.\n- 병실 배정과 실제 적용 금액은 입원 형태와 당일 병실 상황에 따라 달라질 수 있습니다.\n- 정확한 금액은 입원 상담 또는 대표전화 02-6925-1111로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778205165055-re2o5v"
+  },
+  {
+    "question": "입원 준비물 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "integrated_faq",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "입원 생활 관련해서 안내드릴게요.\n\n1인실의 경우 환자용 세면도구(치약, 칫솔, 비누, 수건, 티슈)를 제공해드립니다. 그 외 개인이 필요한 물품(개인컵, 화장품, 드라이기, 샴푸, 린스 등)은 지참하셔야 합니다. 2, 4인실의 경우 세면도구 및 개인 용품(티슈, 수건, 개인컵, 슬리퍼, 화장품, 드라이기, 샴푸, 린스 등)을 모두 챙겨오셔야 합니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778205105967-aw3t4h"
+  },
+  {
+    "question": "내일 토요일인데 진료 있어?",
+    "caseType": "admin_normal",
+    "expectedIntent": "clinic_hours_night_weekend",
+    "expectedSource": "홈페이지-외래진료안내 / 통합-FAQ",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n진료시간은 평일 오전 9시부터 오후 6시까지이며, 토요일은 오전 9시부터 오후 1시 30분까지입니다. 일요일과 공휴일은 휴진으로 안내되어 있고, 별도 야간진료는 문서에 안내되어 있지 않습니다.\n- 평일 접수 마감은 오후 5시 30분입니다.\n- 토요일 접수 마감은 오후 1시입니다.\n- 응급수술 등 진료 상황에 따라 접수가 조기 마감될 수 있어 내원 전 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778204347582-9ql8y3"
+  },
+  {
+    "question": "김종세 전문분야 뭐야",
+    "caseType": "admin_normal",
+    "expectedIntent": "named_doctor_profile",
+    "expectedSource": "홈페이지-의료진 정보 / 홈페이지-외래진료안내 / 외래-의료진 명단",
+    "expectedAnswerHint": "김종세 의료진 관련해서 안내드릴게요. 김종세 과장 이비인후과 전문의 진료과는 귀 센터입니다. 전문분야는 어지럼증, 이명, 내시경귀수술, 중이염수술, 난청, 돌발성난청, 메니에르병, 전이개누공, 보청기, 안면마비입니다. 요일별 진료시간은 오전: 월요일, 화요일, 수요일 / 오후: 월요일 / 토요일 진료 : 5/9, 5/23, 5/30 / 휴진 : 5/8(금)입니다.\n\n이명 관련 영상 보기: https://youtube.com/shorts/TihA3LVtWlU?feature=share\n- 토요일 진료와 휴진은 날짜별로 달라질 수 있어 진료일정표 이미지와 대표전화 02-6925-1111로 내원 전 확인해 주세요.\n- 자세한 경력이 궁금하시면 “의료진 이름 + 경력”으로 입력해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778204123355-p5wk8t"
+  },
+  {
+    "question": "병원 위치 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "hospital_location",
+    "expectedSource": "통합-FAQ / 홈페이지-셔틀버스 및 오시는길",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n하나이비인후과병원 주소는 서울특별시 강남구 역삼로 245입니다. 대중교통은 2호선 역삼역 1번 출구를 이용하시면 되고, 역삼역 1번 출구에서 병원 셔틀버스도 이용할 수 있습니다. 자동차로 오실 때는 내비게이션에 “서울특별시 강남구 역삼로 245” 또는 “하나이비인후과병원”을 입력하시면 됩니다.\n- 역삼역 1번 출구에서 도보 약 10분 거리로 안내되어 있습니다.\n- 버스는 동영문화센터, 개나리아파트, 신한은행 전산센터 정류장 하차 안내가 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778204102871-b12kvs"
+  },
+  {
+    "question": "서류발급방법 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "document_application",
+    "expectedSource": "통합-FAQ / 기타-비급여비용",
+    "expectedAnswerHint": "서류 신청과 발급은 가능합니다. 영수증은 팩스 발급이 가능하지만 진료비 세부내역서는 팩스 발급이 어렵고, 그 외 서류는 본인 확인이 필요해 신분증 지참 후 내원하는 것을 원칙으로 안내되어 있습니다.\n- 입퇴원 관련 제증명 서류는 입원 중 병동 간호사에게 미리 신청하거나 퇴원 후 외래에서 신청할 수 있습니다.\n- 서류 종류와 신청자 관계에 따라 필요 서류가 달라질 수 있어 내원 전 대표전화 02-6925-1111로 확인해 주세요.\n- 접수 가능 시간은 평일 오전 8시 30분부터 오후 5시 30분, 토요일 오전 8시 30분부터 오후 1시까지입니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778204050553-5cfh43"
+  },
+  {
+    "question": "오늘 청력검사할건데 비용이 얼마나 나올까",
+    "caseType": "admin_normal",
+    "expectedIntent": "exam_injection_fee_reference",
+    "expectedSource": "기타-검사 및 주사 금액",
+    "expectedAnswerHint": "문서 기준 참고용으로, 문의하신 내용과 가까운 검사 및 주사 항목의 대략적인 금액은 다음과 같습니다.\n- (비급여)장애진단서발급용 표준순음청력검사 (외래 기준): 대략 30.000원\n- 순음청력계기에의한검사-간별역치검사 (외래 기준): 대략 10.000원\n- 표준순음청력검사 (입원 기준): 대략 22.000원\n- 표준순음청력검사 (외래 기준): 대략 22.000원\n- (비급여)장애진단서발급용 어음청력검사 (외래 기준): 대략 30.000원\n- 기준 문서: 기타-검사 및 주사 금액.txt\n- 이 금액은 참고용 대략 금액이며, 실제 적용 금액은 급여/비급여 여부, 입원/외래 구분, 진료 상황에 따라 달라질 수 있습니다.\n- 정확한 금액은 원무과 또는 대표전화 02-6925-1111로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778203799460-v6txyp"
+  },
+  {
+    "question": "예약했는데 도착이 늦을것같아",
+    "caseType": "admin_normal",
+    "expectedIntent": "late_arrival",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "예약과 접수 관련해서 안내드릴게요.\n\n예약 후 늦을 것 같으면 먼저 대표전화 02-6925-1111로 연락해 주세요. 도착 예정 시간과 외래 대기 상황에 따라 방문 접수 또는 재예약으로 안내될 수 있습니다.\n- 1시간 이상 늦는 경우에는 먼저 전화로 확인하는 편이 안전합니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778202991989-he8c4g"
+  },
+  {
+    "question": "주차 가능해?",
+    "caseType": "admin_normal",
+    "expectedIntent": "parking_info",
+    "expectedSource": "통합-FAQ / 홈페이지-셔틀버스 및 오시는길",
+    "expectedAnswerHint": "주차는 가능합니다. 문서 기준으로 환자 및 방문객은 주차권 또는 영수증 제출 시 무료주차가 가능하고, 무료 발렛파킹 서비스도 운영됩니다. 다만 입원 환자는 밤샘 주차가 불가능하며, 퇴원 시 운전이 어려울 수 있어 차량 이용이 권장되지 않습니다.\n- 외래 방문 주차 안내\n- 입원 환자 주차 안내\n- 주차장 높이 1.9m 이상 차량은 주차가 어려울 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778202673195-37d8kp"
+  },
+  {
+    "question": "안녕",
+    "caseType": "admin_normal",
+    "expectedIntent": "smalltalk",
+    "expectedSource": "",
+    "expectedAnswerHint": "안녕하세요. 하나이비인후과병원 안내 상담봇입니다. 예약, 진료시간, 입원, 셔틀버스 같은 병원 안내를 도와드릴게요. 정확한 안내를 위해 한 번에 한 가지씩 질문해 주세요.\n- 진료시간 알려줘\n- 주차 가능한가요?\n- 입원 준비물 알려줘",
+    "adminNote": "",
+    "reviewedLogId": "log-1778202663459-j5e9nn"
+  },
+  {
+    "question": "셔틀버스 시간 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "shuttle_schedule",
+    "expectedSource": "기타-병원셔틀시간표 / 홈페이지-셔틀버스 및 오시는길",
+    "expectedAnswerHint": "셔틀버스는 역삼역 1번 출구 인근에서 이용할 수 있습니다. 평일은 오전 8시 55분부터 12시 25분까지, 오후 1시 40분부터 5시 40분까지 약 15분 간격으로 운행합니다. 토요일은 오전 8시 55분부터 12시 55분까지 약 30분 간격으로 운행합니다.\n- 당일 교통 상황이나 병원 사정에 따라 달라질 수 있어 내원 전 확인을 권장드립니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778202566794-0qhvj6"
+  },
+  {
+    "question": "주차 가능한가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "parking_info",
+    "expectedSource": "통합-FAQ / 홈페이지-셔틀버스 및 오시는길",
+    "expectedAnswerHint": "주차는 가능합니다. 문서 기준으로 환자 및 방문객은 주차권 또는 영수증 제출 시 무료주차가 가능하고, 무료 발렛파킹 서비스도 운영됩니다. 다만 입원 환자는 밤샘 주차가 불가능하며, 퇴원 시 운전이 어려울 수 있어 차량 이용이 권장되지 않습니다.\n- 외래 방문 주차 안내\n- 입원 환자 주차 안내\n- 주차장 높이 1.9m 이상 차량은 주차가 어려울 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778202534068-aqlj92"
+  },
+  {
+    "question": "입원 준비물 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "integrated_faq",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "입원 생활 관련해서 안내드릴게요.\n\n1인실의 경우 환자용 세면도구(치약, 칫솔, 비누, 수건, 티슈)를 제공해드립니다. 그 외 개인이 필요한 물품(개인컵, 화장품, 드라이기, 샴푸, 린스 등)은 지참하셔야 합니다. 2, 4인실의 경우 세면도구 및 개인 용품(티슈, 수건, 개인컵, 슬리퍼, 화장품, 드라이기, 샴푸, 린스 등)을 모두 챙겨오셔야 합니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778202501092-lz6vr4"
+  },
+  {
+    "question": "병원 위치 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "hospital_location",
+    "expectedSource": "통합-FAQ / 홈페이지-셔틀버스 및 오시는길",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n하나이비인후과병원 주소는 서울특별시 강남구 역삼로 245입니다. 대중교통은 2호선 역삼역 1번 출구를 이용하시면 되고, 역삼역 1번 출구에서 병원 셔틀버스도 이용할 수 있습니다. 자동차로 오실 때는 내비게이션에 “서울특별시 강남구 역삼로 245” 또는 “하나이비인후과병원”을 입력하시면 됩니다.\n- 역삼역 1번 출구에서 도보 약 10분 거리로 안내되어 있습니다.\n- 버스는 동영문화센터, 개나리아파트, 신한은행 전산센터 정류장 하차 안내가 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778202473869-u6s6s8"
+  },
+  {
+    "question": "진료시간 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "clinic_hours_night_weekend",
+    "expectedSource": "홈페이지-외래진료안내 / 통합-FAQ",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n진료시간은 평일 오전 9시부터 오후 6시까지이며, 토요일은 오전 9시부터 오후 1시 30분까지입니다. 일요일과 공휴일은 휴진으로 안내되어 있고, 별도 야간진료는 문서에 안내되어 있지 않습니다.\n- 평일 접수 마감은 오후 5시 30분입니다.\n- 토요일 접수 마감은 오후 1시입니다.\n- 응급수술 등 진료 상황에 따라 접수가 조기 마감될 수 있어 내원 전 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778202444993-43n421"
+  },
+  {
+    "question": "셔틀버스 시간 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "shuttle_schedule",
+    "expectedSource": "기타-병원셔틀시간표 / 홈페이지-셔틀버스 및 오시는길",
+    "expectedAnswerHint": "셔틀버스는 역삼역 1번 출구 인근에서 이용할 수 있습니다. 평일은 오전 8시 55분부터 12시 25분까지, 오후 1시 40분부터 5시 40분까지 약 15분 간격으로 운행합니다. 토요일은 오전 8시 55분부터 12시 55분까지 약 30분 간격으로 운행합니다.\n- 당일 교통 상황이나 병원 사정에 따라 달라질 수 있어 내원 전 확인을 권장드립니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778202430241-w8zb3v"
+  },
+  {
+    "question": "이상덕 경력",
+    "caseType": "admin_normal",
+    "expectedIntent": "doctor_career",
+    "expectedSource": "홈페이지-의료진 정보",
+    "expectedAnswerHint": "의료진 관련해서 안내드릴게요.\n\n이상덕 의료진의 전문분야는 부비동내시경수술, 코물혹, 코 막힘, 비중격만곡증, 알레르기 비염입니다. 주요 경력은 다음과 같습니다.\n\n- 고려대학교 의과대학 외래교수\n- 일본 독협의과대학 의학박사\n- 고려대학교 의과대학 졸업\n- 미국 뉴욕 컬럼비아대학병원 연수\n- 미국 펜실베니아대학 코 성형수술과정 연수\n- 오스트리아 그라츠대학 부비동 내시경수술과정 연수\n- (전)대한이비인후과학회 감사\n- (전)대한전문병원협의회장\n- 대한이비인후과 개원의협의회 총무이사 역임\n- 대한비과학회 보험이사 역임\n- 대한이비인후과학회 개원이사 역임\n- 대한비과학회 감사 역임\n- 대한병원협회 홍보·섭외 이사 역임\n- 대한이비인후과학회 서울지부 지부장 역임\n- 진료 일정은 외래 진료표와 당일 상황에 따라 달라질 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778201831460-h3g6ng"
+  },
+  {
+    "question": "남순열 원장",
+    "caseType": "admin_normal",
+    "expectedIntent": "faq",
+    "expectedSource": "FAQ",
+    "expectedAnswerHint": "의료진 관련해서 안내드릴게요.\n\n남순열 두경부 센터장은(는) 목 센터, 두경부 센터 진료를 담당합니다. 전문분야는 두경부질환, 음성질환, 목질환, 갑상선암, 후두암, 구강암, 침샘종양입니다. 오전은 월요일, 수요일, 금요일에 진료합니다. 오후는 수요일에 진료합니다.\n\n갑상선 관련 영상 보기: https://www.youtube.com/watch?v=kWyOA1AxJaQ\n- 토요일 진료 : 5/23\n- 응급 수술 등에 의해 진료시간이 변경될 수 있으니 예약 및 내원 시 확인바랍니다.\n- 응급 수술 등에 따라 진료시간이 변경될 수 있어 내원 전 확인이 필요합니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778201735412-4mwxez"
+  },
+  {
+    "question": "화장실 어디야",
+    "caseType": "admin_normal",
+    "expectedIntent": "eval_source_guided",
+    "expectedSource": "오시는 길",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n화장실은 1 층, 2 층, 3 층과 지하에 있습니다(지하 1 층은 남자화장실, 지하 2 층은 여자화장실).\n참고로 각 층 위치는 1 층(원무과·외래검사실·이비인후과 일부), 2 층(이비인후과·내과 진료실), 3 층(신경과·수면센터·주사실 등) 근처에 화장실이 있습니다.\n샤워시설은 병동 내에 별도 마련되어 있어 5 층(남자), 4 층(여자) 화장실 내 샤워실을 이용하실 수 있습니다.\n지금 계신 층을 알려주시면 가장 가까운 화장실 위치까지 자세히 안내해 드릴게요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778201532754-3gxbdk"
+  },
+  {
+    "question": "안녕하세요",
+    "caseType": "admin_normal",
+    "expectedIntent": "eval_source_guided",
+    "expectedSource": "목 질환 센터 / 의료진 소개 / 코 질환 센터",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n안녕하세요, 하나이비인후과병원입니다.\n무엇을 도와드릴까요?\n편도 관련 상담을 원하시면 수술 적응증(예: 1 년에 고열을 동반한 편도염 3 회 이상 등), 비용(성인 90 만원·소아 130 만원), 수술 절차와 회복기간 등에 대해 자세히 안내해 드릴 수 있습니다.\n원하시는 진료 과목이나 증상, 예약 여부를 알려주시면 구체적으로 도와드릴게요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778201498321-mxs9qd"
+  },
+  {
+    "question": "잠실역에서 어떻게가",
+    "caseType": "admin_normal",
+    "expectedIntent": "transit_route",
+    "expectedSource": "홈페이지-셔틀버스 및 오시는길",
+    "expectedAnswerHint": "대중교통으로 오실 때는 지하철로 역삼역까지 이동한 뒤, 역삼역 1번 출구에서 병원 방향으로 오시면 됩니다. 역삼역에서 병원까지는 도보 약 15분 정도로 안내됩니다.\n- 역삼역 1번 출구 인근에서 병원 셔틀버스도 이용할 수 있습니다.\n- 오시는 길과 약도는 https://hanaent.co.kr/info/info04.html 에서 확인하실 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778200858311-chcznk"
+  },
+  {
+    "question": "화장실 어디 있어?",
+    "caseType": "admin_normal",
+    "expectedIntent": "eval_source_guided",
+    "expectedSource": "자주 묻는 질문",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n1·2·3 층에 화장실이 있고, 지하 1 층은 남자화장실, 지하 2 층은 여자화장실입니다.\n층별로 보면 1 층(원무과·외래검사실 등), 2 층(이비인후과·내과 진료실 근처), 3 층(신경과·수면센터 근처)에 화장실이 위치해 있습니다.\n지금 계신 층을 알려주시면 가장 가까운 화장실까지 자세히 안내해 드릴게요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778200638797-i8u385"
+  },
+  {
+    "question": "수액치료가 뭐야?",
+    "caseType": "admin_normal",
+    "expectedIntent": "ai",
+    "expectedSource": "귀 질환 센터",
+    "expectedAnswerHint": "수액치료는 정맥에 주삿바늘(또는 수액카테터)을 꽂아 수액(물·전해질)이나 약물을 직접 주입해 탈수·전해질 불균형을 교정하거나 약을 전달하는 치료입니다.\n보통 간호사가 IV 를 삽입하고 수액주머니를 걸어 일정 시간 동안 천천히 주입하며, 투여 시간과 사용 약제는 치료 목적에 따라 달라집니다.\n병원 비급여 목록에는 DOCTORRAMIN INJ 250mL(수액전용) 항목이 67,000 원으로 기재되어 있으나(문서 기준), 실제 비용은 선택한 수액 종류·용량, 외래·입원 여부 및 추가 약물에 따라 달라 확인이 필요합니다.\n정확한 비용이나 가능한 수액 종류를 알려드리려면 진료 후 결정되므로 내원 상담이나 확인을 권합니다.\n\n비급여 안내 페이지: https://hanaent.co.kr/nonpay.html",
+    "adminNote": "",
+    "reviewedLogId": "log-1778197048433-gyth4l"
+  },
+  {
+    "question": "편도수술 얼마야",
+    "caseType": "admin_normal",
+    "expectedIntent": "eval_source_guided",
+    "expectedSource": "목 질환 센터",
+    "expectedAnswerHint": "수술 관련해서 안내드릴게요.\n\n성인 편도절제술은 90 만원, 소아는 130 만원이며(실비보험 적용 가능)입니다.\n수술시간은 약 20~30 분, 전신마취로 진행되며 보통 2 박 3 일 입원하고 회복기간은 약 2~3 주 정도입니다.\n수술은 1 년에 고열 동반 편도염이 3 회 이상 반복되거나 편도결석이 자주 생기고 불편할 때, 편도비대로 코골이나 수면무호흡증이 심할 때 고려합니다.\n실제 수술 여부와 정확한 비용 산정은 진찰과 검사 후 의료진이 결정하니 내원하셔서 상담 및 사전검사 받으시길 권합니다.\n\n편도결석 관련 영상 보기: https://www.youtube.com/watch?v=4TzVhd26SSI",
+    "adminNote": "",
+    "reviewedLogId": "log-1778196928430-2bfwua"
+  },
+  {
+    "question": "화장실 어디 있어?",
+    "caseType": "admin_normal",
+    "expectedIntent": "eval_source_guided",
+    "expectedSource": "자주 묻는 질문",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n1 층, 2 층, 3 층에 화장실이 있으며 지하 1 층은 남자화장실, 지하 2 층은 여자화장실입니다.\n각 층 위치는 1 층(원무과·외래검사실 등), 2 층(이비인후과·내과 진료실), 3 층(신경과·수면센터 등)에 있으며 방문하신 층에서 이용하시면 됩니다.\n지금 계신 위치를 알려주시면 가장 가까운 화장실로 안내해 드릴게요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778196803576-3xei06"
+  },
+  {
+    "question": "오시는길",
+    "caseType": "admin_normal",
+    "expectedIntent": "hospital_location",
+    "expectedSource": "통합-FAQ / 홈페이지-셔틀버스 및 오시는길",
+    "expectedAnswerHint": "문의하신 내용에 대해 안내드릴게요.\n\n하나이비인후과병원 주소는 서울특별시 강남구 역삼로 245입니다. 대중교통은 2호선 역삼역 1번 출구를 이용하시면 되고, 역삼역 1번 출구에서 병원 셔틀버스도 이용할 수 있습니다. 자동차로 오실 때는 내비게이션에 “서울특별시 강남구 역삼로 245” 또는 “하나이비인후과병원”을 입력하시면 됩니다.\n- 역삼역 1번 출구에서 도보 약 10분 거리로 안내되어 있습니다.\n- 버스는 동영문화센터, 개나리아파트, 신한은행 전산센터 정류장 하차 안내가 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778196638977-wz5shr"
+  },
+  {
+    "question": "진료기록 사본은 얼마야",
+    "caseType": "admin_normal",
+    "expectedIntent": "document_fee_overview",
+    "expectedSource": "기타-비급여비용 / 통합-FAQ",
+    "expectedAnswerHint": "서류 비용은 서류 종류에 따라 다릅니다. 병원 비급여 안내 기준으로 입퇴원확인서는 3,000원, 입퇴원확인서 재발행은 1,000원, 진료기록사본은 1,000원으로 안내되어 있습니다.\n- 원하시는 서류명이 정해져 있으면 해당 서류명으로 문의해 주시면 더 정확히 안내드릴 수 있습니다.\n- 서류 발급은 본인 확인이 필요할 수 있어 신분증을 지참해 주세요.\n- 대리 발급은 관계 확인 서류나 위임 서류가 필요할 수 있습니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778196617135-c9au2l"
+  },
+  {
+    "question": "실손24 가능해?",
+    "caseType": "admin_normal",
+    "expectedIntent": "insurance_claim",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "실손보험 청구는 실손24를 통해 보험사에 청구할 수 있습니다. 다만 실제 청구 가능 여부와 필요 서류는 가입하신 보험사 약관과 진료 내용에 따라 달라질 수 있습니다.\n- 진료비 영수증, 세부내역서, 진단서 등 필요한 서류는 보험사마다 다를 수 있습니다.\n- 서류 발급이 필요하면 원무과에 문의해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778196530426-d8zw12"
+  },
+  {
+    "question": "순음청력검사는 얼마야?",
+    "caseType": "admin_normal",
+    "expectedIntent": "exam_injection_fee_reference",
+    "expectedSource": "기타-검사 및 주사 금액",
+    "expectedAnswerHint": "문서 기준 참고용으로, 문의하신 내용과 가까운 검사 및 주사 항목의 대략적인 금액은 다음과 같습니다.\n- (비급여)장애진단서발급용 표준순음청력검사 (외래 기준): 대략 30.000원\n- 순음청력계기에의한검사-간별역치검사 (외래 기준): 대략 10.000원\n- 표준순음청력검사 (입원 기준): 대략 22.000원\n- 표준순음청력검사 (외래 기준): 대략 22.000원\n- (비급여)장애진단서발급용 어음청력검사 (외래 기준): 대략 30.000원\n- 기준 문서: 기타-검사 및 주사 금액.txt\n- 이 금액은 참고용 대략 금액이며, 실제 적용 금액은 급여/비급여 여부, 입원/외래 구분, 진료 상황에 따라 달라질 수 있습니다.\n- 정확한 금액은 원무과 또는 대표전화 02-6925-1111로 확인해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778196382211-c17s86"
+  },
+  {
     "question": "갑상선 의사 추천해줘",
     "caseType": "admin_normal",
     "expectedIntent": "center_doctor_recommendation",
