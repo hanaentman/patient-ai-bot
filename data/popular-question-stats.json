@@ -725,6 +725,26 @@
     "updatedAt": 1776383246672
   },
   {
+    "question": "예약하고 싶어",
+    "count": 2,
+    "updatedAt": 1778208648752
+  },
+  {
+    "question": "검사 결과지는 어디에서 발급받나요?",
+    "count": 2,
+    "updatedAt": 1778208648574
+  },
+  {
+    "question": "비중격 수술 비용 알려줘",
+    "count": 2,
+    "updatedAt": 1778208648408
+  },
+  {
+    "question": "비중격 수술하고나서 부작용있어?",
+    "count": 2,
+    "updatedAt": 1778208648163
+  },
+  {
     "question": "비중격만곡증 수술 비용 알려줘",
     "count": 2,
     "updatedAt": 1778196041843
@@ -978,25 +998,5 @@
     "question": "수술 알려줘",
     "count": 1,
     "updatedAt": 1777332292514
-  },
-  {
-    "question": "입원 환자 면회는 가능하나요?",
-    "count": 1,
-    "updatedAt": 1777256811293
-  },
-  {
-    "question": "코 검사 시 준비해야 될 사항이 있나요?",
-    "count": 1,
-    "updatedAt": 1777256782905
-  },
-  {
-    "question": "실손보험 되나요?",
-    "count": 1,
-    "updatedAt": 1777256038256
-  },
-  {
-    "question": "2가지 질환 각각 진료 가능한가요?",
-    "count": 1,
-    "updatedAt": 1777255902655
   }
 ]

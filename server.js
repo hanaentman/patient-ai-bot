@@ -2477,6 +2477,10 @@ function getConsultationTopicLabel(payload, question) {
     return '수술 관련해서';
   }
 
+  if (/document|receipt|certificate|서류|영수증/u.test(type) || /(결과지|서류|영수증|진료비|세부내역|증명서|진단서|소견서|발급)/u.test(text)) {
+    return '서류 발급 관련해서';
+  }
+
   if (/fee|cost|nonpay|payment|비용|금액|비급여|수납/u.test(type) || /(비용|금액|얼마|비급여|수납)/u.test(text)) {
     return '비용 관련해서';
   }
@@ -2487,10 +2491,6 @@ function getConsultationTopicLabel(payload, question) {
 
   if (/inpatient|admission|ward|입원|병동/u.test(type) || /(입원|병동|병실|보호자)/u.test(text)) {
     return '입원 생활 관련해서';
-  }
-
-  if (/document|receipt|certificate|서류|영수증/u.test(type) || /(서류|영수증|진료비|세부내역|증명서)/u.test(text)) {
-    return '서류 발급 관련해서';
   }
 
   if (/shuttle|parking|transport|셔틀|주차/u.test(type) || /(셔틀|주차|오시는 길|교통)/u.test(text)) {
@@ -2508,6 +2508,128 @@ function startsWithConsultationLead(answer) {
   const text = String(answer || '').trim();
   return /^(안내드릴게요|안내드립니다|.+관련해서\s+안내드릴게요|문의하신 내용에 대해\s+안내드릴게요)[.!?\n\s]/u.test(text)
     || /^.+관련해서\s+안내드릴게요[.!?]?$/u.test(text);
+}
+
+function buildIntentTopicMismatchGuardResponse(kind, originalPayload = {}) {
+  const originalSources = Array.isArray(originalPayload.sources) ? originalPayload.sources : [];
+
+  if (kind === 'surgery_complication') {
+    return {
+      type: 'intent_topic_mismatch_guard',
+      answer: '수술 후 부작용이나 합병증에 대한 문의로 보입니다. 일반 수술비, 수술시간, 입원기간 안내로 대신 답변드리면 질문 의도와 달라질 수 있어 해당 내용으로 안내하지 않겠습니다. 문서에서 구체적인 부작용 목록이 충분히 확인되지 않는 경우에는 수술을 받은 진료과나 대표전화 02-6925-1111로 확인해 주세요.',
+      followUp: [
+        '출혈, 심한 통증, 발열, 호흡 불편처럼 수술 후 이상 증상이 있으면 병원으로 바로 문의해 주세요.',
+        '수술명과 현재 증상을 한 문장으로 다시 남겨주시면 문서 기준으로 확인 가능한 범위부터 안내드릴게요.',
+      ],
+      sources: originalSources.length
+        ? originalSources
+        : [buildLocalDocSource('입원-수술 후 주의사항', '입원-수술 후 주의사항.txt')],
+    };
+  }
+
+  if (kind === 'document_issue') {
+    return {
+      type: 'intent_topic_mismatch_guard',
+      answer: '서류나 검사 결과지 발급에 대한 문의로 보입니다. 검사실 위치 안내로 답변드리면 질문 의도와 달라질 수 있어 발급 관련 내용으로 다시 확인하겠습니다. 검사 결과지, 진료기록, 영수증, 세부내역서 같은 서류는 원무과 발급 가능 여부와 필요 서류를 확인해 주세요.',
+      followUp: [
+        '필요한 서류명이 정해져 있으면 서류명을 함께 질문해 주세요.',
+        '방문 전 대표전화 02-6925-1111로 발급 가능 여부와 준비물을 확인해 주세요.',
+      ],
+      sources: [buildLocalDocSource('통합-FAQ', '통합-FAQ.txt'), buildLocalDocSource('기타-층별안내도', '기타-층별안내도.txt')],
+    };
+  }
+
+  if (kind === 'reservation') {
+    return {
+      type: 'intent_topic_mismatch_guard',
+      answer: '예약 방법에 대한 문의로 보입니다. 예약 후 접수 동선만 안내하면 질문 의도와 달라질 수 있어 예약 방법 중심으로 안내드릴게요. 예약은 전화 예약, 방문 예약, 홈페이지 예약 요청 방식으로 가능하며, 예약 변경이나 정확한 가능 시간은 대표전화 02-6925-1111로 확인해 주세요.',
+      followUp: [
+        '처음 방문 예약인지, 기존 예약 변경인지 알려주시면 그 기준으로 안내드릴게요.',
+        '홈페이지 예약 요청을 원하시면 병원 홈페이지에서 예약 관련 메뉴를 확인해 주세요.',
+      ],
+      sources: [buildLocalDocSource('홈페이지-외래진료안내', '홈페이지-외래진료안내.txt'), buildLocalDocSource('통합-FAQ', '통합-FAQ.txt')],
+    };
+  }
+
+  if (kind === 'cost') {
+    return {
+      type: 'intent_topic_mismatch_guard',
+      answer: '비용이나 금액에 대한 문의로 보입니다. 위치나 동선 안내로 답변드리면 질문 의도와 달라질 수 있어 비용 관련 근거를 먼저 확인해야 합니다. 항목명을 한 가지로 남겨주시면 문서 기준으로 확인 가능한 대략적인 금액을 안내드리겠습니다.',
+      followUp: [
+        '예: 후각검사 비용 알려줘',
+        '예: 수액치료 금액 알려줘',
+      ],
+      sources: originalSources,
+    };
+  }
+
+  return null;
+}
+
+function getIntentTopicMismatchKind(payload, question) {
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+
+  const type = String(payload.type || '');
+  if (!type || /^fallback_/u.test(type) || type === 'intent_topic_mismatch_guard') {
+    return null;
+  }
+
+  const questionText = String(question || '');
+  const answerText = String(payload.answer || '');
+  const combinedAnswerText = `${type}\n${answerText}`;
+
+  const asksSurgeryComplication = /(부작용|합병증|후유증|위험|문제\s*생|문제\s*있|안전|괜찮|출혈|피\s*나|피나|감염|천공)/u.test(questionText)
+    && /(수술|시술|비중격|비중격만곡증|비중격교정술|편도|축농증|부비동|비염)/u.test(questionText);
+  if (asksSurgeryComplication) {
+    const hasOnlyMinimizedSideEffectPhrase = /부작용\s*최소화/u.test(answerText)
+      && !/(합병증|후유증|출혈|피\s*나|피나|감염|천공|통증|발열|응급|이상\s*증상|발생할\s*수|나타날\s*수)/u.test(answerText);
+    const answerCoversComplication = !hasOnlyMinimizedSideEffectPhrase
+      && /(부작용|합병증|후유증|출혈|피\s*나|피나|감염|천공|통증|발열|응급|이상\s*증상|발생할\s*수|나타날\s*수)/u.test(answerText);
+    const looksLikeGeneralSurgeryAnswer = /septoplasty_info|homepage_surgery|surgery_info|tonsillectomy_info|수술비용|수술시간|입원기간|회복기간|마취방법/u.test(combinedAnswerText);
+    if (looksLikeGeneralSurgeryAnswer && !answerCoversComplication) {
+      return 'surgery_complication';
+    }
+  }
+
+  const asksDocumentIssue = /(결과지|검사\s*결과|진료\s*기록|기록지|서류|진단서|소견서|진료확인서|영수증|세부내역|발급|복사|사본)/u.test(questionText)
+    && /(발급|받|어디|위치|가능|복사|출력|떼|제출)/u.test(questionText);
+  if (asksDocumentIssue) {
+    const answerCoversDocumentIssue = /(원무과|서류|발급|진단서|소견서|영수증|세부내역|진료기록|결과지)/u.test(answerText);
+    const looksLikeExamLocationAnswer = /exam_location|floor_guide|room_location|검사\s*종류에\s*따라\s*위치|검사실은|CT|청력검사실/u.test(combinedAnswerText);
+    if (looksLikeExamLocationAnswer && !answerCoversDocumentIssue) {
+      return 'document_issue';
+    }
+  }
+
+  const asksReservation = /(예약|예약하고\s*싶|예약하려|예약\s*방법|예약\s*변경)/u.test(questionText);
+  if (asksReservation) {
+    const answerCoversReservation = /(전화\s*예약|방문\s*예약|홈페이지\s*예약|예약\s*변경|02-6925-1111)/u.test(answerText);
+    const looksLikeReceptionOnlyAnswer = /(접수\s*창구|키오스크|접수가능|접수\s*가능)/u.test(answerText);
+    if (looksLikeReceptionOnlyAnswer && !answerCoversReservation) {
+      return 'reservation';
+    }
+  }
+
+  const asksCost = /(비용|금액|가격|얼마|수가)/u.test(questionText);
+  if (asksCost) {
+    const answerCoversCost = /(원|만원|비용|금액|수가|비급여|대략적인\s*금액)/u.test(answerText);
+    const looksLikeLocationAnswer = /floor_guide|room_location|exam_location|어디|위치|몇\s*층|검사실|원무과/u.test(combinedAnswerText);
+    if (looksLikeLocationAnswer && !answerCoversCost) {
+      return 'cost';
+    }
+  }
+
+  return null;
+}
+
+function applyIntentTopicMismatchGuard(payload, question) {
+  const mismatchKind = getIntentTopicMismatchKind(payload, question);
+  if (!mismatchKind) {
+    return payload;
+  }
+  return buildIntentTopicMismatchGuardResponse(mismatchKind, payload) || payload;
 }
 
 function applyConsultationTone(payload, question) {
@@ -2532,7 +2654,8 @@ function enrichResponsePayload(payload, question) {
     return payload;
   }
 
-  const localizedPayload = repairChatPayloadFields(localizeFixedResponsePayload(payload, question));
+  const guardedPayload = applyIntentTopicMismatchGuard(payload, question);
+  const localizedPayload = repairChatPayloadFields(localizeFixedResponsePayload(guardedPayload, question));
   const consultationPayload = applyConsultationTone(localizedPayload, question);
   const images = Array.isArray(localizedPayload.images) && localizedPayload.images.length > 0
     ? localizedPayload.images
