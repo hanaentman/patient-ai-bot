@@ -802,6 +802,62 @@
         return buildAutoReviewDraft(item);
       }
 
+      function getAutoReviewFlag(item, reviewNote) {
+        const question = String(item.question || '').trim();
+        const answer = String(item.answerFull || item.answer || '').trim();
+        const type = String(item.type || '').trim();
+        const combined = `${question}\n${answer}\n${type}`;
+
+        if (!hasReviewNoteContent(reviewNote)) {
+          return '';
+        }
+
+        if (/^(fallback_|rate_limited|error|request_blocked|config_error)/u.test(type)
+          || /정확히\s*안내드리기\s*어렵|문서만으로는\s*확인|질문을\s*조금\s*더\s*구체/u.test(answer)) {
+          return 'needs_review';
+        }
+
+        if (/(복용약|복용\s*중|금지약|중단\s*약물)/u.test(question)
+          && !/(복용|약물|중단|의료진|확인)/u.test(answer)) {
+          return 'needs_review';
+        }
+
+        if (/(수술\s*후|수술후).{0,12}(피|출혈)/u.test(question)
+          && !/(출혈|피|병원|연락|즉시|응급)/u.test(answer)) {
+          return 'needs_review';
+        }
+
+        if (/(보청기)/u.test(question)
+          && /(appointment_arrival|reservation_or_reception|접수\s*데스크|예약\s*확인과\s*접수)/u.test(combined)
+          && !/(보청기상담실|청력검사|보청기\s*상담)/u.test(answer)) {
+          return 'needs_review';
+        }
+
+        if (/(청력검사실|난청\s*검사|청력\s*검사).{0,18}(층|어디|위치)/u.test(question)
+          && !/(지하\s*2층|층별|몇\s*층|위치)/u.test(answer)) {
+          return 'needs_review';
+        }
+
+        if (/(알레르기\s*주사).{0,18}(비용|금액|얼마)/u.test(question)
+          && /(피부반응검사|피부\s*반응\s*검사)/u.test(answer)
+          && !/(주사\s*항목|확인\s*필요|대표전화)/u.test(answer)) {
+          return 'needs_review';
+        }
+
+        if (/(후각|냄새).{0,18}(검사|저하|둔|안\s*남|못\s*맡)/u.test(question)
+          && /(MRI|엠알아이)/iu.test(answer)) {
+          return 'needs_review';
+        }
+
+        if (/(입원).{0,16}(몇\s*시|도착|내원|시간)/u.test(question)
+          && /(진료시간|접수\s*마감)/u.test(answer)
+          && !/(입원|병동|확인)/u.test(answer)) {
+          return 'needs_review';
+        }
+
+        return 'normal';
+      }
+
       function stringifyReviewNote(card) {
         return JSON.stringify({
           expectedIntent: card.querySelector('.expected-intent-input').value.trim(),
@@ -919,7 +975,9 @@
           const item = group.head;
           const savedReviewNote = parseReviewNote(item.note || '');
           const reviewNote = mergeReviewNoteWithAutoDraft(savedReviewNote, item);
-          const reviewStatus = getReviewDisplayStatus(item.flag || group.displayFlag || '', reviewNote);
+          const savedFlag = item.flag || group.displayFlag || '';
+          const displayFlag = savedFlag || getAutoReviewFlag(item, reviewNote);
+          const reviewStatus = getReviewDisplayStatus(displayFlag, reviewNote);
           return `
           <article class="card ${escapeHtml(reviewStatus.className)}" data-id="${escapeHtml(item.id)}" data-group-id="${escapeHtml(group.id)}">
             <div class="row">
@@ -949,10 +1007,10 @@
 
             <section class="review">
               <select class="flag-select">
-                <option value="" ${!item.flag ? 'selected' : ''}>미선택</option>
-                <option value="normal" ${item.flag === 'normal' ? 'selected' : ''}>정상</option>
-                <option value="needs_review" ${item.flag === 'needs_review' ? 'selected' : ''}>수정 필요</option>
-                <option value="important" ${item.flag === 'important' ? 'selected' : ''}>중요</option>
+                <option value="" ${!displayFlag ? 'selected' : ''}>미선택</option>
+                <option value="normal" ${displayFlag === 'normal' ? 'selected' : ''}>정상</option>
+                <option value="needs_review" ${displayFlag === 'needs_review' ? 'selected' : ''}>수정 필요</option>
+                <option value="important" ${displayFlag === 'important' ? 'selected' : ''}>중요</option>
               </select>
               <div class="review-fields">
                 <label>
