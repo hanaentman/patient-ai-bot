@@ -725,6 +725,26 @@
     "updatedAt": 1776383246672
   },
   {
+    "question": "보청기 상담은 예약하고 가야 하나요?",
+    "count": 2,
+    "updatedAt": 1778212651117
+  },
+  {
+    "question": "수술 후 피가 나면 어디로 연락해야 하나요?",
+    "count": 2,
+    "updatedAt": 1778212650929
+  },
+  {
+    "question": "난청 검사는 몇 층에서 진행되나요?",
+    "count": 2,
+    "updatedAt": 1778212650746
+  },
+  {
+    "question": "수술 예약 전에 복용약을 알려야 하나요?",
+    "count": 2,
+    "updatedAt": 1778212650372
+  },
+  {
     "question": "예약하고 싶어",
     "count": 2,
     "updatedAt": 1778208648752
@@ -978,25 +998,5 @@
     "question": "수술 후 코세척이에요",
     "count": 1,
     "updatedAt": 1777336943397
-  },
-  {
-    "question": "외래 주차 가능해?",
-    "count": 1,
-    "updatedAt": 1777336674953
-  },
-  {
-    "question": "입원할 때 뭐 챙겨가야 해?",
-    "count": 1,
-    "updatedAt": 1777335347894
-  },
-  {
-    "question": "아스피린 먹고 있는데 수술 괜찮아?",
-    "count": 1,
-    "updatedAt": 1777335347628
-  },
-  {
-    "question": "수술 알려줘",
-    "count": 1,
-    "updatedAt": 1777332292514
   }
 ]

@@ -2469,6 +2469,10 @@ function getConsultationTopicLabel(payload, question) {
     return '의료진 관련해서';
   }
 
+  if (/medication|medicine|약/u.test(type) || /(약|복용|중단|금지약)/u.test(text)) {
+    return '약 복용 안내 관련해서';
+  }
+
   if (/reservation|reception|예약|접수/u.test(type) || /(예약|접수)/u.test(text)) {
     return '예약과 접수 관련해서';
   }
@@ -2495,10 +2499,6 @@ function getConsultationTopicLabel(payload, question) {
 
   if (/shuttle|parking|transport|셔틀|주차/u.test(type) || /(셔틀|주차|오시는 길|교통)/u.test(text)) {
     return '내원 안내 관련해서';
-  }
-
-  if (/medication|medicine|약/u.test(type) || /(약|복용|중단|금지약)/u.test(text)) {
-    return '약 복용 안내 관련해서';
   }
 
   return '문의하신 내용에 대해';
@@ -6714,6 +6714,10 @@ function resolveMeaningIntentResponse(meaning, message, sessionId) {
       return buildReinitializedIntentResponse(intent, message);
     case 'hearing_test_process':
       return buildHearingTestProcessResponse(message);
+    case 'hearing_aid_consult':
+      return buildHearingAidConsultResponse(message);
+    case 'postop_bleeding':
+      return buildReinitializedIntentResponse('postop_bleeding', message);
     case 'sleep_apnea_exam':
       return buildSleepApneaExamResponse(message);
     case 'tonsillectomy_info':
@@ -6729,7 +6733,7 @@ function resolveMeaningIntentResponse(meaning, message, sessionId) {
     case 'ear_fullness_hearing_loss':
       return buildEarFullnessHearingLossResponse(message);
     case 'floor_guide':
-      return cleanIntentPayload(findFloorGuideResponse(message) || buildFloorByNumberResponse(message));
+      return cleanIntentPayload(buildFacilityLocationResponse(message) || findFloorGuideResponse(message) || buildFloorByNumberResponse(message));
     default:
       return null;
   }

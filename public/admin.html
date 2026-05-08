@@ -624,6 +624,184 @@
         }
       }
 
+      function sourceTitlesToText(item) {
+        return (item.sources || [])
+          .map((source) => source.title || source.url || '')
+          .filter(Boolean)
+          .join(', ');
+      }
+
+      function joinSources(...sources) {
+        return [...new Set(
+          sources
+            .flatMap((source) => String(source || '').split(/[,\n/|]+/))
+            .map((source) => source.trim())
+            .filter(Boolean)
+        )].join(', ');
+      }
+
+      function buildAutoReviewDraft(item) {
+        const question = String(item.question || '').trim();
+        const answer = String(item.answerFull || item.answer || '').trim();
+        const type = String(item.type || '').trim();
+        const sourceText = sourceTitlesToText(item);
+        const combined = `${question}\n${answer}\n${type}\n${sourceText}`;
+        const draft = {
+          expectedIntent: '',
+          expectedSource: sourceText,
+          expectedAnswerHint: '',
+          adminNote: '자동 초안입니다. 정상/수정필요 선택 전 내용을 확인해 주세요.',
+        };
+
+        const setDraft = (intent, source, hint) => ({
+          expectedIntent: intent,
+          expectedSource: joinSources(source, sourceText),
+          expectedAnswerHint: hint,
+          adminNote: draft.adminNote,
+        });
+
+        if (/(복용약|복용\s*중|먹는\s*약|금지약|중단\s*약물|아스피린|항응고|항혈소판)/u.test(combined)) {
+          return setDraft(
+            '수술 전 복용약 확인',
+            '입원전 복용중단 약물.txt, 홈페이지-입퇴원 안내.txt, 통합-FAQ.txt',
+            '복용 중인 약은 임의로 중단하지 말고 의료진에게 반드시 알리고, 중단 여부는 의료진 또는 대표전화 02-6925-1111로 확인하도록 안내'
+          );
+        }
+
+        if (/(수술\s*후|수술후|편도).{0,16}(피|출혈|피가|피나)/u.test(combined)) {
+          return setDraft(
+            '수술 후 출혈 문의',
+            '입원-수술 후 주의사항.txt, 통합-FAQ.txt',
+            '수술 후 출혈 문의이므로 수술 예약/결정 안내로 답하지 말고, 출혈이 지속되거나 양이 많으면 병원으로 즉시 문의하도록 안내'
+          );
+        }
+
+        if (/(보청기|청각\s*보조기)/u.test(combined)) {
+          return setDraft(
+            '보청기 상담',
+            '홈페이지-보청기.txt, 홈페이지-난청.txt, 기타-층별안내도.txt, 통합-FAQ.txt',
+            '보청기 상담 가능 여부와 청력검사 후 전문의 상담 필요성을 안내하고, 예약 또는 대표전화 02-6925-1111 확인을 권장'
+          );
+        }
+
+        if (/(청력검사실|난청\s*검사|청력\s*검사).{0,20}(층|어디|위치)/u.test(combined)) {
+          return setDraft(
+            '청력검사실 위치',
+            '기타-층별안내도.txt, 홈페이지-난청.txt',
+            '검사 종류 설명보다 층별안내도 기준 청력검사실 위치를 먼저 안내하고, 필요 시 청력검사 설명은 보조로 안내'
+          );
+        }
+
+        if (/(알레르기\s*주사|주사).{0,18}(비용|금액|얼마)/u.test(combined)) {
+          return setDraft(
+            '알레르기 주사 비용',
+            '기타-검사 및 주사 금액.txt, 기타-비급여비용.txt',
+            '알레르기 주사 비용을 물었으므로 알레르기 피부반응검사 비용으로 단정하지 말고, 문서에 해당 주사 항목이 없으면 항목 확인 필요와 대표전화 문의를 안내'
+          );
+        }
+
+        if (/(수액|영양\s*주사).{0,18}(비용|금액|얼마)/u.test(combined)) {
+          return setDraft(
+            '수액 또는 주사 비용',
+            '기타-검사 및 주사 금액.txt, 기타-비급여비용.txt',
+            '수액 또는 주사 항목의 대략적인 금액을 문서 기준으로 안내하고, 항목명이 불명확하면 정확한 항목 확인이 필요하다고 안내'
+          );
+        }
+
+        if (/(후각|냄새).{0,18}(검사|저하|둔|안\s*남|못\s*맡)/u.test(combined)) {
+          return setDraft(
+            '후각저하 검사',
+            '홈페이지-후각장애.txt, 기타-검사 및 주사 금액.txt',
+            '후각 저하 시 후각검사 중심으로 안내하고, 문서에 없는 MRI 장비나 불필요한 장비 안내는 제외'
+          );
+        }
+
+        if (/(검사\s*결과지|결과지|진료\s*기록|진료기록|사본|세부내역서|영수증|진료확인서|진단서|소견서|서류).{0,24}(발급|받|신청|어디|가능)/u.test(combined)) {
+          return setDraft(
+            '서류 발급',
+            '홈페이지-서류발급.txt, 통합-FAQ.txt',
+            '필요한 서류명 기준으로 원무과 발급 가능 여부, 본인 확인 또는 신분증 필요 여부, 팩스 가능 여부를 문서 기준으로 안내'
+          );
+        }
+
+        if (/(입원).{0,12}(준비물|챙|물품)/u.test(combined)) {
+          return setDraft(
+            '입원 준비물',
+            '입원-입원생활안내문.txt, 통합-FAQ.txt',
+            '입원 준비물은 병실 종류에 따라 다르므로 1인실과 다인실 준비물 차이를 안내'
+          );
+        }
+
+        if (/(입원).{0,16}(몇\s*시|도착|내원|시간)/u.test(combined)) {
+          return setDraft(
+            '입원 당일 내원 시간',
+            '홈페이지-입퇴원 안내.txt, 입원-입원생활안내문.txt, 통합-FAQ.txt',
+            '입원 당일 도착 시간을 물은 질문이므로 외래 진료시간만 안내하지 말고, 문서에 명확한 시간이 없으면 입원 안내 연락 또는 대표전화 02-6925-1111 확인을 안내'
+          );
+        }
+
+        if (/(퇴원).{0,16}(약|처방약|수령|받)/u.test(combined)) {
+          return setDraft(
+            '퇴원 약 수령',
+            '홈페이지-입퇴원 안내.txt, 입원-입원생활안내문.txt, 통합-FAQ.txt',
+            '퇴원 시 약 수령 위치를 물은 질문이다. 문서 근거가 부족하면 퇴원 수납 또는 병동 안내에 따라 확인하도록 안내'
+          );
+        }
+
+        if (/(예약).{0,18}(변경|취소|방법|하고\s*싶|하려|가능)/u.test(combined)) {
+          return setDraft(
+            '예약',
+            '홈페이지-외래진료안내.txt, 통합-FAQ.txt',
+            '예약 방법 또는 예약 변경 문의이므로 접수 동선만 안내하지 말고 전화 예약, 방문 예약, 홈페이지 예약 요청 및 대표전화 02-6925-1111 확인을 안내'
+          );
+        }
+
+        if (/(주차|주차장|발렛|주차비|주차권|주차\s*등록)/u.test(combined)) {
+          return setDraft(
+            '주차 안내',
+            '통합-FAQ.txt, 홈페이지-외래진료안내.txt',
+            '주차 가능 여부, 주차 등록 또는 무료 여부를 문서 기준으로 안내하고 부족하면 대표전화 확인을 안내'
+          );
+        }
+
+        if (/(셔틀|오시는\s*길|지하철|역삼역|주소|위치|걸어가)/u.test(combined)) {
+          return setDraft(
+            '오시는 길',
+            '홈페이지-셔틀버스 및 오시는길.txt, 통합-FAQ.txt',
+            '주소, 역삼역 1번 출구, 셔틀버스 이용 여부 등 내원 경로를 안내'
+          );
+        }
+
+        if (/(진료시간|접수\s*마감|토요일|주말|야간|공휴일)/u.test(combined)) {
+          return setDraft(
+            '진료시간',
+            '홈페이지-외래진료안내.txt, 통합-FAQ.txt',
+            '평일/토요일 진료시간과 접수 마감 시간을 문서 기준으로 안내'
+          );
+        }
+
+        if (/(코피|코막힘|콧물|후각|귀가\s*먹먹|이명|난청|어지럼|목소리|목\s*이물감|목에\s*멍울|수면무호흡|코골이)/u.test(combined)) {
+          return setDraft(
+            '증상 진료 안내',
+            joinSources('코증상.txt, 귀증상.txt, 목증상.txt, 수면증상.txt, 홈페이지-의료진 정보.txt', sourceText),
+            '증상에 대한 진단을 단정하지 말고 관련 센터 또는 진료 가능 여부, 내원/예약 권장, 응급 증상 시 즉시 문의 안내'
+          );
+        }
+
+        return setDraft(
+          type || '자동 분류 필요',
+          sourceText || '통합-FAQ.txt',
+          '질문 의도와 실제 답변이 맞는지 확인 후, 기대 답변 방향을 한 문장으로 정리해 주세요.'
+        );
+      }
+
+      function mergeReviewNoteWithAutoDraft(reviewNote, item) {
+        if (hasReviewNoteContent(reviewNote)) {
+          return reviewNote;
+        }
+        return buildAutoReviewDraft(item);
+      }
+
       function stringifyReviewNote(card) {
         return JSON.stringify({
           expectedIntent: card.querySelector('.expected-intent-input').value.trim(),
@@ -739,7 +917,8 @@
 
         logList.innerHTML = groupedItems.map((group) => {
           const item = group.head;
-          const reviewNote = parseReviewNote(item.note || '');
+          const savedReviewNote = parseReviewNote(item.note || '');
+          const reviewNote = mergeReviewNoteWithAutoDraft(savedReviewNote, item);
           const reviewStatus = getReviewDisplayStatus(item.flag || group.displayFlag || '', reviewNote);
           return `
           <article class="card ${escapeHtml(reviewStatus.className)}" data-id="${escapeHtml(item.id)}" data-group-id="${escapeHtml(group.id)}">
@@ -1037,6 +1216,7 @@
         qualityStopButton.disabled = true;
         qualityStatus.textContent = `완료: 성공 ${successCount}/${questions.length}개`;
         await loadLogs();
+        appendQualityLog('완료: 새 로그의 expectedIntent / expectedSource / expectedAnswerHint 초안을 화면에 자동 입력했습니다. 확인 후 정상 또는 수정필요를 선택하고 저장해 주세요.');
       }
 
       function resetToFirstPageAndLoad() {
