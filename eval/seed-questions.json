@@ -1,5 +1,311 @@
 [
   {
+    "question": "수면검사는 하루 입원이 필요한가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "sleep_apnea_exam",
+    "expectedSource": "통합-FAQ / 입원-수면검사 입원 안내",
+    "expectedAnswerHint": "자동 초안입니다. 정상/수정필요 선택 전 내용을 확인해 주세요.",
+    "adminNote": "자동 초안입니다. 정상/수정필요 선택 전 내용을 확인해 주세요.",
+    "reviewedLogId": "log-1778215456580-71jn93"
+  },
+  {
+    "question": "퇴원할 때 처방약은 어디서 받나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "퇴원 약 수령",
+    "expectedSource": "홈페이지-입퇴원 안내.txt, 입원-입원생활안내문.txt, 통합-FAQ.txt, 기타-층별안내도, 통합-FAQ",
+    "expectedAnswerHint": "퇴원 시 약 수령 위치를 물은 질문이다. 문서 근거가 부족하면 퇴원 수납 또는 병동 안내에 따라 확인하도록 안내",
+    "adminNote": "자동 초안입니다. 정상/수정필요 선택 전 내용을 확인해 주세요.",
+    "reviewedLogId": "log-1778213859565-j40cee"
+  },
+  {
+    "question": "수술 전 복용 중인 약은 어떻게 알려야 하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "수술 전 복용약 확인",
+    "expectedSource": "입원전 복용중단 약물.txt, 홈페이지-입퇴원 안내.txt, 통합-FAQ.txt, 통합-FAQ",
+    "expectedAnswerHint": "복용 중인 약은 임의로 중단하지 말고 의료진에게 반드시 알리고, 중단 여부는 의료진 또는 대표전화 02-6925-1111로 확인하도록 안내",
+    "adminNote": "자동 초안입니다. 정상/수정필요 선택 전 내용을 확인해 주세요.",
+    "reviewedLogId": "log-1778213843160-ys7ea7"
+  },
+  {
+    "question": "수면검사는 하루 입원이 필요한가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "증상 진료 안내",
+    "expectedSource": "코증상.txt, 귀증상.txt, 목증상.txt, 수면증상.txt, 홈페이지-의료진 정보.txt, 통합-FAQ, 입원-수면검사 입원 안내",
+    "expectedAnswerHint": "증상에 대한 진단을 단정하지 말고 관련 센터 또는 진료 가능 여부, 내원/예약 권장, 응급 증상 시 즉시 문의 안내",
+    "adminNote": "자동 초안입니다. 정상/수정필요 선택 전 내용을 확인해 주세요.",
+    "reviewedLogId": "log-1778213826342-nqzgsx"
+  },
+  {
+    "question": "목이 자주 쉬는데 어느 진료로 가야 하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "증상 진료 안내",
+    "expectedSource": "코증상.txt, 귀증상.txt, 목증상.txt, 수면증상.txt, 홈페이지-의료진 정보.txt, 목 증상, 외래-의료진 명단",
+    "expectedAnswerHint": "증상에 대한 진단을 단정하지 말고 관련 센터 또는 진료 가능 여부, 내원/예약 권장, 응급 증상 시 즉시 문의 안내",
+    "adminNote": "자동 초안입니다. 정상/수정필요 선택 전 내용을 확인해 주세요.",
+    "reviewedLogId": "log-1778213818147-275p66"
+  },
+  {
+    "question": "귀에서 삐 소리가 나면 어떤 진료를 받아야 하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "증상 진료 안내",
+    "expectedSource": "코증상.txt, 귀증상.txt, 목증상.txt, 수면증상.txt, 홈페이지-의료진 정보.txt, 홈페이지-이명, 홈페이지-외래진료안내, 통합-FAQ",
+    "expectedAnswerHint": "증상에 대한 진단을 단정하지 말고 관련 센터 또는 진료 가능 여부, 내원/예약 권장, 응급 증상 시 즉시 문의 안내",
+    "adminNote": "자동 초안입니다. 정상/수정필요 선택 전 내용을 확인해 주세요.",
+    "reviewedLogId": "log-1778213801555-f4mkub"
+  },
+  {
+    "question": "보청기 상담은 미리 예약해야 하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "보청기 상담",
+    "expectedSource": "홈페이지-보청기.txt, 홈페이지-난청.txt, 기타-층별안내도.txt, 통합-FAQ.txt, 홈페이지-보청기, 기타-층별안내도",
+    "expectedAnswerHint": "보청기 상담 가능 여부와 청력검사 후 전문의 상담 필요성을 안내하고, 예약 또는 대표전화 02-6925-1111 확인을 권장",
+    "adminNote": "자동 초안입니다. 정상/수정필요 선택 전 내용을 확인해 주세요.",
+    "reviewedLogId": "log-1778213793369-fgnmbl"
+  },
+  {
+    "question": "감염 예방을 위해 병동 면회가 제한되나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "visitor_policy",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "질문 의도와 실제 답변이 맞는지 확인 후, 기대 답변 방향을 한 문장으로 정리해 주세요.",
+    "adminNote": "자동 초안입니다. 정상/수정필요 선택 전 내용을 확인해 주세요.",
+    "reviewedLogId": "log-1778213785172-6prvss"
+  },
+  {
+    "question": "보험 적용 여부는 어디서 확인하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "integrated_faq",
+    "expectedSource": "통합-FAQ",
+    "expectedAnswerHint": "질문 의도와 실제 답변이 맞는지 확인 후, 기대 답변 방향을 한 문장으로 정리해 주세요.",
+    "adminNote": "자동 초안입니다. 정상/수정필요 선택 전 내용을 확인해 주세요.",
+    "reviewedLogId": "log-1778213768696-0tjr7t"
+  },
+  {
+    "question": "휠체어 이용자는 어디로 들어가면 되나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "accessibility_support",
+    "expectedSource": "통합-FAQ, 홈페이지-외래진료안내",
+    "expectedAnswerHint": "질문 의도와 실제 답변이 맞는지 확인 후, 기대 답변 방향을 한 문장으로 정리해 주세요.",
+    "adminNote": "자동 초안입니다. 정상/수정필요 선택 전 내용을 확인해 주세요.",
+    "reviewedLogId": "log-1778213743072-2bu1gn"
+  },
+  {
+    "question": "병원 안에 약국이 있나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "오시는 길",
+    "expectedSource": "홈페이지-셔틀버스 및 오시는길.txt, 통합-FAQ.txt, 자주 묻는 질문",
+    "expectedAnswerHint": "주소, 역삼역 1번 출구, 셔틀버스 이용 여부 등 내원 경로를 안내",
+    "adminNote": "자동 초안입니다. 정상/수정필요 선택 전 내용을 확인해 주세요.",
+    "reviewedLogId": "log-1778213734767-hx4he9"
+  },
+  {
+    "question": "알레르기 피부검사는 비용이 얼마인가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "알레르기 주사 비용",
+    "expectedSource": "기타-검사 및 주사 금액.txt, 기타-비급여비용.txt, 기타-검사 및 주사 금액",
+    "expectedAnswerHint": "알레르기 주사 비용을 물었으므로 알레르기 피부반응검사 비용으로 단정하지 말고, 문서에 해당 주사 항목이 없으면 항목 확인 필요와 대표전화 문의를 안내",
+    "adminNote": "자동 초안입니다. 정상/수정필요 선택 전 내용을 확인해 주세요.",
+    "reviewedLogId": "log-1778213667279-bob2zg"
+  },
+  {
+    "question": "수면다원검사 비용은 대략 얼마인가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "exam_injection_fee_reference",
+    "expectedSource": "기타-검사 및 주사 금액",
+    "expectedAnswerHint": "자동 초안입니다. 정상/수정필요 선택 전 내용을 확인해 주세요.",
+    "adminNote": "자동 초안입니다. 정상/수정필요 선택 전 내용을 확인해 주세요.",
+    "reviewedLogId": "log-1778213641182-z1ry4i"
+  },
+  {
+    "question": "병원 위치 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "주차 안내",
+    "expectedSource": "통합-FAQ.txt, 홈페이지-외래진료안내.txt, 오시는 길",
+    "expectedAnswerHint": "자동 초안입니다. 정상/수정필요 선택 전 내용을 확인해 주세요.",
+    "adminNote": "자동 초안입니다. 정상/수정필요 선택 전 내용을 확인해 주세요.",
+    "reviewedLogId": "log-1778213626583-gin8j1"
+  },
+  {
+    "question": "난청 검사는 몇 층에서 진행되나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "청력검사실 위치",
+    "expectedSource": "기타-층별안내도.txt, 홈페이지-난청.txt, 귀 질환 센터",
+    "expectedAnswerHint": "검사 종류 설명보다 층별안내도 기준 청력검사실 위치를 먼저 안내하고, 필요 시 청력검사 설명은 보조로 안내",
+    "adminNote": "자동 초안입니다. 정상/수정필요 선택 전 내용을 확인해 주세요.",
+    "reviewedLogId": "log-1778211464681-p10rn7"
+  },
+  {
+    "question": "진료비 세부내역서는 어떻게 받을 수 있나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "진료비 세부내역서 발급",
+    "expectedSource": "홈페이지-서류발급.txt, 통합-FAQ.txt",
+    "expectedAnswerHint": "진료비 세부내역서는 원무과에서 본인 확인 후 발급 가능, 팩스 발급 어려움 안내",
+    "adminNote": "",
+    "reviewedLogId": "log-1778210665205-3obdcl"
+  },
+  {
+    "question": "병원까지 지하철로 가는 길 알려주세요",
+    "caseType": "admin_normal",
+    "expectedIntent": "대중교통 오시는 길",
+    "expectedSource": "홈페이지-셔틀버스 및 오시는길.txt, 통합-FAQ.txt",
+    "expectedAnswerHint": "주소, 역삼역 1번 출구, 셔틀버스 이용 가능 안내",
+    "adminNote": "",
+    "reviewedLogId": "log-1778210657991-x8ao5z"
+  },
+  {
+    "question": "목소리가 쉬었을 때 어떤 진료를 받나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "쉰 목소리 진료 안내",
+    "expectedSource": "목증상.txt, 홈페이지-의료진 정보.txt, 홈페이지-목의 혹.txt",
+    "expectedAnswerHint": "쉰 목소리 지속 시 목질환 또는 음성질환 진료 안내",
+    "adminNote": "",
+    "reviewedLogId": "log-1778210636092-leuxmy"
+  },
+  {
+    "question": "퇴원 수속은 어느 창구에서 하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "퇴원 수속 창구",
+    "expectedSource": "통합-FAQ.txt, 홈페이지-입퇴원 안내.txt",
+    "expectedAnswerHint": "퇴원 수속은 1층 원무과 입원수속창구에서 진행한다고 안내",
+    "adminNote": "",
+    "reviewedLogId": "log-1778210621612-fnlb3i"
+  },
+  {
+    "question": "입원 전에 보호자가 챙겨야 할 게 있나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "입원 준비물",
+    "expectedSource": "입원-입원생활안내문.txt, 통합-FAQ.txt",
+    "expectedAnswerHint": "입원 준비물은 병실 종류에 따라 다르며 1인실과 다인실 준비물 차이를 안내",
+    "adminNote": "",
+    "reviewedLogId": "log-1778210614388-nfzndq"
+  },
+  {
+    "question": "코 안쪽을 확인하는 검사는 당일에 가능한가요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "코 내시경 당일 검사",
+    "expectedSource": "홈페이지-외래진료안내.txt, 통합-FAQ.txt",
+    "expectedAnswerHint": "코 내시경처럼 진료 중 확인 가능한 검사는 당일 가능할 수 있으나 검사 종류와 상황에 따라 달라질 수 있다고 안내",
+    "adminNote": "",
+    "reviewedLogId": "log-1778210607167-kyqluu"
+  },
+  {
+    "question": "귀가 먹먹할 때 바로 진료를 볼 수 있나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "귀 먹먹함 진료 안내",
+    "expectedSource": "귀증상.txt, 홈페이지-난청.txt, 통합-FAQ.txt",
+    "expectedAnswerHint": "귀 먹먹함, 이명, 난청 가능성을 안내하고 내원 및 청력검사 권장",
+    "adminNote": "",
+    "reviewedLogId": "log-1778210599922-svmpqy"
+  },
+  {
+    "question": "병원 셔틀은 어디서 타나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "오시는 길",
+    "expectedSource": "홈페이지-셔틀버스 및 오시는길.txt, 통합-FAQ.txt, 통합-FAQ",
+    "expectedAnswerHint": "주소, 역삼역 1번 출구, 셔틀버스 이용 여부 등 내원 경로를 안내",
+    "adminNote": "자동 초안입니다. 정상/수정필요 선택 전 내용을 확인해 주세요.",
+    "reviewedLogId": "log-1778209997342-pcafrt"
+  },
+  {
+    "question": "토요일에도 검사 받을 수 있나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "진료시간",
+    "expectedSource": "홈페이지-외래진료안내.txt, 통합-FAQ.txt, 홈페이지-외래진료안내, 통합-FAQ",
+    "expectedAnswerHint": "평일/토요일 진료시간과 접수 마감 시간을 문서 기준으로 안내",
+    "adminNote": "자동 초안입니다. 정상/수정필요 선택 전 내용을 확인해 주세요.",
+    "reviewedLogId": "log-1778209991623-w7jmmz"
+  },
+  {
+    "question": "진료 예약을 변경하려면 어떻게 해야 하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "예약",
+    "expectedSource": "홈페이지-외래진료안내.txt, 통합-FAQ.txt, 통합-FAQ",
+    "expectedAnswerHint": "예약 방법 또는 예약 변경 문의이므로 접수 동선만 안내하지 말고 전화 예약, 방문 예약, 홈페이지 예약 요청 및 대표전화 02-6925-1111 확인을 안내",
+    "adminNote": "자동 초안입니다. 정상/수정필요 선택 전 내용을 확인해 주세요.",
+    "reviewedLogId": "log-1778209985620-1ylfim"
+  },
+  {
+    "question": "코골이 상담은 어떤 검사부터 하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "snoring_care",
+    "expectedSource": "통합-FAQ / 외래-의료진 명단",
+    "expectedAnswerHint": "자동 초안입니다. 정상/수정필요 선택 전 내용을 확인해 주세요.",
+    "adminNote": "자동 초안입니다. 정상/수정필요 선택 전 내용을 확인해 주세요.",
+    "reviewedLogId": "log-1778209942959-lnu9lm"
+  },
+  {
+    "question": "목에 멍울이 만져지면 진료 가능해요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "증상 진료 안내",
+    "expectedSource": "코증상.txt, 귀증상.txt, 목증상.txt, 수면증상.txt, 홈페이지-의료진 정보.txt, 목 증상, 외래-의료진 명단",
+    "expectedAnswerHint": "증상에 대한 진단을 단정하지 말고 관련 센터 또는 진료 가능 여부, 내원/예약 권장, 응급 증상 시 즉시 문의 안내",
+    "adminNote": "자동 초안입니다. 정상/수정필요 선택 전 내용을 확인해 주세요.",
+    "reviewedLogId": "log-1778209931503-m2i5j8"
+  },
+  {
+    "question": "어지럼증 진료는 어느 분야에서 보나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "어지럼증 진료 분야",
+    "expectedSource": "홈페이지-어지러움증.txt, 귀증상.txt, 홈페이지-의료진 정보.txt",
+    "expectedAnswerHint": "어지럼증은 귀 질환 영역에서도 진료 가능하며 전정기능검사 등으로 확인 가능 안내",
+    "adminNote": "",
+    "reviewedLogId": "log-1778209822037-501kmv"
+  },
+  {
+    "question": "알레르기 검사는 어떤 방식으로 하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "알레르기 검사 방법",
+    "expectedSource": "홈페이지-알레르기비염.txt",
+    "expectedAnswerHint": "문진, 코내시경, 알레르기 피부반응검사, 비강통기도검사, X-ray 또는 CT 등 알레르기비염 검사 방법 안내",
+    "adminNote": "",
+    "reviewedLogId": "log-1778209819853-hvxyom"
+  },
+  {
+    "question": "진료확인서는 당일 바로 받을 수 있나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "진료확인서 당일 발급",
+    "expectedSource": "홈페이지-서류발급.txt, 통합-FAQ.txt",
+    "expectedAnswerHint": "진료확인서는 당일 발급 가능하며 신분증 지참 후 원무과 문의 안내",
+    "adminNote": "",
+    "reviewedLogId": "log-1778209818770-put089"
+  },
+  {
+    "question": "수술 전 검사는 며칠 전에 받아야 하나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "수술 전 검사 시기",
+    "expectedSource": "홈페이지-입퇴원 안내.txt, 통합-FAQ.txt",
+    "expectedAnswerHint": "수술 전 검사는 수술 전 건강상태 확인 목적이며 문서 기준 수술 1주일 전까지 받아야 한다고 안내",
+    "adminNote": "",
+    "reviewedLogId": "log-1778209787578-rf1xgf"
+  },
+  {
+    "question": "코피가 자주 나면 어느 센터로 가면 되나요?",
+    "caseType": "admin_normal",
+    "expectedIntent": "코 증상 센터 안내",
+    "expectedSource": "코증상.txt, 홈페이지-의료진 정보.txt, 통합-FAQ.txt",
+    "expectedAnswerHint": "코피는 코 질환 진료 상담 가능, 반복되면 진료 권장, 예약 후 내원 권장",
+    "adminNote": "",
+    "reviewedLogId": "log-1778209786484-j092o7"
+  },
+  {
+    "question": "예약하고 싶어",
+    "caseType": "admin_normal",
+    "expectedIntent": "reservation_or_reception",
+    "expectedSource": "통합-FAQ / 홈페이지-외래진료안내",
+    "expectedAnswerHint": "예약과 접수 관련해서 안내드릴게요.\n\n예약은 온라인 예약, 전화 예약, 방문 예약으로 가능합니다. 처음 내원하시는 경우에는 신분증을 지참하고 1층 접수 데스크에서 등록 후 진료실로 안내됩니다.\n- 예약 변경은 대표전화 02-6925-1111로 문의해 주세요.\n- 온라인 예약은 병원 홈페이지에서 요청 후 상담 확인 절차로 진행됩니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778209002353-eynefk"
+  },
+  {
+    "question": "비중격 수술하고나서 부작용있어?",
+    "caseType": "admin_normal",
+    "expectedIntent": "eval_source_guided",
+    "expectedSource": "코 질환 센터",
+    "expectedAnswerHint": "수술 관련해서 안내드릴게요.\n\n네.\n코 안쪽 벽 교정술 후에는 출혈, 일시적인 코막힘·콧물, 통증이나 코 주변 부종, 후각 변화 등 회복 과정에서 생길 수 있는 증상이 있을 수 있습니다.\n증상 대부분은 시간이 지나며 좋아지지만, 증상이 오래 지속되거나 악화되면 진료와 필요 검사(예: 코내시경 등)를 통해 원인 확인이 필요합니다.\n특히 출혈이 심하거나 멈추지 않는 경우에는 빠르게 병원에 문의하시거나 응급진료를 받으셔야 합니다.\n불편하시면 내원 예약이나 상담은 대표전화 02-6925-1111 로 문의해 주세요.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778208047604-xcbu6p"
+  },
+  {
     "question": "주말에도 수술가능해?",
     "caseType": "admin_normal",
     "expectedIntent": "clinic_hours_night_weekend",
@@ -1107,6 +1413,15 @@
     "reviewedLogId": "log-1778118153439-95c1fs"
   },
   {
+    "question": "예약방법 알려줘",
+    "caseType": "admin_normal",
+    "expectedIntent": "reservation_or_reception",
+    "expectedSource": "통합-FAQ / 홈페이지-외래진료안내",
+    "expectedAnswerHint": "예약과 접수 관련해서 안내드릴게요.\n\n예약은 온라인 예약, 전화 예약, 방문 예약으로 가능합니다. 처음 내원하시는 경우에는 신분증을 지참하고 1층 접수 데스크에서 등록 후 진료실로 안내됩니다.\n- 예약 변경은 대표전화 02-6925-1111로 문의해 주세요.\n- 온라인 예약은 병원 홈페이지에서 요청 후 상담 확인 절차로 진행됩니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778118133988-t7craw"
+  },
+  {
     "question": "예약하고 싶은데 어떻게 해야되",
     "caseType": "admin_normal",
     "expectedIntent": "integrated_faq",
@@ -1114,6 +1429,15 @@
     "expectedAnswerHint": "예약과 접수 관련해서 안내드릴게요.\n\n예약은 “ 방문 예약”, \" 온라인 예약\", \" 전화 예약\" 이 가능합니다. 온라인 예약은 본원 홈페이지에 접속하여 이용할 수 있으며, 전화 예약은 대표전화 [대표전화 02-6925-1111] 로 전화주신 후 0 번(상담원 연결) 을 눌러 상담원을 통하여 예약을 하시면 됩니다. 온라인 예약의 경우, 홈페이지를 통해 원하시는 날짜와 시간을 신청하시면 상담원이 예약 상황을 확인한 후 전화를 드려 예약을 확정합니다. 예약 후 본원에 내원 하실 경우 1 층 접수 데스크에서 예약 사항을 확인하고 내원 등록을 하신 후 해당 진료실에서 진료를 받으실 수 있습니다.",
     "adminNote": "",
     "reviewedLogId": "log-1778117639308-ok38v7"
+  },
+  {
+    "question": "예약방법",
+    "caseType": "admin_normal",
+    "expectedIntent": "reservation_or_reception",
+    "expectedSource": "통합-FAQ / 홈페이지-외래진료안내",
+    "expectedAnswerHint": "예약과 접수 관련해서 안내드릴게요.\n\n예약은 온라인 예약, 전화 예약, 방문 예약으로 가능합니다. 처음 내원하시는 경우에는 신분증을 지참하고 1층 접수 데스크에서 등록 후 진료실로 안내됩니다.\n- 예약 변경은 대표전화 02-6925-1111로 문의해 주세요.\n- 온라인 예약은 병원 홈페이지에서 요청 후 상담 확인 절차로 진행됩니다.",
+    "adminNote": "",
+    "reviewedLogId": "log-1778114243892-xsrujg"
   },
   {
     "question": "수면내시경검사에 대해 궁금해",
@@ -5020,113 +5344,5 @@
     "expectedAnswerHint": "단순한 이관기능장애에 의한 이충만감의 경우 쉽게 약물치료로 호전되지만, 실제로 청력이 떨어지는 경우에는 빠른 치료를 받지 못한 경우 영구적 난청이 남는 경우가 있어 내원해서 검사받으시기 바랍니다.",
     "adminNote": "",
     "reviewedLogId": "log-1777338416013-1p03cj"
-  },
-  {
-    "question": "코피가 자주 나면 어느 센터로 가면 되나요?",
-    "caseType": "admin_normal",
-    "expectedIntent": "코 증상 센터 안내",
-    "expectedSource": "코증상.txt, 홈페이지-의료진 정보.txt, 통합-FAQ.txt",
-    "expectedAnswerHint": "코피는 코 질환 진료 상담 가능, 반복되면 진료 권장, 예약 후 내원 권장",
-    "adminNote": "",
-    "reviewedLogId": "log-1778209786484-j092o7"
-  },
-  {
-    "question": "수술 전 검사는 며칠 전에 받아야 하나요?",
-    "caseType": "admin_normal",
-    "expectedIntent": "수술 전 검사 시기",
-    "expectedSource": "홈페이지-입퇴원 안내.txt, 통합-FAQ.txt",
-    "expectedAnswerHint": "수술 전 검사는 수술 전 건강상태 확인 목적이며 문서 기준 수술 1주일 전까지 받아야 한다고 안내",
-    "adminNote": "",
-    "reviewedLogId": "log-1778209787578-rf1xgf"
-  },
-  {
-    "question": "진료확인서는 당일 바로 받을 수 있나요?",
-    "caseType": "admin_normal",
-    "expectedIntent": "진료확인서 당일 발급",
-    "expectedSource": "홈페이지-서류발급.txt, 통합-FAQ.txt",
-    "expectedAnswerHint": "진료확인서는 당일 발급 가능하며 신분증 지참 후 원무과 문의 안내",
-    "adminNote": "",
-    "reviewedLogId": "log-1778209818770-put089"
-  },
-  {
-    "question": "알레르기 검사는 어떤 방식으로 하나요?",
-    "caseType": "admin_normal",
-    "expectedIntent": "알레르기 검사 방법",
-    "expectedSource": "홈페이지-알레르기비염.txt",
-    "expectedAnswerHint": "문진, 코내시경, 알레르기 피부반응검사, 비강통기도검사, X-ray 또는 CT 등 알레르기비염 검사 방법 안내",
-    "adminNote": "",
-    "reviewedLogId": "log-1778209819853-hvxyom"
-  },
-  {
-    "question": "어지럼증 진료는 어느 분야에서 보나요?",
-    "caseType": "admin_normal",
-    "expectedIntent": "어지럼증 진료 분야",
-    "expectedSource": "홈페이지-어지러움증.txt, 귀증상.txt, 홈페이지-의료진 정보.txt",
-    "expectedAnswerHint": "어지럼증은 귀 질환 영역에서도 진료 가능하며 전정기능검사 등으로 확인 가능 안내",
-    "adminNote": "",
-    "reviewedLogId": "log-1778209822037-501kmv"
-  },
-  {
-    "question": "귀가 먹먹할 때 바로 진료를 볼 수 있나요?",
-    "caseType": "admin_normal",
-    "expectedIntent": "귀 먹먹함 진료 안내",
-    "expectedSource": "귀증상.txt, 홈페이지-난청.txt, 통합-FAQ.txt",
-    "expectedAnswerHint": "귀 먹먹함, 이명, 난청 가능성을 안내하고 내원 및 청력검사 권장",
-    "adminNote": "",
-    "reviewedLogId": "log-1778210599922-svmpqy"
-  },
-  {
-    "question": "코 안쪽을 확인하는 검사는 당일에 가능한가요?",
-    "caseType": "admin_normal",
-    "expectedIntent": "코 내시경 당일 검사",
-    "expectedSource": "홈페이지-외래진료안내.txt, 통합-FAQ.txt",
-    "expectedAnswerHint": "코 내시경처럼 진료 중 확인 가능한 검사는 당일 가능할 수 있으나 검사 종류와 상황에 따라 달라질 수 있다고 안내",
-    "adminNote": "",
-    "reviewedLogId": "log-1778210607167-kyqluu"
-  },
-  {
-    "question": "입원 전에 보호자가 챙겨야 할 게 있나요?",
-    "caseType": "admin_normal",
-    "expectedIntent": "입원 준비물",
-    "expectedSource": "입원-입원생활안내문.txt, 통합-FAQ.txt",
-    "expectedAnswerHint": "입원 준비물은 병실 종류에 따라 다르며 1인실과 다인실 준비물 차이를 안내",
-    "adminNote": "",
-    "reviewedLogId": "log-1778210614388-nfzndq"
-  },
-  {
-    "question": "퇴원 수속은 어느 창구에서 하나요?",
-    "caseType": "admin_normal",
-    "expectedIntent": "퇴원 수속 창구",
-    "expectedSource": "통합-FAQ.txt, 홈페이지-입퇴원 안내.txt",
-    "expectedAnswerHint": "퇴원 수속은 1층 원무과 입원수속창구에서 진행한다고 안내",
-    "adminNote": "",
-    "reviewedLogId": "log-1778210621612-fnlb3i"
-  },
-  {
-    "question": "목소리가 쉬었을 때 어떤 진료를 받나요?",
-    "caseType": "admin_normal",
-    "expectedIntent": "쉰 목소리 진료 안내",
-    "expectedSource": "목증상.txt, 홈페이지-의료진 정보.txt, 홈페이지-목의 혹.txt",
-    "expectedAnswerHint": "쉰 목소리 지속 시 목질환 또는 음성질환 진료 안내",
-    "adminNote": "",
-    "reviewedLogId": "log-1778210636092-leuxmy"
-  },
-  {
-    "question": "병원까지 지하철로 가는 길 알려주세요",
-    "caseType": "admin_normal",
-    "expectedIntent": "대중교통 오시는 길",
-    "expectedSource": "홈페이지-셔틀버스 및 오시는길.txt, 통합-FAQ.txt",
-    "expectedAnswerHint": "주소, 역삼역 1번 출구, 셔틀버스 이용 가능 안내",
-    "adminNote": "",
-    "reviewedLogId": "log-1778210657991-x8ao5z"
-  },
-  {
-    "question": "진료비 세부내역서는 어떻게 받을 수 있나요?",
-    "caseType": "admin_normal",
-    "expectedIntent": "진료비 세부내역서 발급",
-    "expectedSource": "홈페이지-서류발급.txt, 통합-FAQ.txt",
-    "expectedAnswerHint": "진료비 세부내역서는 원무과에서 본인 확인 후 발급 가능, 팩스 발급 어려움 안내",
-    "adminNote": "",
-    "reviewedLogId": "log-1778210665205-3obdcl"
   }
 ]
