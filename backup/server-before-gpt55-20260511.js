@@ -11,12 +11,7 @@ const { createSemanticSearchService } = require('./lib/semantic-search');
 const PORT = process.env.PORT || 3000;
 const IS_RENDER = Boolean(process.env.RENDER || process.env.RENDER_SERVICE_ID);
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
-const CONFIGURED_OPENAI_MODEL = String(process.env.OPENAI_MODEL || '').trim();
-const OPENAI_MODEL = !CONFIGURED_OPENAI_MODEL || CONFIGURED_OPENAI_MODEL === 'gpt-5-mini'
-  ? 'gpt-5.5'
-  : CONFIGURED_OPENAI_MODEL;
-const OPENAI_REASONING_EFFORT = process.env.OPENAI_REASONING_EFFORT || 'low';
-const OPENAI_TEXT_VERBOSITY = process.env.OPENAI_TEXT_VERBOSITY || 'low';
+const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-5-mini';
 const PERSISTENT_DATA_DIR = process.env.PERSISTENT_DATA_DIR
   ? path.resolve(process.env.PERSISTENT_DATA_DIR)
   : path.join(__dirname, 'data');
@@ -79,25 +74,6 @@ const imageGuides = fs.existsSync(IMAGE_GUIDES_PATH)
 const sessions = new Map();
 const conversationStates = new Map();
 const allowedHostnames = ['www.hanaent.co.kr', 'hanaent.co.kr'];
-function buildOpenAIRequestBody(payload, options = {}) {
-  const reasoningEffort = options.reasoningEffort || OPENAI_REASONING_EFFORT;
-  const textVerbosity = options.textVerbosity || OPENAI_TEXT_VERBOSITY;
-  const body = {
-    model: OPENAI_MODEL,
-    ...payload,
-  };
-
-  if (reasoningEffort) {
-    body.reasoning = { effort: reasoningEffort };
-  }
-
-  if (textVerbosity) {
-    body.text = { verbosity: textVerbosity };
-  }
-
-  return body;
-}
-
 const LOCAL_FAQ_URL = (
   siteSources.find((source) => source.type === 'official' && /faq|info06/i.test(source.url))
   || siteSources.find((source) => source.type === 'official' && /faq/i.test(source.title || ''))
@@ -10435,7 +10411,8 @@ async function buildKoreanRetrievalQuery(question, history = []) {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${OPENAI_API_KEY}`,
       },
-      body: JSON.stringify(buildOpenAIRequestBody({
+      body: JSON.stringify({
+        model: OPENAI_MODEL,
         instructions: [
           'Convert the user question into a short Korean retrieval query for matching Korean hospital FAQ and documents.',
           'Return only one concise Korean query.',
@@ -10449,7 +10426,7 @@ async function buildKoreanRetrievalQuery(question, history = []) {
             `English question: ${value}`,
           ].filter(Boolean).join('\n\n'),
         }],
-      }, { reasoningEffort: 'minimal', textVerbosity: 'low' })),
+      }),
     });
 
     if (!response.ok) {
@@ -10501,7 +10478,8 @@ async function legacyCallOpenAIStrict(question, history, contextDocs) {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${OPENAI_API_KEY}`,
       },
-      body: JSON.stringify(buildOpenAIRequestBody({
+      body: JSON.stringify({
+        model: OPENAI_MODEL,
         instructions: [
         '당신은 하나이비인후과병원 환자 안내 AI입니다.',
         '병원 공식 홈페이지와 FAQ 문서에 있는 내용만 근거로 자연스럽고 간결하게 답하세요.',
@@ -10511,7 +10489,7 @@ async function legacyCallOpenAIStrict(question, history, contextDocs) {
         '답변은 3~5문장으로 하고 필요한 경우 마지막 문장에 대표전화 02-6925-1111을 안내하세요.',
       ].join(' '),
         input,
-      })),
+      }),
     });
   } finally {
     clearTimeout(timeout);
@@ -10771,7 +10749,8 @@ async function callOpenAI(question, history, contextDocs) {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${OPENAI_API_KEY}`,
       },
-      body: JSON.stringify(buildOpenAIRequestBody({
+      body: JSON.stringify({
+        model: OPENAI_MODEL,
         instructions: [
           '당신은 하나이비인후과병원 안내 상담 도우미입니다.',
           '답변은 챗봇 템플릿보다 실제 상담원에 가깝게, 친절하고 자연스럽게 작성하세요.',
@@ -10789,7 +10768,7 @@ async function callOpenAI(question, history, contextDocs) {
           '대표전화 02-6925-1111 안내는 확인이 필요한 경우에만 붙이세요.',
         ].join(' '),
         input,
-      })),
+      }),
     });
   } finally {
     clearTimeout(timeout);
@@ -10852,7 +10831,8 @@ async function validateAIAnswer(question, answer, contextDocs) {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${OPENAI_API_KEY}`,
       },
-      body: JSON.stringify(buildOpenAIRequestBody({
+      body: JSON.stringify({
+        model: OPENAI_MODEL,
         instructions: [
           'You are validating a hospital chatbot answer.',
           'Check only two things: whether the answer matches the user intent, and whether the answer is supported by the provided documents.',
@@ -10871,7 +10851,7 @@ async function validateAIAnswer(question, answer, contextDocs) {
             docSummaries,
           ].join('\n'),
         }],
-      }, { reasoningEffort: 'minimal', textVerbosity: 'low' })),
+      }),
     });
 
     if (!response.ok) {
@@ -12213,8 +12193,6 @@ const server = http.createServer((req, res) => {
       ok: true,
       aiEnabled: Boolean(OPENAI_API_KEY),
       model: OPENAI_MODEL,
-      reasoningEffort: OPENAI_REASONING_EFFORT,
-      textVerbosity: OPENAI_TEXT_VERBOSITY,
       timestamp: new Date().toISOString(),
     });
     return;
@@ -12261,7 +12239,7 @@ server.on('error', (error) => {
 
 server.listen(PORT, () => {
   console.log(`Patient AI bot server running at http://localhost:${PORT}`);
-  console.log(`AI enabled: ${OPENAI_API_KEY ? 'yes' : 'no'} (${OPENAI_MODEL}, reasoning=${OPENAI_REASONING_EFFORT}, verbosity=${OPENAI_TEXT_VERBOSITY})`);
+  console.log(`AI enabled: ${OPENAI_API_KEY ? 'yes' : 'no'} (${OPENAI_MODEL})`);
   console.log(`Persistent data directory: ${PERSISTENT_DATA_DIR}`);
   watchDocsDirectory();
   warmupKnowledgeDocuments();
